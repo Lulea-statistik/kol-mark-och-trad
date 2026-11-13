@@ -7,6 +7,7 @@
 <header><h1>Kolförråd i mark och träd</h1><p>Luleå kommun · endast ytan inom kommungränsen</p></header>
 <nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="statistics.html" aria-current="page">Diagram och tabeller</a></nav>
 <main>
+<section><h2>SLU – beskrivande statistik för rastervärden i Luleå</h2><p>Här visas faktiska råvärden samplade från SLU:s markkolskartor till det reprojicerade förhandsgridet. <strong>Råvärdenas fysiska enhet är inte verifierad.</strong> De är därför inte ton kol, och pixlarna är inte oberoende provpunkter eller ursprungliga 10-metersceller.</p><p id="previewStatisticsStatus" role="status">Laddar rasterstatistik…</p><div class="table-scroll"><table><thead><tr><th>SLU-lager</th><th>Giltiga pixlar i förhandsgrid</th><th>NoData inom kommunen</th><th>Min råvärde</th><th>Median råvärde</th><th>Medel råvärde</th><th>Max råvärde</th></tr></thead><tbody id="previewStatisticsTable"></tbody></table></div><h3>Fördelning av samplade råvärden</h3><div class="chart-wrap"><canvas id="rawHistogram" aria-label="Histogram över råvärden i valt SLU-lager"></canvas></div><label for="rawHistogramLayer">Välj lager för histogrammet</label> <select id="rawHistogramLayer"><option value="soil">Markkol (SOC)</option><option value="soil_all">Totalt markförråd (Stock_All)</option></select><p class="hint">Histogrammet bygger på giltiga pixlar i den generaliserade förhandsbilden inom Luleås arbetsgräns. Det är inte en ytintegrerad kolförrådsberäkning. Lagren har egna råvärdesskalor och ska inte adderas.</p></section>
 <section><h2>Sammanställning av kolförråd</h2>
 <p>Tabellen och diagrammen redovisar endast giltiga rasterceller som ligger inom Luleå kommuns geometri. Inga värden från angränsande kommuner ingår. För skogsbiomassa kan mindre geografisk täckning vara förväntad eftersom kartan beskriver skog, inte all mark. Inga saknade rasterceller antas vara noll.</p>
 <p id="statsStatus" role="status">Läser tillgängliga lager…</p>
@@ -26,4 +27,4 @@
 <p><strong>Saknade data:</strong> tomma värden betyder att data saknas eller att källan ännu inte har bearbetats, inte att förrådet är noll. Vid ofullständig rastertäckning redovisas kolförrådet för de giltiga rastercellerna inom kommunen och deras täckta areal; exempelvis skogsbiomassa omfattar normalt inte hela kommunytan.</p></section>
 </main>
 <footer>Enbart Luleå kommuns geografiska avgränsning. Alla statistiska resultat kräver verifierade rasterunderlag.</footer>
-<script src="statistics.js"></script></body></html>
+<script src="statistics.js"></script><script src="raw-statistics.js"></script></body></html>
