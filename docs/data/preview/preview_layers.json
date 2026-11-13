@@ -34,6 +34,7 @@
       "raw_pixel_q98": 200634.0,
       "raw_pixel_median": 43985.0,
       "raw_pixel_mean": 52329.95647407065,
+      "raw_pixel_sum": 32122272812.0,
       "raw_pixel_min": 0.0,
       "raw_pixel_max": 415244.0,
       "raw_pixel_histogram": {
@@ -106,6 +107,7 @@
       "raw_pixel_q98": 202497.0,
       "raw_pixel_median": 66859.0,
       "raw_pixel_mean": 66413.38728107116,
+      "raw_pixel_sum": 40767260062.0,
       "raw_pixel_min": 0.0,
       "raw_pixel_max": 415259.0,
       "raw_pixel_histogram": {

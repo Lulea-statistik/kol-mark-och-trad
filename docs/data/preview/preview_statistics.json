@@ -15,6 +15,7 @@
       "p02_raw": 0.0,
       "median_raw": 43985.0,
       "mean_raw": 52329.95647407065,
+      "sum_raw": 32122272812.0,
       "p98_raw": 200634.0,
       "histogram": {
         "edges": [
@@ -62,6 +63,7 @@
       "p02_raw": 0.0,
       "median_raw": 66859.0,
       "mean_raw": 66413.38728107116,
+      "sum_raw": 40767260062.0,
       "p98_raw": 202497.0,
       "histogram": {
         "edges": [
