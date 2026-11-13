@@ -3,6 +3,60 @@
   "physical_units_verified": false,
   "scope": "Luleå working municipality geometry; grid pixels are not source 10-m cells",
   "layers": {
+    "biomass": {
+      "source": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif",
+      "raster_grid_width": 1101,
+      "raster_grid_height": 1800,
+      "valid_preview_pixels": 595720,
+      "municipal_preview_pixels": 867050,
+      "null_inside_pixels": 271330,
+      "min_raw": 0.0,
+      "max_raw": 1125.0,
+      "p02_raw": 0.0,
+      "median_raw": 14.0,
+      "mean_raw": 37.95975961861277,
+      "sum_raw": 22613388.0,
+      "p98_raw": 177.0,
+      "histogram": {
+        "edges": [
+          0.0,
+          93.75,
+          187.5,
+          281.25,
+          375.0,
+          468.75,
+          562.5,
+          656.25,
+          750.0,
+          843.75,
+          937.5,
+          1031.25,
+          1125.0
+        ],
+        "counts": [
+          505106,
+          81975,
+          8402,
+          221,
+          6,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0,
+          4
+        ]
+      },
+      "source_crs": "PROJCS[\"SWEREF99 TM\",GEOGCS[\"SWEREF99\",DATUM[\"SWEREF99\",SPHEROID[\"GRS 1980\",6378137,298.257222101004,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6619\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4619\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"3006\"]]",
+      "product_family": "SLU/Skogsstyrelsen Skogliga grunddata SGD2",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel"
+    },
     "soil": {
       "source": "https://gis.slu.se/data/carbon/2023/Stock_SOC_2023_Lan/SOC_2023_Norrbottens.tif",
       "raster_grid_width": 1101,
@@ -49,6 +103,12 @@
         ]
       },
       "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
       "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel"
     },
     "soil_all": {
@@ -97,6 +157,12 @@
         ]
       },
       "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
       "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel"
     }
   }

@@ -1,6 +1,87 @@
 {
   "kind": "unverified_units_visual_preview",
   "layers": {
+    "biomass": {
+      "image": "data/preview/biomass_preview.png",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "source": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif",
+      "source_crs": "PROJCS[\"SWEREF99 TM\",GEOGCS[\"SWEREF99\",DATUM[\"SWEREF99\",SPHEROID[\"GRS 1980\",6378137,298.257222101004,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6619\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4619\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"3006\"]]",
+      "product_family": "SLU/Skogsstyrelsen Skogliga grunddata SGD2",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "source_band_scale": 1.0,
+      "source_band_offset": 0.0,
+      "display_crs": "EPSG:3857",
+      "valid_preview_pixels": 595720,
+      "value_scale": "Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
+      "numeric_file": "data/preview/biomass_sampled_values.f32.gz",
+      "raster_grid_width": 1101,
+      "raster_grid_height": 1800,
+      "raster_grid_crs": "EPSG:3857",
+      "raster_grid_bounds_m": [
+        2375081.44210024,
+        9626742.588450905,
+        2575748.4633057658,
+        9954811.75800121
+      ],
+      "raster_grid_nodata": -9999,
+      "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel",
+      "raw_pixel_q02": 0.0,
+      "raw_pixel_q98": 177.0,
+      "raw_pixel_median": 14.0,
+      "raw_pixel_mean": 37.95975961861277,
+      "raw_pixel_sum": 22613388.0,
+      "raw_pixel_min": 0.0,
+      "raw_pixel_max": 1125.0,
+      "raw_pixel_histogram": {
+        "edges": [
+          0.0,
+          93.75,
+          187.5,
+          281.25,
+          375.0,
+          468.75,
+          562.5,
+          656.25,
+          750.0,
+          843.75,
+          937.5,
+          1031.25,
+          1125.0
+        ],
+        "counts": [
+          505106,
+          81975,
+          8402,
+          221,
+          6,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0,
+          4
+        ]
+      },
+      "null_inside_pixels": 271330,
+      "municipal_preview_pixels": 867050,
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false
+    },
     "soil": {
       "image": "data/preview/soil_preview.png",
       "bounds": [
@@ -15,6 +96,14 @@
       ],
       "source": "https://gis.slu.se/data/carbon/2023/Stock_SOC_2023_Lan/SOC_2023_Norrbottens.tif",
       "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "source_band_scale": 1.0,
+      "source_band_offset": 0.0,
       "display_crs": "EPSG:3857",
       "valid_preview_pixels": 613841,
       "value_scale": "Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
@@ -88,6 +177,14 @@
       ],
       "source": "https://gis.slu.se/data/carbon/2023/Stock_All_2023_Lan/Stock_All_2023_Norrbottens.tif",
       "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "source_band_scale": 1.0,
+      "source_band_offset": 0.0,
       "display_crs": "EPSG:3857",
       "valid_preview_pixels": 613841,
       "value_scale": "Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
