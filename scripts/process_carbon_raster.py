@@ -99,6 +99,8 @@ def main():
         vals[source_valid]=convert(values[source_valid],args.units,args.tonnes_dry_per_m3sk)
         source_crs=str(src.crs)
     # Carbon mass: use a metric EPSG:3006 grid, not latitude/longitude degrees.
+    # Source maps with forest coverage naturally leave non-forest cells as NODATA;
+    # never infer missing = zero or extrapolate the covered-cell sum to all land.
     area_values,area_tf=warp_grid(vals,tf,source_crs,'EPSG:3006')
     area_valid=np.isfinite(area_values)&(area_values!=INVALID)&(area_values>=0)
     # Warp produces a rectangular bounding box: mask the actual municipal polygon
@@ -132,10 +134,11 @@ def main():
         'bounds':[[south,west],[north,east]],
         'units':'ton C/ha (modellerad koltäthet)',
         'total_tonnes_C':round(total,1),
-        'total_scope':'covered_pixels_only' if coverage_pct<99.5 else 'municipality',
+        'total_scope':'observed_coverage_within_municipality',
         'covered_hectares':round(covered_hectares,2),
         'municipality_hectares':round(municipality_hectares,2),
         'coverage_pct_of_municipality':coverage_pct,
+        'spatial_scope':'Luleå kommun – endast giltiga rasterceller inom kommunpolygonen',
         'source':args.source,'source_year':args.source_year,'source_crs':source_crs,
         'map_crs':'EPSG:3857','aggregation_crs':'EPSG:3006',
         'input_units':args.units,
