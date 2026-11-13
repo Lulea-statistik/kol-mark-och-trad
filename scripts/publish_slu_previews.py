@@ -12,7 +12,7 @@ doc=json.loads((source/"preview_audit.json").read_text(encoding="utf-8"))
 if doc.get("source_units_verified") is not False or doc.get("no_carbon_totals_computed") is not True:
     raise SystemExit("Unexpected audit flags; no publication")
 layers={}
-for key in ("biomass","soil","soil_all"):
+for key in ("biomass","soil","stock_dom","soil_all","change_soc","change_dom","change_all"):
     r=doc["files"][key]
     if r.get("status")!="visual_preview_created" or r.get("units_verified") is not False:
         raise SystemExit(f"Invalid source preview {key}")
@@ -62,7 +62,9 @@ for key in ("biomass","soil","soil_all"):
       "source_band_offset":r["source_band_offset"],
       "display_crs":"EPSG:3857",
       "valid_preview_pixels":r["valid_pixels"],
-      "value_scale":"Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
+      "value_scale":("Blue negative, white zero, red positive; grey NoData" if key.startswith("change_") else "Red low, black high; grey NoData"),
+      "color_scale_type":r.get("color_scale_type"),
+      "signed_color_scale_max_abs_p98":r.get("signed_color_scale_max_abs_p98"),
       "numeric_file":"data/preview/"+numeric_file,
       "raster_grid_width":r["raster_grid_width"],
       "raster_grid_height":r["raster_grid_height"],
@@ -75,6 +77,9 @@ for key in ("biomass","soil","soil_all"):
       "raw_pixel_median":r["raw_pixel_median"],
       "raw_pixel_mean":r["raw_pixel_mean"],
       "raw_pixel_sum":r["raw_pixel_sum"],
+      "raw_pixel_negative_count":r["raw_pixel_negative_count"],
+      "raw_pixel_positive_count":r["raw_pixel_positive_count"],
+      "raw_pixel_zero_count":r["raw_pixel_zero_count"],
       "raw_pixel_min":r["raw_pixel_min"],
       "raw_pixel_max":r["raw_pixel_max"],
       "raw_pixel_histogram":r["raw_pixel_histogram"],
@@ -100,6 +105,10 @@ for key in ("biomass","soil","soil_all"):
       "p02_raw":v["raw_pixel_q02"],"median_raw":v["raw_pixel_median"],
       "mean_raw":v["raw_pixel_mean"],"sum_raw":v["raw_pixel_sum"],"p98_raw":v["raw_pixel_q98"],
       "histogram":v["raw_pixel_histogram"],
+      "negative_preview_pixels":v["raw_pixel_negative_count"],
+      "positive_preview_pixels":v["raw_pixel_positive_count"],
+      "zero_preview_pixels":v["raw_pixel_zero_count"],
+      "color_scale_type":v["color_scale_type"],
       "source_crs":v["source_crs"],
       "product_family":v["product_family"],
       "source_resolution_m":v["source_resolution_m"],
