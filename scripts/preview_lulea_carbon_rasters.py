@@ -25,6 +25,10 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"metadata"/"lulea_carbon_preview"
 SOURCES={
  "biomass":"https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif",
+ "stock_dom":"https://gis.slu.se/data/carbon/2023/Stock_DOM_2023_Lan/DOM_2023_Norrbottens.tif",
+ "change_soc":"https://gis.slu.se/data/carbon/2023/Change_SOC_2023_Lan/Change_SOC_2023_Norrbottens.tif",
+ "change_dom":"https://gis.slu.se/data/carbon/2023/Change_DOM_2023_Lan/Change_DOM_2023_Norrbottens.tif",
+ "change_all":"https://gis.slu.se/data/carbon/2023/Change_All_2023_Lan/Change_All_2023_Norrbottens.tif",
  "soil":"https://gis.slu.se/data/carbon/2023/Stock_SOC_2023_Lan/SOC_2023_Norrbottens.tif",
  "soil_all":"https://gis.slu.se/data/carbon/2023/Stock_All_2023_Lan/Stock_All_2023_Norrbottens.tif",
 }
@@ -68,7 +72,10 @@ def main():
       arr=vrt.read(1,masked=True)
     a=np.asarray(arr.data)
     mask=np.ma.getmaskarray(arr)
-    valid=inside&(~mask)&np.isfinite(a)&(a!=-9999)&(a>=0)
+    is_change=name.startswith("change_")
+    # Change/flux rasters can contain negative values. Do not censor them.
+    valid=inside&(~mask)&np.isfinite(a)&(a!=-9999)
+    if not is_change: valid&=(a>=0)
     rec["valid_pixels"]=int(np.count_nonzero(valid))
     rec["product_family"]="SLU/Skogsstyrelsen Skogliga grunddata SGD2" if name=="biomass" else "SLU Kolkartor 2023"
     rec["municipal_preview_pixels"]=int(np.count_nonzero(inside))
@@ -82,10 +89,24 @@ def main():
     image[null_inside]=[160,160,160,200]
     # Colour palette: low = red (#ff0000), high = black (#000000).
     # Relative quantiles are layer-specific and NOT physical carbon concentrations.
-    intensity=np.asarray(np.rint(255*(1-scaled)),dtype="uint8")
-    image[valid,0]=intensity
-    image[valid,1]=0
-    image[valid,2]=0
+    if is_change:
+     # Signed values: blue = negative, white = zero, red = positive.
+     maxabs=max(1e-9,float(np.percentile(np.abs(a[valid]),98)))
+     frac=np.clip(a[valid]/maxabs,-1,1)
+     red=np.where(frac>=0,255,np.rint(255*(1+frac)))
+     green=np.rint(255*(1-np.abs(frac)))
+     blue=np.where(frac<=0,255,np.rint(255*(1-frac)))
+     image[valid,0]=np.asarray(red,dtype="uint8")
+     image[valid,1]=np.asarray(green,dtype="uint8")
+     image[valid,2]=np.asarray(blue,dtype="uint8")
+     rec["signed_color_scale_max_abs_p98"]=float(maxabs)
+     rec["color_scale_type"]="signed_blue_white_red"
+    else:
+     intensity=np.asarray(np.rint(255*(1-scaled)),dtype="uint8")
+     image[valid,0]=intensity
+     image[valid,1]=0
+     image[valid,2]=0
+     rec["color_scale_type"]="red_black"
     image[valid,3]=225
     filename=name+"_preview.png"
     Image.fromarray(image,"RGBA").save(OUT/filename,optimize=True)
@@ -107,6 +128,9 @@ def main():
     rec["raw_pixel_median"]=float(np.median(a[valid]))
     rec["raw_pixel_mean"]=float(np.mean(a[valid].astype("float64")))
     rec["raw_pixel_sum"]=float(np.sum(a[valid].astype("float64"),dtype="float64"))
+    rec["raw_pixel_negative_count"]=int(np.count_nonzero(a[valid]<0))
+    rec["raw_pixel_positive_count"]=int(np.count_nonzero(a[valid]>0))
+    rec["raw_pixel_zero_count"]=int(np.count_nonzero(a[valid]==0))
     rec["raw_pixel_histogram"]={"edges":[float(x) for x in bins],"counts":[int(x) for x in hist]}
     rec["sample_type"]="Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel"
     rec["preview_grid_resolution_metres"]=[float(abs(tf.a)),float(abs(tf.e))]

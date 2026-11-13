@@ -106,9 +106,9 @@
     layersControl.addOverlay(overlay,overlayName);
     status.classList.remove('warning');
     if(isPreview){
-      status.textContent='Källbaserat förhandsraster ovanpå vald baskarta. Rött = lågt råvärde, svart = högt; grått = NoData.';
-      summary.textContent='Rött → svart visar ökande källråvärden, grått markerar NoData inom kommungränsen. Varje raster har egen relativ skala och kan inte direkt jämföras eller tolkas som ton kol. Skoglig biomassa redovisas bara där källan har värden.';
-      units.textContent=key==='preview_biomass'?'Skogliga grunddata (SGD2): biomassa ovan mark. Råvärdet visas utan antagen skalfaktor. Ingen omräkning till ton C/CO₂ är genomförd.':'Fysisk kolenhet ej verifierad. Inga ton C eller CO₂ beräknas ännu.';
+      status.textContent=record.color_scale_type==='signed_blue_white_red'?'Förändringsraster: blått = negativt, vitt = noll, rött = positivt, grått = NoData.':'Källbaserat förhandsraster: rött = lägre, svart = högre, grått = NoData.';
+      summary.textContent=record.color_scale_type==='signed_blue_white_red'?'Förändringslager från SLU: negativt och positivt råvärde hålls isär med noll i mitten. Tecken och fysisk enhet måste dokumenteras innan kolkälla/kolsänka eller ton C/år kan redovisas.':'Rött → svart visar ökande råvärden och grått visar NoData. Färgskalan är relativ per lager, inte ton kol.';
+      units.textContent=key==='preview_biomass'?'Skogliga grunddata (SGD2): biomassa ovan mark, utan antagen skalfaktor.':key.startsWith('preview_change_')?'Råvärden för förändring; fysisk enhet, tidsskala och teckenkonvention är ännu inte verifierade.':'Fysisk kolenhet ej verifierad. Inga ton C eller CO₂ beräknas ännu.';
       quality.textContent='SLU källraster: '+(record.source_crs||'ej känt')+' · fullt reprojicerad förhandsbild: EPSG:3857 · Luleås arbetsgräns.';
       return;
     }
@@ -161,7 +161,7 @@
       const desc=valid
         ?'Samplat råvärde: '+value.toLocaleString('sv-SE',{maximumFractionDigits:4})+' (enhet inte verifierad)'
         :'NoData eller utanför kommunpolygonen: inget giltigt samplat rastervärde här.';
-      const heading=key==='preview_biomass'?'Trädbiomassa ovan mark (SGD2)':key==='preview_soil'?'Markkol (Stock_SOC)':'Totalt markförråd (Stock_All)';
+      const heading=select.selectedOptions[0]?.textContent||'SLU-raster';
       const coords='Lat '+event.latlng.lat.toFixed(5)+', lon '+event.latlng.lng.toFixed(5);
       cellStatus.textContent=heading+' · '+desc+' · '+coords;
       const popup=L.DomUtil.create('div');

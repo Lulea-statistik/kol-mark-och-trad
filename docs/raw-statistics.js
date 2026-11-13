@@ -4,7 +4,7 @@
  const status=document.getElementById('previewStatisticsStatus');
  const selector=document.getElementById('rawHistogramLayer');
  let stats=null, chart=null;
- const names={biomass:'Trädbiomassa ovan mark (SGD2)',soil:'Kolförråd – markkol (Stock_SOC)',soil_all:'Kolförråd (totalt, inkl. dött material) – Stock_All'};
+ const names={biomass:'Trädbiomassa ovan mark (SGD2)',soil:'Kolförråd – markkol (Stock_SOC)',stock_dom:'Kolförråd – dött organiskt material (Stock_DOM)',soil_all:'Kolförråd (totalt, inkl. dött material) – Stock_All',change_soc:'Förändring – markkol (Change_SOC)',change_dom:'Förändring – dött organiskt material (Change_DOM)',change_all:'Förändring – totalt (Change_All)'};
  const num=x=>x==null?'—':Number(x).toLocaleString('sv-SE',{maximumFractionDigits:4});
  function draw(){
    const key=selector.value,r=stats?.layers?.[key],canvas=document.getElementById('rawHistogram');
@@ -15,7 +15,7 @@
    const labels=h.counts.map((_,i)=>num(h.edges[i])+'–'+num(h.edges[i+1]));
    chart=new Chart(canvas,{type:'bar',data:{labels,datasets:[{
      label:'Antal giltiga samplade gridpixlar',data:h.counts,
-     backgroundColor:h.counts.map((_,i)=>'rgb('+Math.round(255*(1-i/Math.max(1,h.counts.length-1)))+',0,0)')
+     backgroundColor:h.counts.map((_,i)=>key.startsWith('change_')?(h.edges[i+1]<=0?'#2674b6':h.edges[i]>=0?'#c82828':'#b0b0b0'):'rgb('+Math.round(255*(1-i/Math.max(1,h.counts.length-1)))+',0,0)')
    }]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
        tooltip:{callbacks:{title:items=>'Råvärdesintervall: '+items[0].label}}},
        scales:{y:{beginAtZero:true,title:{display:true,text:'Samplade gridpixlar'}},
@@ -26,7 +26,7 @@
  .then(data=>{
    if(data.physical_units_verified!==false)throw Error('Oväntad datastatus');
    stats=data;table.replaceChildren();
-   for(const key of ['biomass','soil','soil_all']){
+   for(const key of ['biomass','soil','stock_dom','soil_all','change_soc','change_dom','change_all']){
      const r=stats.layers?.[key];if(!r)continue;
      const tr=document.createElement('tr');
      for(const value of [names[key],num(r.valid_preview_pixels),num(r.null_inside_pixels),
