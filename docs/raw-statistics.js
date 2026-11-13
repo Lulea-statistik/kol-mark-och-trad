@@ -4,7 +4,7 @@
  const status=document.getElementById('previewStatisticsStatus');
  const selector=document.getElementById('rawHistogramLayer');
  let stats=null, chart=null;
- const names={soil:'Markkol (Stock_SOC)',soil_all:'Totalt markförråd (Stock_All)'};
+ const names={soil:'Kolförråd – markkol (Stock_SOC)',soil_all:'Kolförråd (totalt, inkl. dött material) – Stock_All'};
  const num=x=>x==null?'—':Number(x).toLocaleString('sv-SE',{maximumFractionDigits:4});
  function draw(){
    const key=selector.value,r=stats?.layers?.[key],canvas=document.getElementById('rawHistogram');
@@ -30,7 +30,7 @@
      const r=stats.layers?.[key];if(!r)continue;
      const tr=document.createElement('tr');
      for(const value of [names[key],num(r.valid_preview_pixels),num(r.null_inside_pixels),
-       num(r.min_raw),num(r.median_raw),num(r.mean_raw),num(r.max_raw)]){
+       num(r.min_raw),num(r.median_raw),num(r.mean_raw),num(r.sum_raw),num(r.max_raw)]){
        const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
      }
      table.appendChild(tr);
