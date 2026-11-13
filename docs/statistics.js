@@ -14,11 +14,11 @@ function render(d){
  for(const item of definitions){
   const data=d.layers?.[item.key],row=document.createElement('tr');
   const valid=!!data&&Number.isFinite(Number(data.total_tonnes_C))&&data.total_tonnes_C!==null;
-  const partial=valid&&Number(data.coverage_pct_of_municipality)<99.5;
+  const partial=valid&&data.total_scope!=='municipality';
   const stored=valid?Number(data.total_tonnes_C):null;
   const covered=valid&&Number.isFinite(Number(data.covered_hectares))?Number(data.covered_hectares):null;
   setCell(row,item.label);
-  setCell(row,valid?(partial?'Delsumma: ':'')+fmt(stored):'Data saknas');
+  setCell(row,valid?(partial?'Täckt yta: ':'')+fmt(stored):'Data saknas');
   setCell(row,valid?fmt(stored*44/12):'—');
   setCell(row,covered!==null?fmt(covered,1):'—');
   setCell(row,valid&&Number.isFinite(Number(data.coverage_pct_of_municipality))
@@ -31,17 +31,17 @@ function render(d){
  const available=comparable.filter(x=>!x.partial&&x.value>=0);
  const status=document.getElementById('statsStatus');
  status.textContent=verified.length
-   ?verified.length+' källager med beräknade värden. Delvisa täckningar markeras och visas inte som helkommunsresultat.'
+   ?verified.length+' källager med beräknade värden inom Luleås kommungräns. Sammanställningen anger täckt yta och extrapolerar inte till ytor utan data.'
    :'Inga verifierade kolförrådsraster finns ännu i projektet. Tabellerna visar dataluckor utan påhittade värden.';
  const note=document.getElementById('chartNote');
  if(available.length&&window.Chart){
-  note.textContent='Endast lager med minst 99,5 % dokumenterad rastertäckning av kommunytan visas som helkommunssumma. Diagrammet är ingen summering av alternativa lager.';
+  note.textContent='Varje stapel avser endast observerade eller modellerade rasterceller inom Luleå kommun. Skogsmark kan täcka en mindre del av kommunytan utan att resultatet är felaktigt. Staplar för skilda kolpooler får inte automatiskt summeras.';
   new Chart(document.getElementById('carbonChart'),{
     type:'bar',data:{labels:available.map(x=>x.label),datasets:[{label:'Ton C inom kommunen',data:available.map(x=>x.value),backgroundColor:['#2f7858','#947046']}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'Ton C'}}}}
   });
  }else{
-  note.textContent='Diagrammet visas först när ett kolraster täcker i stort sett hela den aktuella kommunytan.';
+  note.textContent='Diagrammet visas när en kontrollerad kolförrådsserie har importerats.';
   document.getElementById('carbonChart').hidden=true;
  }
  const density=comparable.filter(x=>x.density!==null);
