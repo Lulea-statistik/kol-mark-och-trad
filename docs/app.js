@@ -145,9 +145,6 @@
       cellStatus.textContent='Välj ett tillgängligt förhandslager och aktivera rastervisning för att läsa ett pixelvärde.';
       return;
     }
-    if(municipality&&!municipality.getLayers().some(layer=>layer.getBounds&&layer.getBounds().contains(event.latlng))){
-      cellStatus.textContent='Klickpunkten ligger utanför kartlagrets omfattning.';
-    }
     const token=key;
     cellStatus.textContent='Läser råvärde ur förhandsraster…';
     try{
@@ -163,7 +160,7 @@
       const valid=Number.isFinite(value)&&value!==record.raster_grid_nodata;
       const desc=valid
         ?'Samplat råvärde: '+value.toLocaleString('sv-SE',{maximumFractionDigits:4})+' (enhet inte verifierad)'
-        :'NoData: inget giltigt rastervärde i den här förhandsgridcellen (grå yta inom kommunen).';
+        :'NoData eller utanför kommunpolygonen: inget giltigt samplat rastervärde här.';
       const heading=key==='preview_soil'?'Markkol (Stock_SOC)':'Totalt markförråd (Stock_All)';
       const coords='Lat '+event.latlng.lat.toFixed(5)+', lon '+event.latlng.lng.toFixed(5);
       cellStatus.textContent=heading+' · '+desc+' · '+coords;
