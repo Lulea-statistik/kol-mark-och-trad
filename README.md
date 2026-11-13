@@ -1,5 +1,7 @@
 # Kolförråd i mark och träd – Luleå kommun
 
+GitHub Pages har två sidor: **Karta** (`docs/index.html`) och **Diagram och tabeller** (`docs/statistics.html`). Båda redovisar enbart rasterceller inom Luleå kommuns gräns. Endast ytan inom kommunpolygonen ingår vid summering. Delsummor för bristfälligt rastertäckt del redovisas inte som totalsiffror för hela kommunen.
+
 Första etappen: GitHub Pages-karta, geometri, kontrollerad modell för omräkning och lokal rasterpipeline. **Inga simulerade eller påhittade koldensiteter publiceras.** Kartan visar kommungränsen tills granskade källraster har importerats.
 
 ## Källor och avgränsningar
@@ -50,3 +52,7 @@ För källvärden i **ton torr biomassa/hektar** används den **preliminära** f
 **Viktiga återstående arbeten:** verifiera nedladdningsadresser och rastermetadata; ersätta kommunarbetsgeometri med officiell gräns; maskera NODATA och säkra att biomassa avser rätt träddelar; göra trädslagsanpassad volymkalibrering; granska upplösning och marktäckning; ladda in verkliga raster och först därefter publicera kommunala totalsiffror. Behåll rasterår separata så att olika omdrev inte redovisas som en gemensam tidpunkt.
 
 GitHub Pages: välj **Settings → Pages → Deploy from a branch → main /docs** efter att första PR har slagits samman.
+
+## Diagram och tabeller
+
+Sidan `docs/statistics.html` läser samma `docs/data/layers.json` som kartan. Den visar en tabell per produkt med ton C, motsvarande ton CO₂ (lagrad massa, ej utsläpp), täckt yta, geografisk täckning och källår. Diagram skapas bara av verifierade data. SOC och Stock_All redovisas som alternativa marklager utan dubbelräkning; volymreserven särredovisas. Rasterbearbetningen skriver `covered_hectares`, `municipality_hectares` och `coverage_pct_of_municipality` så att felaktigt extrapolerade totalsummor kan undvikas. Inga grannkommuner eller ytterligare buffertzoner räknas med i kommunresultatet.
