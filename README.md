@@ -98,3 +98,13 @@ Efter denna ändring genererar GitHub-flödet `Publish SLU Lulea carbon preview 
 - Råvärdenas fysiska enhet och arbetskommungränsens administrativa giltighet är fortfarande **inte verifierade**. SLU:s kolmodell är regionalt skattad; skarpa kommunenheter kräver källdokumentation och ny maskad ursprungsupplöst arealintegral i EPSG:3006.
 
 **Publicering:** Efter merge måste det manuella flödet `Publish SLU Lulea carbon preview maps` köras igen. En vanlig GitHub Pages-deploy av enbart JavaScript producerar inte de nya `.gz`-filerna eller statistikfilen.
+
+## Tydliga SLU-kategorier och enhetsväxling
+
+SLU:s Kolkartor skiljer på `Stock_SOC` (kolförråd i markkol), `Stock_DOM` (kolförråd i dött organiskt material), `Stock_All` (totalt kolförråd i mark inklusive SOC och DOM), samt separata `Change_SOC`, `Change_DOM`, `Change_All` för förändring/kolsänka. De sistnämnda och Stock_DOM är **ännu inte importerade** och visas därför endast som inaktiva, förklarande alternativ. Stock_All får inte summeras med Stock_SOC.
+
+Tabellsidan har en **summa samplade rasterråvärden** per lager. Summan är matematisk och baserad på pixlar i en nedskalad EPSG:3857-förhandsbild – **inte ton C, ton CO₂ eller en arealriktig stock**. Därutöver finns en separat preliminär totalrad i den verifierade kolmassatabellen som kräver båda icke överlappande poolerna trädbiomassa och Stock_All; annars skrivs **Data saknas**.
+
+Växeln **Kol (ton C) / Koldioxidmassa (ton CO₂)** gäller bara *verifierade* massvärden och använder stökiometriska faktorn 44/12. Råvärdesstatistiken omräknas inte eftersom dess enhet ännu saknar källverifiering. Motsvarande CO₂-massa är inte observerade CO₂-utsläpp eller årlig inlagring.
+
+Efter merge krävs en ny manuell körning av `Publish SLU Lulea carbon preview maps` för att publicera nya råvärdessummor i `preview_statistics.json`.
