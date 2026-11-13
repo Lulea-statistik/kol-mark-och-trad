@@ -3,6 +3,7 @@
 import json
 import shutil
 from pathlib import Path
+from pyproj import CRS
 
 root=Path(__file__).resolve().parents[1]
 source=root/"metadata"/"lulea_carbon_preview"
@@ -15,7 +16,23 @@ for key in ("biomass","soil","soil_all"):
     r=doc["files"][key]
     if r.get("status")!="visual_preview_created" or r.get("units_verified") is not False:
         raise SystemExit(f"Invalid source preview {key}")
-    if r.get("source_crs")!="EPSG:3006":raise SystemExit("Expected EPSG:3006; confirm source CRS before publication")
+    # Each product may use a DIFFERENT, valid source CRS. Rasterio's WarpedVRT
+    # already resamples the entire pixel grid into EPSG:3857 (not just bounds).
+    # Check actual CRS, not a hard-coded EPSG assumption.
+    crs_text=r.get("source_crs")
+    try:
+        src_crs=CRS.from_user_input(crs_text)
+    except (ValueError, TypeError) as exc:
+        raise SystemExit(f"{key}: missing or invalid source CRS {crs_text!r}: {exc}")
+    if not src_crs.is_projected:
+        raise SystemExit(f"{key}: expected a projected source CRS; got {crs_text}")
+    if not src_crs.axis_info or any(abs(ax.unit_conversion_factor-1)>1e-7 for ax in src_crs.axis_info[:2]):
+        raise SystemExit(f"{key}: source CRS axes must be in metres; got {crs_text}")
+    if r.get("raster_grid_crs")!="EPSG:3857":
+        raise SystemExit(f"{key}: map raster not fully reprojected to EPSG:3857")
+    if not r.get("source_url","").startswith("https://gis.slu.se/data/"):
+        raise SystemExit(f"{key}: unexpected source host")
+    print(f"{key}: source CRS={src_crs.to_string()}, map grid=EPSG:3857, source pixels={r.get('valid_pixels')}",flush=True)
     bounds=r["preview_bounds_4326"]
     if len(bounds)!=4:raise SystemExit("Bad preview bounds")
     west,south,east,north=bounds

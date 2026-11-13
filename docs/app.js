@@ -189,6 +189,12 @@
     catch(e){console.warn('Vanliga kolraster är ännu inte tillgängliga:',e);}
     try{previews=await getJson('data/preview/preview_layers.json');}
     catch(e){console.warn('SLU:s förhandskartor kan inte läsas:',e);error('Rastermetadata kunde inte laddas. OpenStreetMap ska ändå synas.');}
+    // Do not default to an unpublished biomass overlay while published
+    // source-backed soil layers are available.
+    if(select.value==='preview_biomass'&&!previews.layers?.biomass?.image&&previews.layers?.soil?.image){
+      select.value='preview_soil';
+      console.info('Biomassa är ännu inte publicerad; visar befintligt markkol tills vidare.');
+    }
     render();
     requestAnimationFrame(()=>map.invalidateSize());
   }
