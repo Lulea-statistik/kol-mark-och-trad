@@ -1,0 +1,46 @@
+name: Publish SLU Lulea carbon preview maps
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: publish-slu-lulea-previews
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster processing requirements
+        run: pip install -r requirements.txt
+      - name: Generate genuine Lulea-masked raster previews from SLU
+        run: python scripts/preview_lulea_carbon_rasters.py
+      - name: Validate output and prepare public map previews
+        run: python scripts/publish_slu_previews.py
+      - name: Commit preview images and source metadata to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/preview/
+          if git diff --cached --quiet; then
+            echo "No preview changes"
+          else
+            git commit -m "Publish SLU Lulea visual soil-carbon previews (units unverified)"
+            git push
+          fi
+      - name: Upload source audit and images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lulea-carbon-preview-publication-audit
+          path: |
+            metadata/lulea_carbon_preview/
+            docs/data/preview/preview_layers.json
+          if-no-files-found: warn
+          retention-days: 30
