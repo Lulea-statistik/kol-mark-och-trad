@@ -118,3 +118,18 @@ Efter att denna PR sammanslagits kan `Publish SLU Lulea carbon preview maps` ska
 **Kvalitetsspärr:** inga påståenden om biomassans kolmassor görs från råvärden innan fysisk skala och källår verifierats. Det är ett kartlager för **biomassa** och inte ett direkt lager i ton kol. Rött-svart visar relativa värden inom just detta lager. Grått markerar NoData och inget värde motsvaras inte automatiskt av noll. För att bygga en korrekt total behöver de giltiga originalcellerna maskas och areaintegreras i källans verifierade projektion.
 
 **Övriga lager:** Stock_DOM, Change_SOC, Change_DOM, Change_All och skogsvolym återstår. Ingen av dem ersätts av biomassa eller SOC och de är markerade som ännu inte publicerade. Skogsstyrelsens senare omdrev kan vara ett bättre aktuellt alternativ än SGD2; jämför datum/täckning innan materialet används i en årsanalys.
+
+## 2023: dött organiskt material och förändringslager för Norrbotten
+
+SLU:s offentliga [Kolkartor](https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-kolkartor/) innehåller sex produkter. Fyra nya **faktiska länsraster** har nu kopplats till `scripts/preview_lulea_carbon_rasters.py` från SLU:s katalog (de exakta filnamnen kontrollerades mot en lyckad kataloginventering i [Inventory SLU carbon and forest raster sources #1](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/43408212960)):
+
+- `Stock_DOM` → `Stock_DOM_2023_Lan/DOM_2023_Norrbottens.tif`
+- `Change_SOC` → `Change_SOC_2023_Lan/Change_SOC_2023_Norrbottens.tif`
+- `Change_DOM` → `Change_DOM_2023_Lan/Change_DOM_2023_Norrbottens.tif`
+- `Change_All` → `Change_All_2023_Lan/Change_All_2023_Norrbottens.tif`
+
+Kartan ska efter en lyckad publiceringskörning visa **sju** förhandslager (biomassa samt sex SLU-kolprodukter), samtliga fullständigt rasterreprojicerade till EPSG:3857 från verifierat käll-CRS och maskade till Luleå kommun. Förändringslagren är **signerade**: negativt blått, noll vitt, positivt rött, NoData grått. Viktigt: `Change` mäter inte ett uppmätt årsutfall 2023 enbart för att katalogen heter 2023; SLU:s dokumenterade tidsperiod är 2000–2020. Kontrollera teckenkonvention, tidsenhet och fysisk skala innan tolkning som källa eller sänka.
+
+`Stock_All` inkluderar `Stock_SOC` och `Stock_DOM`; summera aldrig dessa tre rasterlager eller deras råvärdessummor som oberoende kolförråd. `Change_All` inkluderar motsvarande delkomponenter. Åtskillnad mellan lager och råvärdesförhandsgrid kvarstår; ny publicering skapar inga ton C eller CO₂-värden.
+
+**Efter merge:** kör manuellt `Publish SLU Lulea carbon preview maps`. Om något källraster saknas eller inte har giltiga pixlar inom Luleå ska flödet **stoppa**, och befintliga tre publicerade kartlager ligger oförändrade; det är säkrare än att tyst märka ett obefintligt raster som publicerat.
