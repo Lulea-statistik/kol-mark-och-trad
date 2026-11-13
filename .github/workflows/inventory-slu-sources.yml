@@ -1,0 +1,24 @@
+name: Inventory SLU carbon and forest raster sources
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Scan public SLU download directory listings
+        run: python scripts/discover_slu_sources.py --max-pages 35 --output metadata/slu_source_inventory.json
+      - name: Upload source inventory for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slu-carbon-source-inventory
+          path: metadata/slu_source_inventory.json
+          if-no-files-found: warn
+          retention-days: 30
