@@ -75,3 +75,14 @@ Den lyckade Actions-körningen [Inventory SLU carbon and forest raster sources #
 Kör [Audit SLU Norrbotten carbon raster metadata](../../actions/workflows/audit-norrbotten-carbon-rasters.yml) efter PR #5. Flödet granskar direkt länsrasterformat och **verifierar om läsbara CRS, NoData, bandmetadata och pixelupplösning finns**, utan att försöka hämta hela Norrbottens raster. Artefakten `slu-norrbotten-carbon-raster-metadata` innehåller alla hittade fält och källfel.
 
 **Innan någon skarp import:** verifiera enhet i SLU:s produktdokumentation (det kan vara något annat än ton C/ha), eventuell skalfaktor, koordinatsystem, förväntad täckning och om länsfilen omfattar Luleås hela kommungräns. Raster ska maskas mot kommunpolygon i ursprungs-CRS och *hela rastergridet* reprojiceras till EPSG:3857 före webbkarta. Publicera inte uppskattade förråd som lokalt uppmätta värden.
+
+
+## Publicering av riktiga rasterförhandskartor utan kolenheter
+
+Körningen [Preview actual SLU carbon rasters in Lulea #1](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/43410956136) lyckades: två bilder med **613 841 giltiga förhandsbildspixlar per lager** skapades, med kommunmask och faktisk rasterreprojektion. Det är *förhandsbildspixlar*, inte originalrasterceller, provpunkter eller en kommunal koltotal.
+
+Efter PR #8 går det att köra [Publish SLU Lulea carbon preview maps](../../actions/workflows/publish-slu-previews.yml) manuellt. Det återkör den källbaserade förhandskarteringen från SLU, kontrollerar EPSG:3006 och kvalitetsflaggar resultatet, och committar två **transparenta PNG-kartor** plus metadata till `docs/data/preview/`. På webbsidan finns separata förhandslager i **Karta**, utan att blanda okända råvärden med kolserierna. Till skillnad från artifact-filer är dessa direkt åtkomliga via GitHub Pages efter lyckad workflow + Pages deployment.
+
+Färgskalan är **relativ och separat per lager**: man kan se geografiska mönster men inte tolka färgerna som ton C/ha eller direkt jämföra SOC-färg med Stock_All-färg. Årlig kolsänka och kommunala koltotaler kan inte utläsas. **Diagram och tabeller** är fortsatt utan kolvärden tills SLU:s fysikaliska enheter verifierats och en area-riktig integral av fullständiga källraster genomförts.
+
+Automatisk publicering kan misslyckas om repositoryts Actions-permissioner inte tillåter `contents: write`; granska då jobbloggen. Källbildens transparens visar kommunens arbetsgräns, som bör bytas mot verifierad officiell geometri före officiell statistik.
