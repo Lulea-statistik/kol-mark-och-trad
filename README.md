@@ -56,3 +56,9 @@ GitHub Pages: välj **Settings → Pages → Deploy from a branch → main /docs
 ## Diagram och tabeller
 
 Sidan `docs/statistics.html` läser samma `docs/data/layers.json` som kartan. Den visar en tabell per produkt med ton C, motsvarande ton CO₂ (lagrad massa, ej utsläpp), täckt yta, geografisk täckning och källår. Diagram skapas bara av verifierade data. SOC och Stock_All redovisas som alternativa marklager utan dubbelräkning; volymreserven särredovisas. Rasterbearbetningen skriver `covered_hectares`, `municipality_hectares` och `coverage_pct_of_municipality` så att felaktigt extrapolerade totalsummor kan undvikas. Inga grannkommuner eller ytterligare buffertzoner räknas med i kommunresultatet.
+
+## Inventera direkta SLU-rasterfiler
+
+Flödet [Inventory SLU carbon and forest raster sources](../../actions/workflows/inventory-slu-sources.yml) kan startas manuellt i GitHub Actions efter sammanslagning. Det går igenom publika kataloglistningar för `gis.slu.se/data/carbon/`, SLU Skogskarta 2015 och Skogliga grunddata utan att hämta stora GeoTIFF-filer. Rapporten `slu-carbon-source-inventory` sparas som körningsartefakt och innehåller möjliga nedladdningsadresser, genomsökta kataloger och källfel.
+
+**Kritisk begränsning:** en katalogträff är inte en importerad/validerad karta. Filformat, koordinatsystem, numeriska enheter, omdrevsår, rättigheter och Luleå-täckning måste fortfarande granskas. Att publika kataloger innehåller gigabyte-stora Sverigeraster innebär inte att de går att lägga direkt i GitHub-repot. När korrekta adresser identifierats bör vi föredra serverbaserad utskärning/raster-COG-fönsterhämtning och bearbeta enbart Luleås yta.
