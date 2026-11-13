@@ -62,3 +62,16 @@ Sidan `docs/statistics.html` läser samma `docs/data/layers.json` som kartan. De
 Flödet [Inventory SLU carbon and forest raster sources](../../actions/workflows/inventory-slu-sources.yml) kan startas manuellt i GitHub Actions efter sammanslagning. Det går igenom publika kataloglistningar för `gis.slu.se/data/carbon/`, SLU Skogskarta 2015 och Skogliga grunddata utan att hämta stora GeoTIFF-filer. Rapporten `slu-carbon-source-inventory` sparas som körningsartefakt och innehåller möjliga nedladdningsadresser, genomsökta kataloger och källfel.
 
 **Kritisk begränsning:** en katalogträff är inte en importerad/validerad karta. Filformat, koordinatsystem, numeriska enheter, omdrevsår, rättigheter och Luleå-täckning måste fortfarande granskas. Att publika kataloger innehåller gigabyte-stora Sverigeraster innebär inte att de går att lägga direkt i GitHub-repot. När korrekta adresser identifierats bör vi föredra serverbaserad utskärning/raster-COG-fönsterhämtning och bearbeta enbart Luleås yta.
+
+
+## Inventeringen #1: direkta Norrbottensraster identifierade (2026-11-13)
+
+Den lyckade Actions-körningen [Inventory SLU carbon and forest raster sources #1](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/43408212960) genomsökte 35 kataloger och identifierade 365 filadresser. Två specifika länsraster är:
+
+- [SLU SOC 2023 Norrbottens](https://gis.slu.se/data/carbon/2023/Stock_SOC_2023_Lan/SOC_2023_Norrbottens.tif) – markens organiska kolförråd.
+- [SLU Stock_All 2023 Norrbottens](https://gis.slu.se/data/carbon/2023/Stock_All_2023_Lan/Stock_All_2023_Norrbottens.tif) – totalt markförråd; **inkluderar** SOC (ska inte adderas till SOC).
+- [SLU Biomass_leaf 2015](https://gis.slu.se/data/slu_forest_map/2015/data/Biomass_leaf.tif) är bara blad-/barrbiomassa och duger inte ensamt som total ovanjordisk biomassa.
+
+Kör [Audit SLU Norrbotten carbon raster metadata](../../actions/workflows/audit-norrbotten-carbon-rasters.yml) efter PR #5. Flödet granskar direkt länsrasterformat och **verifierar om läsbara CRS, NoData, bandmetadata och pixelupplösning finns**, utan att försöka hämta hela Norrbottens raster. Artefakten `slu-norrbotten-carbon-raster-metadata` innehåller alla hittade fält och källfel.
+
+**Innan någon skarp import:** verifiera enhet i SLU:s produktdokumentation (det kan vara något annat än ton C/ha), eventuell skalfaktor, koordinatsystem, förväntad täckning och om länsfilen omfattar Luleås hela kommungräns. Raster ska maskas mot kommunpolygon i ursprungs-CRS och *hela rastergridet* reprojiceras till EPSG:3857 före webbkarta. Publicera inte uppskattade förråd som lokalt uppmätta värden.
