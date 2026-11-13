@@ -1,0 +1,47 @@
+{
+  "kind": "unverified_units_visual_preview",
+  "layers": {
+    "soil": {
+      "image": "data/preview/soil_preview.png",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "source": "https://gis.slu.se/data/carbon/2023/Stock_SOC_2023_Lan/SOC_2023_Norrbottens.tif",
+      "source_crs": "EPSG:3006",
+      "display_crs": "EPSG:3857",
+      "valid_preview_pixels": 613841,
+      "value_scale": "Relative coloration per individual raster (2nd-98th percentile)",
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false
+    },
+    "soil_all": {
+      "image": "data/preview/soil_all_preview.png",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "source": "https://gis.slu.se/data/carbon/2023/Stock_All_2023_Lan/Stock_All_2023_Norrbottens.tif",
+      "source_crs": "EPSG:3006",
+      "display_crs": "EPSG:3857",
+      "valid_preview_pixels": 613841,
+      "value_scale": "Relative coloration per individual raster (2nd-98th percentile)",
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false
+    }
+  }
+}
