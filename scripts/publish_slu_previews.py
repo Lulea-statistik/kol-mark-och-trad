@@ -80,5 +80,5 @@ for key in ("soil","soil_all"):
       "source_crs":v["source_crs"],
       "sample_type":v["sample_type"],
    } for k,v in layers.items()}
- },ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+ },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 print("Created",len(layers),"SLU visual previews with sampled numeric grid and unverified-unit statistics")
