@@ -109,6 +109,9 @@ def main():
                          transform=area_tf,invert=True,all_touched=False)
     eligible=area_valid&inside
     pixel_ha=abs(area_tf.a*area_tf.e-area_tf.b*area_tf.d)/10000.0
+    covered_hectares=float(np.count_nonzero(eligible)*pixel_ha)
+    municipality_hectares=float(metric_poly.area/10000.0)
+    coverage_pct=round(min(100.0,100.0*covered_hectares/municipality_hectares),2)
     total=float(np.sum(area_values[eligible].astype('float64'))*pixel_ha)
     # All 3857 map pixels are fully resampled/reprojected from the cropped source
     # grid; transforming only corner coordinates would be wrong.
@@ -129,6 +132,10 @@ def main():
         'bounds':[[south,west],[north,east]],
         'units':'ton C/ha (modellerad koltäthet)',
         'total_tonnes_C':round(total,1),
+        'total_scope':'covered_pixels_only' if coverage_pct<99.5 else 'municipality',
+        'covered_hectares':round(covered_hectares,2),
+        'municipality_hectares':round(municipality_hectares,2),
+        'coverage_pct_of_municipality':coverage_pct,
         'source':args.source,'source_year':args.source_year,'source_crs':source_crs,
         'map_crs':'EPSG:3857','aggregation_crs':'EPSG:3006',
         'input_units':args.units,
