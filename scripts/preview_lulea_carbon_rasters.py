@@ -99,6 +99,7 @@ def main():
     rec["null_inside_pixels"]=int(np.count_nonzero(null_inside))
     rec["raw_pixel_median"]=float(np.median(a[valid]))
     rec["raw_pixel_mean"]=float(np.mean(a[valid].astype("float64")))
+    rec["raw_pixel_sum"]=float(np.sum(a[valid].astype("float64"),dtype="float64"))
     rec["raw_pixel_histogram"]={"edges":[float(x) for x in bins],"counts":[int(x) for x in hist]}
     rec["sample_type"]="Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel"
     rec["preview_grid_resolution_metres"]=[float(abs(tf.a)),float(abs(tf.e))]
