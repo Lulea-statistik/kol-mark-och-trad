@@ -4,7 +4,7 @@
  const status=document.getElementById('previewStatisticsStatus');
  const selector=document.getElementById('rawHistogramLayer');
  let stats=null, chart=null;
- const names={soil:'Kolförråd – markkol (Stock_SOC)',soil_all:'Kolförråd (totalt, inkl. dött material) – Stock_All'};
+ const names={biomass:'Trädbiomassa ovan mark (SGD2)',soil:'Kolförråd – markkol (Stock_SOC)',soil_all:'Kolförråd (totalt, inkl. dött material) – Stock_All'};
  const num=x=>x==null?'—':Number(x).toLocaleString('sv-SE',{maximumFractionDigits:4});
  function draw(){
    const key=selector.value,r=stats?.layers?.[key],canvas=document.getElementById('rawHistogram');
@@ -26,7 +26,7 @@
  .then(data=>{
    if(data.physical_units_verified!==false)throw Error('Oväntad datastatus');
    stats=data;table.replaceChildren();
-   for(const key of ['soil','soil_all']){
+   for(const key of ['biomass','soil','soil_all']){
      const r=stats.layers?.[key];if(!r)continue;
      const tr=document.createElement('tr');
      for(const value of [names[key],num(r.valid_preview_pixels),num(r.null_inside_pixels),
