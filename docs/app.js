@@ -15,7 +15,11 @@ function show(){
  }
  overlay=L.imageOverlay(d.image,d.bounds,{opacity:.8,interactive:false}).addTo(map);
  availability.textContent='Bearbetat raster tillgängligt · '+(d.source||'källa ej angiven');
- summary.textContent=d.total_tonnes_C!=null?'Beräknat förråd: '+Number(d.total_tonnes_C).toLocaleString('sv-SE',{maximumFractionDigits:0})+' ton C.':'Raster publicerat; ingen verifierad totalsumma.';
+ const complete=d.coverage_pct_of_municipality!=null&&Number(d.coverage_pct_of_municipality)>=99.5;
+ summary.textContent=d.total_tonnes_C!=null
+   ?(complete?'Beräknat förråd inom Luleå kommun: ':'Delsumma för datatäckt del av Luleå kommun: ')+Number(d.total_tonnes_C).toLocaleString('sv-SE',{maximumFractionDigits:0})+' ton C.'
+   :'Raster publicerat; ingen verifierad totalsumma.';
+ if(d.coverage_pct_of_municipality!=null)summary.textContent+=' Rastertäckning: '+Number(d.coverage_pct_of_municipality).toLocaleString('sv-SE',{maximumFractionDigits:1})+' % av kommunytan.';
  units.textContent='Kartans enhet: '+(d.units||'ej angiven');
  quality.textContent='Metod: '+(d.method||'ej angiven')+' · Källa CRS: '+(d.source_crs||'ej angivet')+'.';
 }

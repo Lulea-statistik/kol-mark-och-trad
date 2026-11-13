@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagram och tabeller – Kolförråd i Luleå kommun</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+</head><body>
+<header><h1>Kolförråd i mark och träd</h1><p>Luleå kommun · endast ytan inom kommungränsen</p></header>
+<nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="statistics.html" aria-current="page">Diagram och tabeller</a></nav>
+<main>
+<section><h2>Sammanställning av kolförråd</h2>
+<p>Tabellen och diagrammen redovisar endast rasterceller som ligger inom Luleå kommuns geometri. Inga värden från angränsande kommuner ingår. Värden redovisas först efter kontroll av rasterkälla, täckning, enhet och koordinatsystem.</p>
+<p id="statsStatus" role="status">Läser tillgängliga lager…</p>
+<div class="table-scroll"><table id="carbonTable"><thead><tr><th>Kolpool eller reservunderlag</th><th>Kolförråd, ton C</th><th>Motsvarande ton CO₂</th><th>Täckt yta, ha</th><th>Kommunytans täckning</th><th>Datakälla och år</th></tr></thead><tbody></tbody></table></div>
+<p class="hint">Virkesvolym är ett separat reservunderlag för skattning av trädkol, inte en ytterligare kolpool att addera. Totalt markförråd (Stock_All) omfattar redan markkol (Stock_SOC): dessa rader får inte summeras.</p>
+</section>
+<section><h2>Fördelning mellan separat redovisade kolpooler</h2>
+<p>Diagrammet visar endast jämförbara, verifierade pooler. Trädkol och markkol kan redovisas bredvid varandra, men bara med tydlig information om täckning och källår.</p>
+<div class="chart-wrap"><canvas id="carbonChart" aria-label="Kolförråd i ton kol per lager"></canvas></div>
+<p id="chartNote" class="hint"></p></section>
+<section><h2>Koltäthet per täckt hektar</h2>
+<p>Koltätheten beräknas av kolförrådet dividerat med de rasterceller inom kommunen som faktiskt har data. Den ska inte förväxlas med ett genomsnitt över hela kommunen när täckningen är ofullständig.</p>
+<div class="chart-wrap"><canvas id="densityChart" aria-label="Koltäthet i ton kol per täckt hektar"></canvas></div></section>
+<section><h2>Metod och avgränsning</h2>
+<p><strong>Geografiskt urval:</strong> Luleå kommuns kommunpolygon i EPSG:4326, återanvänd från ett annat Luleå-repo. Den nuvarande polygonen är en arbetsgeometri och bör jämföras med officiell kommungräns före officiell redovisning. Beräkning görs i EPSG:3006 efter att källrastret klippts i sitt verifierade CRS; kartvisning kräver full rasterreprojektion till EPSG:3857.</p>
+<p><strong>Kolkategorier:</strong> Biomassa omräknas från torr biomassa till kol med en dokumenterad faktor. Kol omräknas till motsvarande CO₂-massa med faktorn 44/12. Ingen av dessa siffror är i sig ett årligt upptag eller utsläpp. Markkol och totalt markförråd visas separat och summeras inte.</p>
+<p><strong>Saknade data:</strong> tomma värden betyder att data saknas eller att källan ännu inte har bearbetats, inte att förrådet är noll. Vid ofullständig rastertäckning redovisas en delsumma för täckt yta, inte en helkommunstotal.</p></section>
+</main>
+<footer>Enbart Luleå kommuns geografiska avgränsning. Alla statistiska resultat kräver verifierade rasterunderlag.</footer>
+<script src="statistics.js"></script></body></html>
