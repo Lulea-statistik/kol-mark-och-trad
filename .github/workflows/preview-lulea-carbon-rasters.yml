@@ -1,0 +1,26 @@
+name: Preview actual SLU carbon rasters in Lulea
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster dependencies
+        run: pip install -r requirements.txt
+      - name: Render actual georeferenced source pixels only within Lulea municipality
+        run: python scripts/preview_lulea_carbon_rasters.py
+      - name: Upload preview PNGs and metadata for quality review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lulea-actual-soil-carbon-previews
+          path: metadata/lulea_carbon_preview/
+          if-no-files-found: warn
+          retention-days: 30
