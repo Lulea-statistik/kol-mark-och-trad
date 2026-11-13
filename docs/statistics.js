@@ -35,6 +35,18 @@ function render(d){
   tbody.appendChild(row);
   if(valid&&item.key!=='volume')verified.push({key:item.key,label:item.label,value:stored,density:covered>0?stored/covered:null,partial});
  }
+ // Only sum non-overlapping stock pools; Stock_All already includes Stock_SOC.
+ // Do not turn missing data or mismatched source extents into a municipal total.
+ const sumRow=document.createElement('tr');
+ const combinedKeys=['biomass','soil_all'];
+ const components=combinedKeys.map(key=>verified.find(x=>x.key===key));
+ const sameExtent=components.every(Boolean)&&components.every(x=>!x.partial);
+ const totalValid=sameExtent&&components.every(x=>Number.isFinite(x.value));
+ setCell(sumRow,'Summa kolförråd (trädbiomassa + totalt markförråd; preliminärt urval)');
+ setCell(sumRow,totalValid?fmt(components.reduce((acc,x)=>acc+x.value,0)*factor):'Data saknas – fullständig och jämförbar täckning krävs');
+ setCell(sumRow,'—');setCell(sumRow,'—');
+ setCell(sumRow,totalValid?'Modellberäknad sammanställning; granskas före användning':'Ej beräknad');
+ tbody.appendChild(sumRow);
  const comparable=verified.filter(x=>x.key!=='soil_all');
  const available=comparable.filter(x=>!x.partial&&x.value>=0);
  const status=document.getElementById('statsStatus');
