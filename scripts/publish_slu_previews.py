@@ -11,11 +11,11 @@ doc=json.loads((source/"preview_audit.json").read_text(encoding="utf-8"))
 if doc.get("source_units_verified") is not False or doc.get("no_carbon_totals_computed") is not True:
     raise SystemExit("Unexpected audit flags; no publication")
 layers={}
-for key in ("soil","soil_all"):
+for key in ("biomass","soil","soil_all"):
     r=doc["files"][key]
     if r.get("status")!="visual_preview_created" or r.get("units_verified") is not False:
         raise SystemExit(f"Invalid source preview {key}")
-    if r.get("source_crs")!="EPSG:3006":raise SystemExit("Source CRS changed, inspect first")
+    if r.get("source_crs")!="EPSG:3006":raise SystemExit("Expected EPSG:3006; confirm source CRS before publication")
     bounds=r["preview_bounds_4326"]
     if len(bounds)!=4:raise SystemExit("Bad preview bounds")
     west,south,east,north=bounds
@@ -38,6 +38,11 @@ for key in ("soil","soil_all"):
       "bounds":[[south,west],[north,east]],
       "source":r["source_url"],
       "source_crs":r["source_crs"],
+      "product_family":r["product_family"],
+      "source_resolution_m":r["source_resolution_m"],
+      "source_unit_tag":r["source_unit_tag"],
+      "source_band_scale":r["source_band_scale"],
+      "source_band_offset":r["source_band_offset"],
       "display_crs":"EPSG:3857",
       "valid_preview_pixels":r["valid_pixels"],
       "value_scale":"Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
@@ -79,6 +84,9 @@ for key in ("soil","soil_all"):
       "mean_raw":v["raw_pixel_mean"],"sum_raw":v["raw_pixel_sum"],"p98_raw":v["raw_pixel_q98"],
       "histogram":v["raw_pixel_histogram"],
       "source_crs":v["source_crs"],
+      "product_family":v["product_family"],
+      "source_resolution_m":v["source_resolution_m"],
+      "source_unit_tag":v["source_unit_tag"],
       "sample_type":v["sample_type"],
    } for k,v in layers.items()}
  },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")

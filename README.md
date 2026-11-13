@@ -108,3 +108,13 @@ Tabellsidan har en **summa samplade rasterråvärden** per lager. Summan är mat
 Växeln **Kol (ton C) / Koldioxidmassa (ton CO₂)** gäller bara *verifierade* massvärden och använder stökiometriska faktorn 44/12. Råvärdesstatistiken omräknas inte eftersom dess enhet ännu saknar källverifiering. Motsvarande CO₂-massa är inte observerade CO₂-utsläpp eller årlig inlagring.
 
 Efter merge krävs en ny manuell körning av `Publish SLU Lulea carbon preview maps` för att publicera nya råvärdessummor i `preview_statistics.json`.
+
+## Biomasstäckning – prioriterat lager
+
+**Faktisk källfil:** [SLU Skogliga grunddata, SGD2_BIO.tif](https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif). Enligt Skogsstyrelsens produktbeskrivning avser biomassa **stamved, grenar och toppar**, normalt i ton torrsubstans/ha; **rötter och stubbar ingår inte**. Skogsprodukten modelleras utifrån laserskanning och fältdata och har begränsad geografisk täckning. Den tidigare inventerade filen `Biomass_leaf.tif` är **inte** en validerad total biomassa för detta syfte.
+
+Efter att denna PR sammanslagits kan `Publish SLU Lulea carbon preview maps` skapa ett tredje, faktiskt **kommunmaskat** förhandsraster, `biomass_preview.png`, med klickbara råvärden `biomass_sampled_values.f32.gz` och rådatastatistik i `preview_statistics.json`. `preview_layers.json` dokumenterar även CRS, källupplösning, enhetstagg och bandskala från GeoTIFF; körningen stoppar vid ogiltigt CRS eller uteblivna källvärden.
+
+**Kvalitetsspärr:** inga påståenden om biomassans kolmassor görs från råvärden innan fysisk skala och källår verifierats. Det är ett kartlager för **biomassa** och inte ett direkt lager i ton kol. Rött-svart visar relativa värden inom just detta lager. Grått markerar NoData och inget värde motsvaras inte automatiskt av noll. För att bygga en korrekt total behöver de giltiga originalcellerna maskas och areaintegreras i källans verifierade projektion.
+
+**Övriga lager:** Stock_DOM, Change_SOC, Change_DOM, Change_All och skogsvolym återstår. Ingen av dem ersätts av biomassa eller SOC och de är markerade som ännu inte publicerade. Skogsstyrelsens senare omdrev kan vara ett bättre aktuellt alternativ än SGD2; jämför datum/täckning innan materialet används i en årsanalys.

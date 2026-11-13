@@ -24,6 +24,7 @@ from PIL import Image
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"metadata"/"lulea_carbon_preview"
 SOURCES={
+ "biomass":"https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif",
  "soil":"https://gis.slu.se/data/carbon/2023/Stock_SOC_2023_Lan/SOC_2023_Norrbottens.tif",
  "soil_all":"https://gis.slu.se/data/carbon/2023/Stock_All_2023_Lan/Stock_All_2023_Norrbottens.tif",
 }
@@ -57,6 +58,11 @@ def main():
      if not src.crs:raise ValueError("Source CRS missing")
      rec["source_crs"]=str(src.crs)
      rec["source_nodata"]=src.nodata
+     rec["source_resolution_m"]=[float(abs(src.transform.a)),float(abs(src.transform.e))]
+     rec["source_unit_tag"]=src.units[0] if src.units else None
+     rec["source_description"]=src.descriptions[0] if src.descriptions else None
+     rec["source_band_scale"]=src.scales[0] if src.scales else None
+     rec["source_band_offset"]=src.offsets[0] if src.offsets else None
      with WarpedVRT(src,crs="EPSG:3857",transform=tf,width=width,height=height,
         resampling=Resampling.nearest,nodata=-9999) as vrt:
       arr=vrt.read(1,masked=True)
@@ -64,6 +70,7 @@ def main():
     mask=np.ma.getmaskarray(arr)
     valid=inside&(~mask)&np.isfinite(a)&(a!=-9999)&(a>=0)
     rec["valid_pixels"]=int(np.count_nonzero(valid))
+    rec["product_family"]="SLU/Skogsstyrelsen Skogliga grunddata SGD2" if name=="biomass" else "SLU Kolkartor 2023"
     rec["municipal_preview_pixels"]=int(np.count_nonzero(inside))
     if not np.any(valid):raise ValueError("No valid source pixels within municipality")
     q2,q98=np.percentile(a[valid],[2,98])

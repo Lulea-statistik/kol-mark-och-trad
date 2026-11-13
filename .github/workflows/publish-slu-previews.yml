@@ -9,7 +9,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,7 +19,7 @@ jobs:
           python-version: "3.12"
       - name: Install raster processing requirements
         run: pip install -r requirements.txt
-      - name: Generate genuine Lulea-masked raster previews from SLU
+      - name: Generate Lulea-masked previews of biomass and SLU soil carbon
         run: python scripts/preview_lulea_carbon_rasters.py
       - name: Validate output and prepare public map previews
         run: python scripts/publish_slu_previews.py
@@ -42,5 +42,6 @@ jobs:
           path: |
             metadata/lulea_carbon_preview/
             docs/data/preview/preview_layers.json
+            docs/data/preview/preview_statistics.json
           if-no-files-found: warn
           retention-days: 30
