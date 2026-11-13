@@ -1,2 +1,16 @@
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#24352d;background:#f4f6f1}*{box-sizing:border-box}body{margin:0}header{background:#163f32;color:white;padding:24px max(20px,calc((100vw - 1150px)/2))}h1{margin:0;font-size:1.7rem}header p{margin:.4rem 0 0}main{max-width:1150px;margin:20px auto;padding:0 14px}.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:10px}select{font:inherit;padding:8px;min-width:320px;max-width:100%}#availability{font-size:.9rem;color:#6c4928}#map{height:560px;max-height:70vh;border:1px solid #c8d2ca;border-radius:8px;background:#e5eeeb}section{background:white;border:1px solid #dfe7df;border-radius:8px;padding:18px 22px;margin-top:16px;line-height:1.55}h2{font-size:1.15rem;margin:0 0 8px}a{color:#17604f}footer{max-width:1150px;margin:24px auto;padding:0 14px 20px;color:#66756d;font-size:.86rem}
 .site-nav{display:flex;gap:12px;max-width:1150px;margin:14px auto 0;padding:0 14px}.site-nav a{padding:10px 18px;border:1px solid #a5b7ab;border-radius:6px;background:white;text-decoration:none;font-weight:600;color:#174f3e}.site-nav a[aria-current="page"]{background:#174f3e;color:white}.table-scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:850px;font-variant-numeric:tabular-nums}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #dbe4dd}th{background:#edf3ee}tbody tr:hover{background:#f6f8f5}.chart-wrap{height:330px;max-width:100%}.hint{font-size:.9rem;color:#5c665e}
+
+/* Always reserve visible space for OpenStreetMap, independent of raster data. */
+#map{display:block;width:100%;height:clamp(430px,68vh,760px);max-height:none;min-height:430px;z-index:0;background:#dfece8}
+#map.leaflet-container{font-family:inherit}
+.map-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 15px;width:100%;margin:6px 0}
+.map-actions input[type="range"]{width:155px;accent-color:#17604f}
+.map-actions input[type="checkbox"]{width:17px;height:17px;accent-color:#17604f}
+.check-label{display:inline-flex;align-items:center;gap:7px;font-weight:600}
+.map-actions button{background:#174f3e;color:white;border:0;border-radius:5px;padding:9px 14px;font:inherit;cursor:pointer}
+.map-actions button:hover{background:#286e53}
+#availability{width:100%;padding:7px 0}
+#availability.warning{color:#a53c20;font-weight:600}
+.map-note{font-size:.89rem;color:#53675c;margin:8px 0 0}
+@media(max-width:600px){#map{height:65vh;min-height:390px}.map-actions{gap:9px}.leaflet-control-layers{font-size:12px}}
