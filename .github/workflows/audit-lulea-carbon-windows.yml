@@ -1,0 +1,26 @@
+name: Audit Lulea carbon source raster windows
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster/geometric dependencies
+        run: pip install -r requirements.txt
+      - name: Inspect bounded SLU source windows inside municipality
+        run: python scripts/audit_lulea_carbon_windows.py
+      - name: Upload audit output even when source unavailable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lulea-carbon-window-audit
+          path: metadata/lulea_carbon_window_audit.json
+          if-no-files-found: warn
+          retention-days: 30
