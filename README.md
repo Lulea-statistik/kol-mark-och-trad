@@ -86,3 +86,15 @@ Efter PR #8 går det att köra [Publish SLU Lulea carbon preview maps](../../act
 Färgskalan är **relativ och separat per lager**: man kan se geografiska mönster men inte tolka färgerna som ton C/ha eller direkt jämföra SOC-färg med Stock_All-färg. Årlig kolsänka och kommunala koltotaler kan inte utläsas. **Diagram och tabeller** är fortsatt utan kolvärden tills SLU:s fysikaliska enheter verifierats och en area-riktig integral av fullständiga källraster genomförts.
 
 Automatisk publicering kan misslyckas om repositoryts Actions-permissioner inte tillåter `contents: write`; granska då jobbloggen. Källbildens transparens visar kommunens arbetsgräns, som bör bytas mot verifierad officiell geometri före officiell statistik.
+
+## Rasterfärger, baskartor, klickvärden och råvärdestabeller
+
+Efter denna ändring genererar GitHub-flödet `Publish SLU Lulea carbon preview maps` även `docs/data/preview/*_sampled_values.f32.gz` och `docs/data/preview/preview_statistics.json`.
+
+- **Färg:** låg = röd, hög = svart med klippning vid varje rasters 2:a/98:e percentil. **NoData inom kommunpolygonen = grått**; utanför kommunpolygonen = transparent. En rasterfärg säger inte ton kol.
+- **Bakgrund:** OpenStreetMap standard eller **Esri World Imagery** (satellit-/flygbild med varierande fotodatum) med källattribuering; SLU:s raster är separat från baskartan.
+- **Klick i kartan:** visas med koordinat i EPSG:4326, rad/kolumn och närmaste samplade SLU-råvärde från samma fullständigt reprojicerade **EPSG:3857-förhandsgrid** som visningsbilden. Pixeldata lagras som komprimerade float32-värden och läses vid första klicket i vald källa. Detta är **inte** ett exakt original-10m-pixelvärde, utan närmaste källvärde samplat till förhandsgridets grövre upplösning. NoData är inte noll.
+- **Tabellsidan:** för källorna Stock_SOC och Stock_All publiceras antal giltiga förhandsgridpixlar, antal NoData, minimum, median, medelvärde, maximum och histogram av **råvärden med okänd fysisk enhet**. Inga koltotalsiffror, CO₂-ton eller arealintegraler visas från dessa råvärden.
+- Råvärdenas fysiska enhet och arbetskommungränsens administrativa giltighet är fortfarande **inte verifierade**. SLU:s kolmodell är regionalt skattad; skarpa kommunenheter kräver källdokumentation och ny maskad ursprungsupplöst arealintegral i EPSG:3006.
+
+**Publicering:** Efter merge måste det manuella flödet `Publish SLU Lulea carbon preview maps` köras igen. En vanlig GitHub Pages-deploy av enbart JavaScript producerar inte de nya `.gz`-filerna eller statistikfilen.
