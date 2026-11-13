@@ -7,14 +7,14 @@
 <header><h1>Kolförråd i mark och träd</h1><p>Luleå kommun · enbart värden inom kommungränsen</p></header>
 <nav class="site-nav" aria-label="Sidnavigation"><a href="index.html" aria-current="page">Karta</a><a href="statistics.html">Diagram och tabeller</a></nav>
 <main><div class="controls"><label for="layer">Kartlager</label><select id="layer">
-<option value="preview_soil">Förhandskarta: markkol (relativ färgskala, ej ton C)</option>
-<option value="preview_soil_all">Förhandskarta: totalt markförråd (relativ färgskala)</option>
+<option value="preview_soil">SLU markkol (SOC) – relativ färgskala</option>
+<option value="preview_soil_all">SLU totalt markförråd – relativ färgskala</option>
 <option value="biomass">Levande träd – biomassa (ovan mark)</option>
 <option value="soil">Markkol (SOC)</option>
 <option value="soil_all">Mark totalt (SOC + dött organiskt material)</option>
 <option value="volume">Virkesvolym – ersättningsunderlag</option>
-</select><div id="availability" role="status"></div></div>
-<div id="map" aria-label="Karta över Luleå kommun"></div>
+</select><div class="map-actions"><label class="check-label"><input id="showRaster" type="checkbox" checked> Visa markkolslagret</label><label for="overlayOpacity">Rasterlagrets opacitet</label><input type="range" id="overlayOpacity" min="0" max="100" value="60" step="5"><output id="opacityValue" for="overlayOpacity">60 %</output><button id="zoomLulea" type="button">Visa hela Luleå</button></div><div id="availability" role="status">Laddar OpenStreetMap och kommungränsen…</div></div>
+<div id="map" role="region" aria-label="Interaktiv OpenStreetMap-karta med Luleås kommungräns och SLU:s markkolslager"></div><p class="map-note">Bakgrundskarta: OpenStreetMap. SLU:s markkolsraster visas som ett separat lager ovanpå kartan; använd kryssrutan för att slå av eller på det.</p>
 <section class="stats"><h2>Resultat för valt lager</h2><p id="summary">Inga rasterdata är ännu publicerade. Kommungränsen visas för att verifiera kartans geografiska omfattning.</p><p id="units"></p><p id="quality"></p></section>
 <section><h2>Definitioner och beräkningar</h2>
 <p><strong>Träd:</strong> biomassa ovan mark är inte hela trädets biomassa; rötter, död ved och markkol redovisas separat. Biomassa ska avse torrsubstans om den omvandlas till kol. Ett preliminärt modellantagande är 0,5 ton C per ton torr biomassa. Kol uttryckt som CO₂-ekvivalenta massan: ton C × 44/12. Det är <em>bundet kol uttryckt som CO₂-massa</em>, inte observerade utsläpp eller ett årligt upptag.</p>
