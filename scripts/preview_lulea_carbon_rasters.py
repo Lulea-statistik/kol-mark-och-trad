@@ -87,8 +87,8 @@ def main():
     # Null / NoData: grey only INSIDE Lulea, outside the municipality transparent.
     null_inside=inside&(~valid)
     image[null_inside]=[160,160,160,200]
-    # Colour palette: low = red (#ff0000), high = black (#000000).
-    # Relative quantiles are layer-specific and NOT physical carbon concentrations.
+    # Product-specific display palettes only; values stay untouched in the numeric grid.
+    # These color transformations do NOT establish physical carbon units.
     if is_change:
      # Signed values: blue = negative, white = zero, red = positive.
      maxabs=max(1e-9,float(np.percentile(np.abs(a[valid]),98)))
@@ -101,13 +101,41 @@ def main():
      image[valid,2]=np.asarray(blue,dtype="uint8")
      rec["signed_color_scale_max_abs_p98"]=float(maxabs)
      rec["color_scale_type"]="signed_blue_white_red"
+    elif name=="biomass":
+     # Distinguish three semantically different states: NoData, true zero,
+     # and positive source values. Only positive biomass values set the
+     # contrast limits, so the large zero class cannot collapse the palette.
+     zeros=valid&(a==0)
+     positive=valid&(a>0)
+     image[zeros]=[245,235,210,210]  # zero biomass, light beige
+     if np.any(positive):
+      positive_values=np.asarray(a[positive],dtype="float64")
+      logged=np.log1p(positive_values)
+      lo,hi=np.percentile(logged,[2,98])
+      if hi<=lo:hi=lo+1.
+      t=np.clip((logged-lo)/(hi-lo),0.,1.)
+      low=np.asarray([255.,220.,120.])
+      mid=np.asarray([220.,70.,20.])
+      high=np.asarray([20.,12.,12.])
+      rgb=np.empty((len(t),3),dtype="float64")
+      first=t<=.5
+      rgb[first]=low+(mid-low)*(t[first]/.5)[:,None]
+      rgb[~first]=mid+(high-mid)*((t[~first]-.5)/.5)[:,None]
+      image[positive,:3]=np.rint(np.clip(rgb,0,255)).astype("uint8")
+      image[positive,3]=225
+      rec["biomass_positive_log_p02"]=float(lo)
+      rec["biomass_positive_log_p98"]=float(hi)
+      rec["biomass_positive_source_p02"]=float(np.expm1(lo))
+      rec["biomass_positive_source_p98"]=float(np.expm1(hi))
+     rec["color_scale_type"]="biomass_log_three_color"
     else:
      intensity=np.asarray(np.rint(255*(1-scaled)),dtype="uint8")
      image[valid,0]=intensity
      image[valid,1]=0
      image[valid,2]=0
+     image[valid,3]=225
      rec["color_scale_type"]="red_black"
-    image[valid,3]=225
+    if is_change:image[valid,3]=225
     filename=name+"_preview.png"
     Image.fromarray(image,"RGBA").save(OUT/filename,optimize=True)
     # The clickable data are the TRUE raw source values sampled onto the same
