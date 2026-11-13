@@ -21,13 +21,28 @@
     attribution:'© OpenStreetMap contributors',maxZoom:19,maxNativeZoom:19,
     crossOrigin:true
   }).addTo(map);
+  const imagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    attribution:'Imagery © Esri, Maxar, Earthstar Geographics, GIS User Community',
+    maxZoom:19,maxNativeZoom:19
+  });
   const layersControl=L.control.layers(
-    {'OpenStreetMap':osm},
+    {'Standard – OpenStreetMap':osm,'Flyg-/satellitbild – Esri World Imagery':imagery},
     {},
     {collapsed:false,position:'topright'}
   ).addTo(map);
+  const baseSelector=document.getElementById('baseMap');
+  baseSelector?.addEventListener('change',()=>{
+    if(baseSelector.value==='imagery'){map.removeLayer(osm);imagery.addTo(map);}
+    else{map.removeLayer(imagery);osm.addTo(map);}
+  });
+  map.on('baselayerchange',event=>{
+    if(baseSelector)baseSelector.value=event.layer===imagery?'imagery':'osm';
+  });
   osm.on('tileerror',()=>{error('OpenStreetMap kunde inte ladda alla kartplattor. Kontrollera uppkopplingen.')});
   let municipality=null, overlay=null, overlayName=null, manifest={layers:{}}, previews={layers:{}};
+  const sampledGrids=new Map();
+  const cellStatus=document.getElementById('cellStatus');
+  const clickPopup=L.popup({maxWidth:330});
   const bounds=L.latLngBounds([[65.06965,21.33572],[66.28329,23.13835]]);
   function fitMunicipality(){
     if(municipality&&municipality.getBounds().isValid()){
@@ -91,8 +106,8 @@
     layersControl.addOverlay(overlay,overlayName);
     status.classList.remove('warning');
     if(isPreview){
-      status.textContent='OpenStreetMap + SLU:s verkliga rasterförhandsbild visas.';
-      summary.textContent='Färgerna visar relativ variation i råvärden inom Luleå, inte ton kol. SOC och Stock_All har olika skalor.';
+      status.textContent='SLU:s förhandsraster ovanpå vald baskarta. Rött = lågt råvärde, svart = högt; grått = NoData.';
+      summary.textContent='Rött → svart visar ökande källråvärden, grått markerar NoData inom kommungränsen. Varje raster har egen relativ skala och kan inte direkt jämföras eller tolkas som ton kol.';
       units.textContent='Fysisk kolenhet ej verifierad. Inga ton C eller CO₂ beräknas ännu.';
       quality.textContent='SLU källraster: '+(record.source_crs||'ej känt')+' · fullt reprojicerad förhandsbild: EPSG:3857 · Luleås arbetsgräns.';
       return;
@@ -106,7 +121,60 @@
     units.textContent='Kartans enhet: '+(record.units||'ej angiven');
     quality.textContent='Källa: '+(record.source||'okänd')+' · Käll-CRS: '+(record.source_crs||'ej känt');
   }
-  select.addEventListener('change',render);
+  async function loadSampledGrid(key,record){
+    if(!record?.numeric_file)throw Error('Numeriska förhandsdata är ännu inte publicerade för lagret.');
+    if(!sampledGrids.has(key)){
+      const promise=(async()=>{
+        const res=await fetch(record.numeric_file);
+        if(!res.ok)throw Error('HTTP '+res.status+' för rastervärden');
+        if(typeof DecompressionStream==='undefined')throw Error('Webbläsaren saknar stöd för gzip-avkodning.');
+        const raw=await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+        const expected=record.raster_grid_width*record.raster_grid_height*4;
+        if(raw.byteLength!==expected)throw Error('Rastervärdefilen har oväntad storlek.');
+        return new DataView(raw);
+      })();
+      sampledGrids.set(key,promise);
+      promise.catch(()=>sampledGrids.delete(key));
+    }
+    return sampledGrids.get(key);
+  }
+  map.on('click',async(event)=>{
+    const key=select.value;
+    const record=key.startsWith('preview_')?previews.layers?.[key.slice(8)]:null;
+    if(!showRaster.checked||!record?.numeric_file){
+      cellStatus.textContent='Välj ett tillgängligt förhandslager och aktivera rastervisning för att läsa ett pixelvärde.';
+      return;
+    }
+    const token=key;
+    cellStatus.textContent='Läser råvärde ur förhandsraster…';
+    try{
+      const grid=await loadSampledGrid(key,record);
+      if(select.value!==token)return;
+      const bb=record.raster_grid_bounds_m, pt=map.options.crs.project(event.latlng);
+      const col=Math.floor((pt.x-bb[0])/(bb[2]-bb[0])*record.raster_grid_width);
+      const row=Math.floor((bb[3]-pt.y)/(bb[3]-bb[1])*record.raster_grid_height);
+      if(col<0||row<0||col>=record.raster_grid_width||row>=record.raster_grid_height){
+        cellStatus.textContent='Punkten ligger utanför det publicerade förhandsrastret.';return;
+      }
+      const value=grid.getFloat32(4*(row*record.raster_grid_width+col),true);
+      const valid=Number.isFinite(value)&&value!==record.raster_grid_nodata;
+      const desc=valid
+        ?'Samplat råvärde: '+value.toLocaleString('sv-SE',{maximumFractionDigits:4})+' (enhet inte verifierad)'
+        :'NoData eller utanför kommunpolygonen: inget giltigt samplat rastervärde här.';
+      const heading=key==='preview_soil'?'Markkol (Stock_SOC)':'Totalt markförråd (Stock_All)';
+      const coords='Lat '+event.latlng.lat.toFixed(5)+', lon '+event.latlng.lng.toFixed(5);
+      cellStatus.textContent=heading+' · '+desc+' · '+coords;
+      const popup=L.DomUtil.create('div');
+      const title=document.createElement('strong');title.textContent=heading;popup.appendChild(title);
+      for(const line of [desc,coords,'Gridposition: kolumn '+(col+1)+', rad '+(row+1),
+        'Upplösning för klickvärdet: '+record.raster_grid_width+' × '+record.raster_grid_height+' pixlar över Luleås utbredning.',
+        'Värdet är närmaste källrasterpixel samplad till EPSG:3857-förhandsgrid – inte ett originalvärde för en exakt 10 m-cell.']){
+        const p=document.createElement('p');p.style.margin='6px 0';p.textContent=line;popup.appendChild(p);
+      }
+      clickPopup.setLatLng(event.latlng).setContent(popup).openOn(map);
+    }catch(err){cellStatus.textContent='Kunde inte läsa klickvärde: '+err.message;}
+  });
+  select.addEventListener('change',()=>{cellStatus.textContent='Klicka i rasterlagret för samplat råvärde och koordinat.';render();});
   async function init(){
     fitMunicipality();
     try{

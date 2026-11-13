@@ -14,3 +14,10 @@
 #availability.warning{color:#a53c20;font-weight:600}
 .map-note{font-size:.89rem;color:#53675c;margin:8px 0 0}
 @media(max-width:600px){#map{height:65vh;min-height:390px}.map-actions{gap:9px}.leaflet-control-layers{font-size:12px}}
+
+.map-actions #baseMap{min-width:220px;max-width:100%;padding:7px}
+.scale-red{color:#bb120b;font-weight:700}.scale-black{color:#141414;font-weight:700}
+.scale-null{color:#666;font-weight:700}
+#cellStatus{min-height:1.6rem;font-weight:600}
+#rawHistogramLayer{margin:8px 0 4px;min-width:240px}
+@media(max-width:720px){#rawHistogram{max-width:100%}.map-actions #baseMap{min-width:180px}}

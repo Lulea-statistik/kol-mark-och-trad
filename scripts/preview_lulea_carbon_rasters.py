@@ -6,6 +6,7 @@ quantification. This never assumes that the source values are t C/ha.
 """
 from __future__ import annotations
 import json
+import gzip
 from pathlib import Path
 import numpy as np
 import rasterio
@@ -69,12 +70,38 @@ def main():
     if q98<=q2:q98=q2+1
     scaled=np.clip((a[valid]-q2)/(q98-q2),0,1)
     image=np.zeros((height,width,4),dtype="uint8")
-    image[valid,0]=np.asarray(240-180*scaled,dtype="uint8")
-    image[valid,1]=np.asarray(229-100*scaled,dtype="uint8")
-    image[valid,2]=np.asarray(190-145*scaled,dtype="uint8")
+    # Null / NoData: grey only INSIDE Lulea, outside the municipality transparent.
+    null_inside=inside&(~valid)
+    image[null_inside]=[160,160,160,200]
+    # Colour palette: low = red (#ff0000), high = black (#000000).
+    # Relative quantiles are layer-specific and NOT physical carbon concentrations.
+    intensity=np.asarray(np.rint(255*(1-scaled)),dtype="uint8")
+    image[valid,0]=intensity
+    image[valid,1]=0
+    image[valid,2]=0
     image[valid,3]=225
     filename=name+"_preview.png"
     Image.fromarray(image,"RGBA").save(OUT/filename,optimize=True)
+    # The clickable data are the TRUE raw source values sampled onto the same
+    # fully reprojected 3857 preview grid. No unit conversion is claimed.
+    numeric=np.full(a.shape,-9999,dtype="<f4")
+    numeric[valid]=a[valid]
+    numeric_file=name+"_sampled_values.f32.gz"
+    with gzip.open(OUT/numeric_file,"wb",compresslevel=6) as handle:
+     handle.write(numeric.tobytes(order="C"))
+    hist,bins=np.histogram(a[valid],bins=12)
+    rec["numeric_file"]=numeric_file
+    rec["raster_grid_width"]=int(width)
+    rec["raster_grid_height"]=int(height)
+    rec["raster_grid_crs"]="EPSG:3857"
+    rec["raster_grid_bounds_m"]=[float(xmin),float(ymin),float(xmax),float(ymax)]
+    rec["raster_grid_nodata"]=-9999
+    rec["null_inside_pixels"]=int(np.count_nonzero(null_inside))
+    rec["raw_pixel_median"]=float(np.median(a[valid]))
+    rec["raw_pixel_mean"]=float(np.mean(a[valid].astype("float64")))
+    rec["raw_pixel_histogram"]={"edges":[float(x) for x in bins],"counts":[int(x) for x in hist]}
+    rec["sample_type"]="Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel"
+    rec["preview_grid_resolution_metres"]=[float(abs(tf.a)),float(abs(tf.e))]
     rec.update({"status":"visual_preview_created","image":filename,
       "raw_pixel_q02":float(q2),"raw_pixel_q98":float(q98),
       "raw_pixel_min":float(np.min(a[valid])),"raw_pixel_max":float(np.max(a[valid])),
