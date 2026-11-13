@@ -25,7 +25,9 @@
       "source_band_offset": 0.0,
       "display_crs": "EPSG:3857",
       "valid_preview_pixels": 595720,
-      "value_scale": "Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
+      "value_scale": "Red low, black high; grey NoData",
+      "color_scale_type": "red_black",
+      "signed_color_scale_max_abs_p98": null,
       "numeric_file": "data/preview/biomass_sampled_values.f32.gz",
       "raster_grid_width": 1101,
       "raster_grid_height": 1800,
@@ -43,6 +45,9 @@
       "raw_pixel_median": 14.0,
       "raw_pixel_mean": 37.95975961861277,
       "raw_pixel_sum": 22613388.0,
+      "raw_pixel_negative_count": 0,
+      "raw_pixel_positive_count": 317243,
+      "raw_pixel_zero_count": 278477,
       "raw_pixel_min": 0.0,
       "raw_pixel_max": 1125.0,
       "raw_pixel_histogram": {
@@ -106,7 +111,9 @@
       "source_band_offset": 0.0,
       "display_crs": "EPSG:3857",
       "valid_preview_pixels": 613841,
-      "value_scale": "Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
+      "value_scale": "Red low, black high; grey NoData",
+      "color_scale_type": "red_black",
+      "signed_color_scale_max_abs_p98": null,
       "numeric_file": "data/preview/soil_sampled_values.f32.gz",
       "raster_grid_width": 1101,
       "raster_grid_height": 1800,
@@ -124,6 +131,9 @@
       "raw_pixel_median": 43985.0,
       "raw_pixel_mean": 52329.95647407065,
       "raw_pixel_sum": 32122272812.0,
+      "raw_pixel_negative_count": 0,
+      "raw_pixel_positive_count": 360367,
+      "raw_pixel_zero_count": 253474,
       "raw_pixel_min": 0.0,
       "raw_pixel_max": 415244.0,
       "raw_pixel_histogram": {
@@ -163,6 +173,92 @@
       "total_tonnes_C": null,
       "area_integral": false
     },
+    "stock_dom": {
+      "image": "data/preview/stock_dom_preview.png",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "source": "https://gis.slu.se/data/carbon/2023/Stock_DOM_2023_Lan/DOM_2023_Norrbottens.tif",
+      "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "source_band_scale": 1.0,
+      "source_band_offset": 0.0,
+      "display_crs": "EPSG:3857",
+      "valid_preview_pixels": 613841,
+      "value_scale": "Red low, black high; grey NoData",
+      "color_scale_type": "red_black",
+      "signed_color_scale_max_abs_p98": null,
+      "numeric_file": "data/preview/stock_dom_sampled_values.f32.gz",
+      "raster_grid_width": 1101,
+      "raster_grid_height": 1800,
+      "raster_grid_crs": "EPSG:3857",
+      "raster_grid_bounds_m": [
+        2375081.44210024,
+        9626742.588450905,
+        2575748.4633057658,
+        9954811.75800121
+      ],
+      "raster_grid_nodata": -9999,
+      "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel",
+      "raw_pixel_q02": 0.0,
+      "raw_pixel_q98": 64768.0,
+      "raw_pixel_median": 114.0,
+      "raw_pixel_mean": 14083.43080700051,
+      "raw_pixel_sum": 8644987250.0,
+      "raw_pixel_negative_count": 0,
+      "raw_pixel_positive_count": 360354,
+      "raw_pixel_zero_count": 253487,
+      "raw_pixel_min": 0.0,
+      "raw_pixel_max": 97440.0,
+      "raw_pixel_histogram": {
+        "edges": [
+          0.0,
+          8120.0,
+          16240.0,
+          24360.0,
+          32480.0,
+          40600.0,
+          48720.0,
+          56840.0,
+          64960.0,
+          73080.0,
+          81200.0,
+          89320.0,
+          97440.0
+        ],
+        "counts": [
+          362699,
+          4904,
+          86604,
+          52050,
+          35560,
+          30413,
+          19002,
+          10525,
+          8434,
+          2731,
+          715,
+          204
+        ]
+      },
+      "null_inside_pixels": 253209,
+      "municipal_preview_pixels": 867050,
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false
+    },
     "soil_all": {
       "image": "data/preview/soil_all_preview.png",
       "bounds": [
@@ -187,7 +283,9 @@
       "source_band_offset": 0.0,
       "display_crs": "EPSG:3857",
       "valid_preview_pixels": 613841,
-      "value_scale": "Red to black, relative 2nd-98th percentile of sampled source values; grey is source NoData",
+      "value_scale": "Red low, black high; grey NoData",
+      "color_scale_type": "red_black",
+      "signed_color_scale_max_abs_p98": null,
       "numeric_file": "data/preview/soil_all_sampled_values.f32.gz",
       "raster_grid_width": 1101,
       "raster_grid_height": 1800,
@@ -205,6 +303,9 @@
       "raw_pixel_median": 66859.0,
       "raw_pixel_mean": 66413.38728107116,
       "raw_pixel_sum": 40767260062.0,
+      "raw_pixel_negative_count": 0,
+      "raw_pixel_positive_count": 360367,
+      "raw_pixel_zero_count": 253474,
       "raw_pixel_min": 0.0,
       "raw_pixel_max": 415259.0,
       "raw_pixel_histogram": {
@@ -236,6 +337,264 @@
           0,
           0,
           281
+        ]
+      },
+      "null_inside_pixels": 253209,
+      "municipal_preview_pixels": 867050,
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false
+    },
+    "change_soc": {
+      "image": "data/preview/change_soc_preview.png",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "source": "https://gis.slu.se/data/carbon/2023/Change_SOC_2023_Lan/Change_SOC_2023_Norrbottens.tif",
+      "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "source_band_scale": 1.0,
+      "source_band_offset": 0.0,
+      "display_crs": "EPSG:3857",
+      "valid_preview_pixels": 613841,
+      "value_scale": "Blue negative, white zero, red positive; grey NoData",
+      "color_scale_type": "signed_blue_white_red",
+      "signed_color_scale_max_abs_p98": 7000.0,
+      "numeric_file": "data/preview/change_soc_sampled_values.f32.gz",
+      "raster_grid_width": 1101,
+      "raster_grid_height": 1800,
+      "raster_grid_crs": "EPSG:3857",
+      "raster_grid_bounds_m": [
+        2375081.44210024,
+        9626742.588450905,
+        2575748.4633057658,
+        9954811.75800121
+      ],
+      "raster_grid_nodata": -9999,
+      "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel",
+      "raw_pixel_q02": -830.0,
+      "raw_pixel_q98": 7000.0,
+      "raw_pixel_median": 0.0,
+      "raw_pixel_mean": 81.57426923258629,
+      "raw_pixel_sum": 50073631.0,
+      "raw_pixel_negative_count": 278218,
+      "raw_pixel_positive_count": 82149,
+      "raw_pixel_zero_count": 253474,
+      "raw_pixel_min": -830.0,
+      "raw_pixel_max": 36000.0,
+      "raw_pixel_histogram": {
+        "edges": [
+          -830.0,
+          2239.166748046875,
+          5308.33349609375,
+          8377.5,
+          11446.6669921875,
+          14515.833984375,
+          17585.0,
+          20654.16796875,
+          23723.333984375,
+          26792.5,
+          29861.66796875,
+          32930.8359375,
+          36000.0
+        ],
+        "counts": [
+          567395,
+          28323,
+          18086,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          37
+        ]
+      },
+      "null_inside_pixels": 253209,
+      "municipal_preview_pixels": 867050,
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false
+    },
+    "change_dom": {
+      "image": "data/preview/change_dom_preview.png",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "source": "https://gis.slu.se/data/carbon/2023/Change_DOM_2023_Lan/Change_DOM_2023_Norrbottens.tif",
+      "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "source_band_scale": 1.0,
+      "source_band_offset": 0.0,
+      "display_crs": "EPSG:3857",
+      "valid_preview_pixels": 613841,
+      "value_scale": "Blue negative, white zero, red positive; grey NoData",
+      "color_scale_type": "signed_blue_white_red",
+      "signed_color_scale_max_abs_p98": 466.0,
+      "numeric_file": "data/preview/change_dom_sampled_values.f32.gz",
+      "raster_grid_width": 1101,
+      "raster_grid_height": 1800,
+      "raster_grid_crs": "EPSG:3857",
+      "raster_grid_bounds_m": [
+        2375081.44210024,
+        9626742.588450905,
+        2575748.4633057658,
+        9954811.75800121
+      ],
+      "raster_grid_nodata": -9999,
+      "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel",
+      "raw_pixel_q02": -466.0,
+      "raw_pixel_q98": 0.0,
+      "raw_pixel_median": -28.0,
+      "raw_pixel_mean": -221.17500460216897,
+      "raw_pixel_sum": -135766286.0,
+      "raw_pixel_negative_count": 359328,
+      "raw_pixel_positive_count": 0,
+      "raw_pixel_zero_count": 254513,
+      "raw_pixel_min": -466.0,
+      "raw_pixel_max": 0.0,
+      "raw_pixel_histogram": {
+        "edges": [
+          -466.0,
+          -427.1666564941406,
+          -388.3333435058594,
+          -349.5,
+          -310.66668701171875,
+          -271.8333435058594,
+          -233.0,
+          -194.16668701171875,
+          -155.33334350585938,
+          -116.5,
+          -77.66668701171875,
+          -38.833343505859375,
+          0.0
+        ],
+        "counts": [
+          251142,
+          0,
+          0,
+          55519,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          307180
+        ]
+      },
+      "null_inside_pixels": 253209,
+      "municipal_preview_pixels": 867050,
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false
+    },
+    "change_all": {
+      "image": "data/preview/change_all_preview.png",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "source": "https://gis.slu.se/data/carbon/2023/Change_All_2023_Lan/Change_All_2023_Norrbottens.tif",
+      "source_crs": "EPSG:3006",
+      "product_family": "SLU Kolkartor 2023",
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_unit_tag": null,
+      "source_band_scale": 1.0,
+      "source_band_offset": 0.0,
+      "display_crs": "EPSG:3857",
+      "valid_preview_pixels": 613841,
+      "value_scale": "Blue negative, white zero, red positive; grey NoData",
+      "color_scale_type": "signed_blue_white_red",
+      "signed_color_scale_max_abs_p98": 6672.0,
+      "numeric_file": "data/preview/change_all_sampled_values.f32.gz",
+      "raster_grid_width": 1101,
+      "raster_grid_height": 1800,
+      "raster_grid_crs": "EPSG:3857",
+      "raster_grid_bounds_m": [
+        2375081.44210024,
+        9626742.588450905,
+        2575748.4633057658,
+        9954811.75800121
+      ],
+      "raster_grid_nodata": -9999,
+      "sample_type": "Source raster resampled nearest-neighbour to EPSG:3857 preview grid; not native 10-m pixel",
+      "raw_pixel_q02": -1296.0,
+      "raw_pixel_q98": 6672.0,
+      "raw_pixel_median": 0.0,
+      "raw_pixel_mean": -139.60073536958268,
+      "raw_pixel_sum": -85692655.0,
+      "raw_pixel_negative_count": 278218,
+      "raw_pixel_positive_count": 82149,
+      "raw_pixel_zero_count": 253474,
+      "raw_pixel_min": -1296.0,
+      "raw_pixel_max": 35998.0,
+      "raw_pixel_histogram": {
+        "edges": [
+          -1296.0,
+          1811.833251953125,
+          4919.66650390625,
+          8027.5,
+          11135.3330078125,
+          14243.166015625,
+          17351.0,
+          20458.83203125,
+          23566.666015625,
+          26674.5,
+          29782.33203125,
+          32890.1640625,
+          35998.0
+        ],
+        "counts": [
+          567395,
+          28323,
+          18086,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          37
         ]
       },
       "null_inside_pixels": 253209,
