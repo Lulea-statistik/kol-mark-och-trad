@@ -1,0 +1,26 @@
+name: Audit SLU Norrbotten carbon raster metadata
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster metadata dependencies
+        run: pip install -r requirements.txt
+      - name: Check remote GeoTIFF headers and record actual CRS
+        run: python scripts/audit_norrbotten_carbon_rasters.py
+      - name: Publish audit regardless of source failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slu-norrbotten-carbon-raster-metadata
+          path: metadata/norrbotten_carbon_raster_audit.json
+          if-no-files-found: warn
+          retention-days: 30
