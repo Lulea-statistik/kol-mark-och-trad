@@ -30,7 +30,7 @@
      const r=stats.layers?.[key];if(!r)continue;
      const tr=document.createElement('tr');
      for(const value of [names[key],num(r.valid_preview_pixels),num(r.null_inside_pixels),
-       num(r.min_raw),num(r.median_raw),num(r.mean_raw),num(r.sum_raw),num(r.max_raw)]){
+       num(r.min_raw),num(r.median_raw),num(r.mean_raw),num(r.max_raw),num(r.sum_raw)]){
        const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
      }
      table.appendChild(tr);
