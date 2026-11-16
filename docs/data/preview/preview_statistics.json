@@ -109,7 +109,7 @@
       "negative_preview_pixels": 0,
       "positive_preview_pixels": 360367,
       "zero_preview_pixels": 253474,
-      "color_scale_type": "red_black",
+      "color_scale_type": "red_black_zero_beige",
       "source_crs": "EPSG:3006",
       "product_family": "SLU Kolkartor 2023",
       "source_resolution_m": [
