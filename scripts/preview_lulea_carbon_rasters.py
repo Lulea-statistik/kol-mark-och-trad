@@ -129,12 +129,22 @@ def main():
       rec["biomass_positive_source_p98"]=float(np.expm1(hi))
      rec["color_scale_type"]="biomass_log_three_color"
     else:
-     intensity=np.asarray(np.rint(255*(1-scaled)),dtype="uint8")
-     image[valid,0]=intensity
-     image[valid,1]=0
-     image[valid,2]=0
-     image[valid,3]=225
-     rec["color_scale_type"]="red_black"
+     # Stock_SOC: match the biomass zero class, without classifying
+     # zero-value cells as water (zero does not imply a water polygon).
+     # Other stock rasters retain their existing red-to-black styling.
+     zeros=valid&(a==0) if name=="soil" else np.zeros_like(valid)
+     nonzero=valid&(~zeros)
+     if np.any(zeros):image[zeros]=[245,235,210,210]
+     if np.any(nonzero):
+      # Keep non-zero values on the existing absolute layer percentile
+      # scale; do not modify raw numeric grid, statistics or NoData mask.
+      nonzero_scaled=np.clip((a[nonzero]-q2)/(q98-q2),0,1)
+      intensity=np.asarray(np.rint(255*(1-nonzero_scaled)),dtype="uint8")
+      image[nonzero,0]=intensity
+      image[nonzero,1]=0
+      image[nonzero,2]=0
+      image[nonzero,3]=225
+     rec["color_scale_type"]="red_black_zero_beige" if name=="soil" else "red_black"
     if is_change:image[valid,3]=225
     filename=name+"_preview.png"
     Image.fromarray(image,"RGBA").save(OUT/filename,optimize=True)
