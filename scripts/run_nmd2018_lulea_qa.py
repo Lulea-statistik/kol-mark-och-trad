@@ -60,7 +60,7 @@ def download_nmd(out_dir: Path) -> Path:
 def new_counter():
     return {"eligible_pixels": 0, "positive_pixels": 0, "zero_pixels": 0,
             "raw_positive_sum": 0.0, "max_positive_raw": 0.0,
-            "core_positive_pixels": 0, "edge_positive_pixels": 0}
+            "core_positive_pixels": 0, "edge_positive_pixels": 0, "core_raw_positive_sum": 0.0}
 
 def is_epsg3006(crs):
     # Some source GeoTIFFs expose a complete WKT authority EPSG:3006 but
@@ -74,6 +74,7 @@ def is_epsg3006(crs):
 def evaluate(nmd_path: Path, boundary, sgd2_url: str):
     stats = {name: new_counter() for name in CLASSES}
     seen = Counter()
+    spatial_tiles = []
     with rasterio.Env(**ENV), rasterio.open("/vsicurl/" + sgd2_url) as bio, rasterio.open(nmd_path) as land:
         if not bio.crs or not land.crs:
             raise ValueError("Source CRS missing")
@@ -125,6 +126,9 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                     matched_nmd += int(valid.sum())
                     if not valid.any():
                         continue
+                    tile_summary = {"x": float(bio.window_transform(tile).c + width * bio.transform.a/2),
+                                    "y": float(bio.window_transform(tile).f + h * bio.transform.e/2),
+                                    "positive_by_class": {}, "core_positive_by_class": {}}
                     keys,counts = np.unique(a[valid],return_counts=True)
                     seen.update({int(k):int(c) for k,c in zip(keys,counts)})
                     for name,codes in CLASSES.items():
@@ -155,10 +159,16 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                         core = int((pos & stable).sum())
                         rec["core_positive_pixels"] += core
                         rec["edge_positive_pixels"] += npos-core
+                        rec["core_raw_positive_sum"] += float(b.data[pos & stable].astype("float64").sum())
+                        tile_summary["positive_by_class"][name] = npos
+                        tile_summary["core_positive_by_class"][name] = core
+                    if tile_summary["positive_by_class"]:
+                        spatial_tiles.append(tile_summary)
     area_ha = abs(bio.transform.a*bio.transform.e - bio.transform.b*bio.transform.d)/10000
     return {"metadata": extent, "valid_sgd2_pixels": valid_sgd2, "valid_joint_pixels": matched_nmd,
             "native_cell_area_ha": area_ha, "nmd_class_counts_on_joint_pixels": dict(sorted(seen.items())),
-            "categories": stats}
+            "categories": stats, "spatial_tiles": spatial_tiles,
+            "tile_note": "Each tile summarizes counts in a 512x512 native SGD2 grid block; point is its center in EPSG:3006, NOT a precisely located conflict point."}
 
 def main():
     parser=argparse.ArgumentParser()
