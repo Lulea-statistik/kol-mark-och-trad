@@ -133,3 +133,18 @@ Kartan ska efter en lyckad publiceringskörning visa **sju** förhandslager (bio
 `Stock_All` inkluderar `Stock_SOC` och `Stock_DOM`; summera aldrig dessa tre rasterlager eller deras råvärdessummor som oberoende kolförråd. `Change_All` inkluderar motsvarande delkomponenter. Åtskillnad mellan lager och råvärdesförhandsgrid kvarstår; ny publicering skapar inga ton C eller CO₂-värden.
 
 **Efter merge:** kör manuellt `Publish SLU Lulea carbon preview maps`. Om något källraster saknas eller inte har giltiga pixlar inom Luleå ska flödet **stoppa**, och befintliga tre publicerade kartlager ligger oförändrade; det är säkrare än att tyst märka ett obefintligt raster som publicerat.
+
+## Trend – illustrativt kommunscenario 2000–2045
+
+En ny GitHub Pages-sida `docs/trend.html` visar tre separata linjer med femårsintervall: Stock_SOC (markkol), Stock_DOM (dött organiskt material) och Stock_All (totalt markförråd). Denna sida ska inte tolkas som en observerad historisk årsserie eller en verifierad prognos.
+
+**SLU:s Kolkartor har dokumenterad representativ tidsperiod 2000–2020**, inte ett verifierat 2020-mätvärde. För jämförelse över tid väljer vi 2020 som ett **illustrativt beräkningsankare** och anger de efterfrågade åren 2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045. De bakre respektive främre värdena är båda extrapolationer. Beräkningsmodellen är:
+
+`scenario_raw(year) = Stock_sum_raw + (year - 2020) * Change_sum_raw`
+
+**Starkt antagande som ännu inte stöds av källdokumentationen:** att Change-råvärdena är årliga förändringar mätta i samma råvärdesenhet som respektive Stock, och att positivt tecken innebär tillkommande förråd. Resultatet är därför ett *illustrativt scenario för samplade råvärdessummor i förhandsgridet*, inte ton C, CO₂ eller ett officiellt municipal totalbestånd. Det är heller inte säkert att tidsperioden kan modelleras linjärt eller att regionens markanvändning varit konstant.
+
+Sidan läser de redan publicerade summeringarna från `docs/data/preview/preview_statistics.json`, kräver samma gridupplösning/mask för varje Stock/Change-par, kontrollerar att delkomponenternas summor stämmer mot Stock_All/Change_All inom en liten avrundningstolerans och **använder endast Stock_All som totallinje**. SOC + DOM får aldrig adderas till Stock_All som en tredje kolpool. Källorna är samplade på EPSG:3857-förhandsgrid från originalraster i EPSG:3006 inom kommunens arbetsgeometri. Ingen ny area-integration görs av förhandsgridets pixlar.
+
+**För att uppgradera trend till kommunal kolförrådsberäkning i ton C:** verifiera SLU:s fysiska enheter, eventuell skalfaktor och tidsskala/tecken för Change-produkterna, kör area-riktig summering över **originalrastret i källans CRS** med officiell kommungräns och fastställ metodens osäkerheter. Först då kan en faktisk numerisk framskrivning i ton C redovisas. Källa: [SLU Kolkartor](https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-kolkartor/).
+

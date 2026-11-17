@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trend – kolförråd i Luleå kommun</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+</head><body>
+<header><h1>Trend – kolförråd i mark</h1><p>Luleå kommun · Stock_SOC, Stock_DOM och Stock_All</p></header>
+<nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="statistics.html">Diagram och tabeller</a><a href="trend.html" aria-current="page">Trend</a></nav>
+<main>
+<section>
+<h2>Historisk tillbakablick och framskrivning 2000–2045</h2>
+<p><strong>Illustrativa linjära scenarier – inte uppmätta historiska trendlinjer och inte en prognos.</strong>
+SLU:s underlag avser perioden 2000–2020 och innehåller inte årliga observationer som låter oss verifiera en trend vid varje femårsintervall. För att åskådliggöra utvecklingen används 2020 enbart som <em>beräkningsankare</em>, inte som ett verifierat observationsår.</p>
+<p class="hint">Förändringsrastrens fysiska enheter, tidsskala och teckenkonvention är ännu inte verifierade. Scenariot bygger därför uttryckligen på antagandet att ett Change-råvärde kan användas som en <strong>förändring per år i samma råvärdesenhet</strong> som motsvarande Stock-lager och att positivt värde innebär ökande förråd. Detta är en känslighetsillustration. Inga ton C eller CO₂, officiella kommunförråd eller historiska mätserier beräknas.</p>
+<p id="trendStatus" role="status">Läser publicerad rasterstatistik…</p>
+<div class="chart-wrap" style="height:410px"><canvas id="trendChart" aria-label="Illustrativ trend över summerade råvärden i förhandsgridet 2000 till 2045"></canvas></div>
+<p id="trendNote" class="hint"></p>
+</section>
+<section>
+<h2>Scenario för Luleås arbetsgeometri</h2>
+<p>Tabellen visar summor av samplade råvärden i <strong>det nedskalade EPSG:3857-förhandsgridet</strong>. De är varken ton kol eller arealriktiga kommuntotaler. Förrådet <strong>Stock_All</strong> inkluderar Stock_SOC och Stock_DOM och får därför inte adderas till delarna. Åren före och efter beräkningsankaret är extrapolationer i båda riktningar.</p>
+<div class="table-scroll"><table><thead><tr><th>År</th><th>Markkol – SOC (råvärdessumma)</th><th>Dött organiskt material – DOM (råvärdessumma)</th><th>Totalt markförråd – All (råvärdessumma)</th><th>Tolkning</th></tr></thead><tbody id="trendTable"></tbody></table></div>
+<p id="consistencyCheck" class="hint"></p>
+</section>
+<section>
+<h2>Beräkningsmetod och källkritik</h2>
+<p><strong>Linjära scenariovärden:</strong> S<sub>i</sub>(år) = Stock<sub>i</sub> + (år − 2020) × Change<sub>i</sub>, där Stock och Change är separata summerade rasterråvärden från publicerat förhandsgrid. Detta gäller var och en av komponenterna SOC, DOM och All. Change-data antas i scenariot vara ett årligt tillskott i förrådets enhet; detta är <strong>inte verifierat</strong>. Tecken och tidsbas kan alltså ändra tolkningen väsentligt.</p>
+<p><strong>Observera:</strong> 2000, 2005, 2010 och 2015 är tillbakaskrivna scenariopunkter, inte observationer. 2025, 2030, 2035, 2040 och 2045 är framskrivna scenariopunkter. Tidsserien kan inte visa verklig utveckling från år till år eller effekter av framtida markanvändningsförändringar. Den förutsätter oförändrad förändringstakt och oförändrad datatäckning.</p>
+<p><strong>Geografi och upplösning:</strong> både Stock- och Change-raster har käll-CRS EPSG:3006 och är omsamplade till samma EPSG:3857-förhandsgrid inom en arbetsversion av Luleå kommungräns (ursprungligen EPSG:4326). Ingen summa ur detta förhandsgrid används som verifierad fysisk kolmängd. En faktisk kommunprognos kräver officiell kommungräns, originalraster och källdokumenterade enheter, tidsskala och teckenkonvention.</p>
+<p><strong>Källor:</strong> <a href="https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-kolkartor/">SLU Kolkartor – kolförråd och förändring (2000–2020)</a> samt denna webbplats publicerade rasterstatistik. SLU anger att kartorna i stor utsträckning bygger på regionala medelvärden och bör tolkas försiktigt för mindre områden.</p>
+</section></main>
+<footer>Trendlinjerna är en illustrativ extrapolation av förhandsgridets råvärden, inte officiell kommunstatistik.</footer>
+<script src="trend.js"></script></body></html>
