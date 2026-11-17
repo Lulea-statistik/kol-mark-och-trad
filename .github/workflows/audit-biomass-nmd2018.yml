@@ -24,6 +24,8 @@ jobs:
         run: python scripts/render_nmd2018_quality_steps.py
       - name: Render landcover plausibility flags and review samples
         run: python scripts/render_biomass_plausibility_review.py
+      - name: Create independent-evidence review register
+        run: python scripts/create_biomass_review_register.py && python scripts/create_biomass_review_register.py --validate metadata/biomass_independent_review_register.csv
       - name: Upload quality report
         if: always()
         uses: actions/upload-artifact@v4
@@ -37,5 +39,6 @@ jobs:
             metadata/nmd2018_quality_steps.png
             metadata/biomass_plausibility_review.md
             metadata/biomass_review_candidates_epsg3006.csv
+            metadata/biomass_independent_review_register.csv
           if-no-files-found: warn
           retention-days: 30
