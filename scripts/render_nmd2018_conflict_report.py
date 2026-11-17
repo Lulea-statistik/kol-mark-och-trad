@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from shapely.geometry import shape
 from shapely.ops import transform as shp_transform
 from pyproj import Transformer
+from rasterio.crs import CRS
+from run_nmd2018_lulea_qa import is_epsg3006
 
 ROOT=Path(__file__).resolve().parents[1]
 INPUT=ROOT/"metadata/nmd2018_biomass_lulea_audit.json"
@@ -34,7 +36,7 @@ def main():
     p=payload["results"]
     tiles=p.get("spatial_tiles")
     if not tiles:raise ValueError("Missing aggregate spatial tile output. Rerun NMD QA.")
-    if p["metadata"]["crs_sgd2"]!="EPSG:3006":
+    if not is_epsg3006(CRS.from_user_input(p["metadata"]["crs_sgd2"])):
         raise ValueError("Expected EPSG:3006 native SGD2 grid")
     boundary=json.loads((ROOT/"docs/data/lulea_boundary.geojson").read_text(encoding="utf-8"))
     poly=shape(boundary["features"][0]["geometry"])
