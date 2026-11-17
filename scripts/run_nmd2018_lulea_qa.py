@@ -62,6 +62,40 @@ def new_counter():
             "raw_positive_sum": 0.0, "max_positive_raw": 0.0,
             "core_positive_pixels": 0, "edge_positive_pixels": 0, "core_raw_positive_sum": 0.0}
 
+
+# These are sensitivity scenarios, NOT validated corrections. Each uses exactly
+# the same joint native-pixel domain so changes are not artifacts of coverage.
+SCENARIOS = ("baseline", "water_core", "extreme_gt1000",
+             "water_then_extreme_gt1000", "extreme_gt500",
+             "water_then_extreme_gt500")
+
+def scenario_masks(valid, values, water_core):
+    return {
+        "baseline": valid,
+        "water_core": valid & ~water_core,
+        "extreme_gt1000": valid & (values <= 1000),
+        "water_then_extreme_gt1000": valid & ~water_core & (values <= 1000),
+        "extreme_gt500": valid & (values <= 500),
+        "water_then_extreme_gt500": valid & ~water_core & (values <= 500),
+    }
+
+def scenario_counter():
+    return {"retained_pixels": 0, "retained_positive_pixels": 0,
+            "retained_raw_sum": 0.0, "remaining_water_core_positive": 0,
+            "remaining_extreme_gt1000": 0, "remaining_extreme_gt500": 0}
+
+def accumulate_scenarios(summary, valid, values, water_core):
+    assert valid.dtype == bool and water_core.dtype == bool
+    scenarios = scenario_masks(valid, values, water_core)
+    for key,mask in scenarios.items():
+        result = summary[key]
+        result["retained_pixels"] += int(np.count_nonzero(mask))
+        result["retained_positive_pixels"] += int(np.count_nonzero(mask & (values > 0)))
+        result["retained_raw_sum"] += float(np.sum(values[mask], dtype="float64"))
+        result["remaining_water_core_positive"] += int(np.count_nonzero(mask & water_core & (values > 0)))
+        result["remaining_extreme_gt1000"] += int(np.count_nonzero(mask & (values > 1000)))
+        result["remaining_extreme_gt500"] += int(np.count_nonzero(mask & (values > 500)))
+
 def is_epsg3006(crs):
     # Some source GeoTIFFs expose a complete WKT authority EPSG:3006 but
     # rasterio.to_epsg() returns None (observed for SGD2 in the native audit).
@@ -75,6 +109,7 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
     stats = {name: new_counter() for name in CLASSES}
     seen = Counter()
     spatial_tiles = []
+    scenarios = {key: scenario_counter() for key in SCENARIOS}
     with rasterio.Env(**ENV), rasterio.open("/vsicurl/" + sgd2_url) as bio, rasterio.open(nmd_path) as land:
         if not bio.crs or not land.crs:
             raise ValueError("Source CRS missing")
@@ -162,12 +197,39 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                         rec["core_raw_positive_sum"] += float(b.data[pos & stable].astype("float64").sum())
                         tile_summary["positive_by_class"][name] = npos
                         tile_summary["core_positive_by_class"][name] = core
+                    # Same-class 3x3 interior WATER, including valid zero cells.
+                    # Halo is native NMD aligned to the original SGD2 grid.
+                    water_core = np.zeros((h, width), dtype=bool)
+                    for code in (61, 62):
+                        group = valid & (a == code)
+                        if not np.any(group):
+                            continue
+                        stable = group.copy()
+                        for dy in (-1, 0, 1):
+                            for dx in (-1, 0, 1):
+                                if dy == 0 and dx == 0:
+                                    continue
+                                ys, xs = offy + dy, offx + dx
+                                if ys < 0 or xs < 0 or ys+h > nm.shape[0] or xs+width > nm.shape[1]:
+                                    stable[:] = False
+                                    continue
+                                neighbor = nm.data[ys:ys+h, xs:xs+width]
+                                masked = np.ma.getmaskarray(nm)[ys:ys+h, xs:xs+width]
+                                stable &= (~masked) & (neighbor == code)
+                        water_core |= stable
+                    accumulate_scenarios(scenarios, valid, b.data, water_core)
                     if tile_summary["positive_by_class"]:
                         spatial_tiles.append(tile_summary)
     area_ha = abs(bio.transform.a*bio.transform.e - bio.transform.b*bio.transform.d)/10000
     return {"metadata": extent, "valid_sgd2_pixels": valid_sgd2, "valid_joint_pixels": matched_nmd,
             "native_cell_area_ha": area_ha, "nmd_class_counts_on_joint_pixels": dict(sorted(seen.items())),
             "categories": stats, "spatial_tiles": spatial_tiles,
+            "quality_scenarios": {"scenarios": scenarios,
+                "definition": "All scenarios share exactly the valid original SGD2 x NMD2018 pixel domain. Exclusions are simulated, not applied.",
+                "water_core": "Same NMD water code (61 OR 62) in all eight nearest neighbors on SGD2 10m native grid.",
+                "extreme_thresholds": [500, 1000],
+                "extreme_threshold_status": "Unvalidated sensitivity thresholds in RAW raster units, NOT scientific outlier cutoffs.",
+                "original_raster_unchanged": True},
             "tile_note": "Each tile summarizes counts in a 512x512 native SGD2 grid block; point is its center in EPSG:3006, NOT a precisely located conflict point."}
 
 def main():
