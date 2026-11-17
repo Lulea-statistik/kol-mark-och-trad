@@ -77,7 +77,7 @@
     if(!record?.image||!Array.isArray(record.bounds)){
       status.textContent='OpenStreetMap visas. Det valda datalagret är ännu inte tillgängligt.';
       status.classList.remove('warning');
-      summary.textContent='Endast baskartan och kommungränsen visas. Inga kolvärden har beräknats för valt lager.';
+      summary.textContent='Endast baskartan och kommungränsen visas. Inga kolvärden har beräknats för valt lager. Arkivraster visas först när källfilen har bearbetats och publicerats.';
       units.textContent='';quality.textContent='';
       return;
     }
@@ -108,8 +108,8 @@
     if(isPreview){
       status.textContent=record.color_scale_type==='signed_blue_white_red'?'Förändringsraster: blått = negativt, vitt = noll, rött = positivt, grått = NoData.':record.color_scale_type==='biomass_log_three_color'?'Biomassa: beige = 0, gul → orange/röd → mörkbrun = ökande positiva värden (log-skala), grått = NoData.':record.color_scale_type==='red_black_zero_beige'?'Kolförråd ('+(select.selectedOptions[0]?.textContent||'')+'): beige = råvärde 0, rött → svart = ökande positiva värden, grått = NoData.':'Källbaserat förhandsraster: rött = lägre, svart = högre, grått = NoData.';
       summary.textContent=record.color_scale_type==='signed_blue_white_red'?'Förändringslager från SLU: negativt och positivt råvärde hålls isär med noll i mitten. Tecken och fysisk enhet måste dokumenteras innan kolkälla/kolsänka eller ton C/år kan redovisas.':record.color_scale_type==='biomass_log_three_color'?'Biomassan visar 0 separat från NoData. Endast positiva värden log-skalas för bättre kontrast. Färgskalan är relativ och förändrar inte klickvärden eller rådatastatistik.':record.color_scale_type==='red_black_zero_beige'?'Stock_SOC, Stock_DOM och Stock_All visar faktiska nollvärden i beige. Noll är inte liktydigt med vatten; färgsättningen ändrar inte råvärden, NoData eller statistik.':'Rött → svart visar ökande råvärden och grått visar NoData. Färgskalan är relativ per lager, inte ton kol.';
-      units.textContent=key==='preview_biomass'?'Skogliga grunddata (SGD2): biomassa ovan mark. Nollvärden = beige och NoData = grått; positiva värden visas med logaritmisk färgskala. Fysisk enhet och kolomräkning ej verifierade.':key.startsWith('preview_change_')?'Råvärden för förändring; fysisk enhet, tidsskala och teckenkonvention är ännu inte verifierade.':'Fysisk kolenhet ej verifierad. Inga ton C eller CO₂ beräknas ännu.';
-      quality.textContent='SLU källraster: '+(record.source_crs||'ej känt')+' · fullt reprojicerad förhandsbild: EPSG:3857 · Luleås arbetsgräns.';
+      units.textContent=key==='preview_biomass'?'Skogliga grunddata (SGD2): biomassa ovan mark, ej verifierad som specifikt år 2020. Nollvärden = beige och NoData = grått; positiva värden visas med logaritmisk färgskala. Fysisk enhet och kolomräkning ej verifierade.':key==='preview_biomass_2010'?'SLU Skogskarta 2010: arkivbiomassa. Källår 2010; annan upplösning och modell än SGD2, direkt jämförelse kräver harmonisering. Fysisk enhet inte verifierad.':key==='preview_biomass_2015_leaf'?'SLU Skogskarta 2015: Biomass_leaf, en särskild biomassaprodukt vars komponentdefinition måste verifieras före jämförelse med total biomassa. Fysisk enhet inte verifierad.':key.startsWith('preview_change_')?'Råvärden för förändring; fysisk enhet, tidsskala och teckenkonvention är ännu inte verifierade.':'Fysisk kolenhet ej verifierad. Inga ton C eller CO₂ beräknas ännu.';
+      quality.textContent='SLU '+(record.source_year||'årgång ej fastställd')+' · källa: '+(record.source_crs||'ej känt')+' · fullt reprojicerad förhandsbild: EPSG:3857 · Luleås arbetsgräns.';
       return;
     }
     status.textContent='OpenStreetMap + bearbetat kolraster visas.';
@@ -194,6 +194,15 @@
     if(select.value==='preview_biomass'&&!previews.layers?.biomass?.image&&previews.layers?.soil?.image){
       select.value='preview_soil';
       console.info('Biomassa är ännu inte publicerad; visar befintligt markkol tills vidare.');
+    }
+    for(const key of ['biomass_2010','biomass_2015_leaf']){
+      const opt=select.querySelector('option[value="preview_'+key+'"]');
+      if(opt&&previews.layers?.[key]?.image){
+        opt.disabled=false;
+        opt.textContent=key==='biomass_2010'
+          ?'SLU Skogskarta – biomassa 2010'
+          :'SLU Skogskarta – Biomass_leaf 2015 (se metodreservation)';
+      }
     }
     render();
     requestAnimationFrame(()=>map.invalidateSize());
