@@ -6,8 +6,8 @@
  const coverageNote=document.getElementById('biomassCoverageNote');
  const body=document.getElementById('biomassTrendTable');
  const keys=['biomass_2010','biomass_2015_leaf','biomass'];
- const labels=['2010 – Skogskarta biomassa','2015 – Biomass_leaf (ej jämförbar total)','SGD2 – omdrev 2 (lokalt år ej fastställt)'];
- const xLabels=['2010','2015','SGD2 (år ej verifierat)'];
+ const labels=['2010 – Skogskarta biomassa','2015 – Biomass_leaf (ej jämförbar total)','2018 – SGD2 Biomassa (omdrev 2)'];
+ const xLabels=['2010','2015','2018'];
  const colors=['#2d729e','#bc742f','#226f50'];
  const num=x=>Number(x).toLocaleString('sv-SE',{maximumFractionDigits:0});
  const pct=x=>Number(x*100).toLocaleString('sv-SE',{maximumFractionDigits:1})+' %';
@@ -29,7 +29,7 @@
        plugins:{legend:{display:false},
          tooltip:{callbacks:{title:items=>labels[items[0].dataIndex],label:item=>num(item.parsed.y)+' summerade råvärden (ej ton)'}}},
        scales:{y:{title:{display:true,text:yLabel},ticks:{callback:v=>Number(v).toLocaleString('sv-SE',{notation:'compact',maximumFractionDigits:2})}},
-               x:{title:{display:true,text:'Källår / omdrev (senaste ej daterat)'}}}
+               x:{title:{display:true,text:'Källår / omdrev (SGD2-skanning 2018)'}}}
      }
    });
  }
