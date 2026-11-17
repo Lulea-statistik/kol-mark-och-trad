@@ -148,3 +148,18 @@ Sidan läser de redan publicerade summeringarna från `docs/data/preview/preview
 
 **För att uppgradera trend till kommunal kolförrådsberäkning i ton C:** verifiera SLU:s fysiska enheter, eventuell skalfaktor och tidsskala/tecken för Change-produkterna, kör area-riktig summering över **originalrastret i källans CRS** med officiell kommungräns och fastställ metodens osäkerheter. Först då kan en faktisk numerisk framskrivning i ton C redovisas. Källa: [SLU Kolkartor](https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-kolkartor/).
 
+
+## Arkivbiomassa per årgång (SLU Skogskarta, separat från SGD2)
+
+Källinventering november 2026 har identifierat följande direktlänkade SLU-raster:
+
+- **2010**: `https://gis.slu.se/data/slu_forest_map/2010/Data/Raster/Rt90/BIOMASS_XX_P_10.tif`. Arkivnamnet `Rt90` antyder äldre koordinatsystem, men **inget EPSG antas**: originalfilens CRS måste läsas och verifieras i körningen.
+- **2015**: `https://gis.slu.se/data/slu_forest_map/2015/data/Biomass_leaf.tif`. Filnamnet `Biomass_leaf` ska inte utan produktdokumentation tolkas som ekvivalent med total ovanjordisk biomassa. Den publiceras som **separat komponent/produkt med metodreservation**, inte som direkt jämförbart totalbiomassavärde.
+
+Dessa arkivlager läggs till som valfria publikationer i den befintliga körningen `Publish SLU Lulea carbon preview maps`. Om ett arkivraster inte kan läsas eller saknar giltiga pixlar loggas fel tydligt i `preview_audit.json` och lagret **publiceras inte**; samtliga sju befintliga lager måste fortfarande lyckas för att körningen ska vara godkänd. Både bilder och klickbara råvärden genomgår samma fullständiga rasterreprojektion till **EPSG:3857** från **verifierad faktisk käll-CRS** och klipps mot Luleås arbetsgräns. Noll och NoData behandlas separat. Arkivåren aktiveras på kartan och statistiksidan bara efter lyckad publicering.
+
+SLU:s dokumentation beskriver Skogskarta med årgångarna 2000, 2005, 2010 och 2015, men detta **bevisar inte att direkt åtkomliga biomassaraster finns för alla fyra år**. 2005-katalogens direkt publicerade TIFF-filer innehåller inte någon identifierad biomassafil; eventuell gdb-utgåva behöver inventeras separat. 2000 läggs därför inte till utan källverifiering. Källa: [SLU Skogskarta](https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-skogskarta/).
+
+**SDG2, inte 'biomassa 2020':** det hittills publicerade rasterlagret `SGD2_BIO.tif` är *Skogliga grunddata*, som uppdateras med nya laserskanningsomdrev. Det har inte ett verifierat gemensamt basår 2020 för varje pixel. Det ska inte märkas som en 2020-observation eller slås ihop med arkivserien utan produkt- och källårsgranskning. Se [Skogsstyrelsens omdrevsbeskrivningar](https://www.skogsstyrelsen.se/laddanergeodata).
+
+**Viktigt för tidsserier:** 2010 års Skogskarta är 25 m medan 2015 års produkt anges som 12,5 m, och metoderna skiljer sig. Kartans förhandsgrid ger inga verifierade kommunala ton C och ska inte ligga till grund för en sammanslagen fysisk trend; originalraster måste analyseras med gemensam mask, area-integral, enheter och dokumenterad produktdefinition.
