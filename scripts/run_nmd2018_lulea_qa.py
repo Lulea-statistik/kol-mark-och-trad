@@ -62,6 +62,15 @@ def new_counter():
             "raw_positive_sum": 0.0, "max_positive_raw": 0.0,
             "core_positive_pixels": 0, "edge_positive_pixels": 0}
 
+def is_epsg3006(crs):
+    # Some source GeoTIFFs expose a complete WKT authority EPSG:3006 but
+    # rasterio.to_epsg() returns None (observed for SGD2 in the native audit).
+    wkt = crs.to_wkt()
+    return crs.to_epsg() == 3006 or (
+        'AUTHORITY["EPSG","3006"]' in wkt and
+        'SWEREF99 TM' in wkt
+    )
+
 def evaluate(nmd_path: Path, boundary, sgd2_url: str):
     stats = {name: new_counter() for name in CLASSES}
     seen = Counter()
@@ -71,7 +80,7 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
         if not bio.crs.is_projected or not land.crs.is_projected:
             raise ValueError("Both rasters must have projected CRS")
         # Product v1.1 should use EPSG:3006. Fail on unexpected CRS, do not guess.
-        if bio.crs.to_epsg() != 3006 or land.crs.to_epsg() != 3006:
+        if not is_epsg3006(bio.crs) or not is_epsg3006(land.crs):
             raise ValueError(f"Unexpected CRS: SGD2 {bio.crs} / NMD {land.crs}")
         if abs(bio.res[0] - 10) > 0.01 or abs(bio.res[1] - 10) > 0.01:
             raise ValueError("SGD2 native resolution is not 10m")
