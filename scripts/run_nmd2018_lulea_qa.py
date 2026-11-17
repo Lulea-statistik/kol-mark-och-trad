@@ -23,7 +23,12 @@ from rasterio.windows import Window, from_bounds
 from shapely.geometry import shape, mapping
 from shapely.ops import transform as transform_geometry
 from pyproj import Transformer
-from biomass_plausibility_rules import empty_metrics, update_metrics, review_points
+# Support both "python scripts/run_nmd2018_lulea_qa.py" and package imports
+# used by "python -m unittest scripts/test_*.py" from the repository root.
+if __package__:
+    from .biomass_plausibility_rules import empty_metrics, update_metrics, review_points
+else:
+    from biomass_plausibility_rules import empty_metrics, update_metrics, review_points
 
 ROOT = Path(__file__).resolve().parents[1]
 NMD_URL = "https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip"
