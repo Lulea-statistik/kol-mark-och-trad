@@ -14,10 +14,14 @@ jobs:
           python-version: "3.12"
       - name: Install raster dependencies
         run: pip install -r requirements.txt 'matplotlib>=3.8'
+      - name: Test iterative masks and overlap using synthetic source cells
+        run: python -m unittest scripts/test_nmd_quality_scenarios.py
       - name: Download verified NMD2018 Norrbotten and cross-tab original SGD2
         run: python scripts/run_nmd2018_lulea_qa.py
       - name: Render conflict density overview and conservative water QA report
         run: python scripts/render_nmd2018_conflict_report.py
+      - name: Render incremental scenario report and sensitivity chart
+        run: python scripts/render_nmd2018_quality_steps.py
       - name: Upload quality report
         if: always()
         uses: actions/upload-artifact@v4
@@ -27,5 +31,7 @@ jobs:
             metadata/nmd2018_biomass_lulea_audit.json
             metadata/nmd2018_conflict_report.md
             metadata/nmd2018_conflict_overview.png
+            metadata/nmd2018_quality_steps.md
+            metadata/nmd2018_quality_steps.png
           if-no-files-found: warn
           retention-days: 30
