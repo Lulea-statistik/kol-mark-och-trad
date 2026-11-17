@@ -83,7 +83,7 @@ def main():
     if not is_change: valid&=(a>=0)
     rec["valid_pixels"]=int(np.count_nonzero(valid))
     rec["product_family"]="SLU/Skogsstyrelsen Skogliga grunddata SGD2" if name=="biomass" else "SLU Skogskarta (arkiv)" if name.startswith("biomass_") else "SLU Kolkartor 2023"
-    rec["source_year"]=2010 if name=="biomass_2010" else 2015 if name=="biomass_2015_leaf" else None
+    rec["source_year"]=2010 if name=="biomass_2010" else 2015 if name=="biomass_2015_leaf" else 2018 if name=="biomass" else None
     rec["biomass_component"]="leaf (source filename; not total above-ground biomass)" if name=="biomass_2015_leaf" else "archived biomass (definition to verify)" if name=="biomass_2010" else "SGD2 above-ground biomass, not single-year 2020" if name=="biomass" else None
     rec["municipal_preview_pixels"]=int(np.count_nonzero(inside))
     if not np.any(valid):raise ValueError("No valid source pixels within municipality")
