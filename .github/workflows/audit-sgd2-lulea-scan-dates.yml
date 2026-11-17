@@ -1,0 +1,32 @@
+name: Audit SGD2 Lulea scan dates
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  scan-dates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "shapely>=2,<3"
+      - name: Read Skogsstyrelsen scanning metadata and validate coverage
+        run: python scripts/audit_sgd2_scan_dates.py
+      - name: Commit verified scan-year inventory
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/sgd2_lulea_scan_years.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record scanned years for SGD2 biomass in Lulea"
+            git push
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sgd2-lulea-scan-year-inventory
+          path: docs/data/sgd2_lulea_scan_years.json
+          if-no-files-found: warn
