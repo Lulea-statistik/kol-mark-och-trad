@@ -23,6 +23,7 @@ from rasterio.windows import Window, from_bounds
 from shapely.geometry import shape, mapping
 from shapely.ops import transform as transform_geometry
 from pyproj import Transformer
+from biomass_plausibility_rules import empty_metrics, update_metrics, review_points
 
 ROOT = Path(__file__).resolve().parents[1]
 NMD_URL = "https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip"
@@ -110,6 +111,8 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
     seen = Counter()
     spatial_tiles = []
     scenarios = {key: scenario_counter() for key in SCENARIOS}
+    plausibility = empty_metrics()
+    review_queue = {k: [] for k in ("water", "building", "road", "high")}
     with rasterio.Env(**ENV), rasterio.open("/vsicurl/" + sgd2_url) as bio, rasterio.open(nmd_path) as land:
         if not bio.crs or not land.crs:
             raise ValueError("Source CRS missing")
@@ -161,6 +164,9 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                     matched_nmd += int(valid.sum())
                     if not valid.any():
                         continue
+                    class_cores = {"building": np.zeros((h,width),dtype=bool),
+                                   "road": np.zeros((h,width),dtype=bool),
+                                   "developed": np.zeros((h,width),dtype=bool)}
                     tile_summary = {"x": float(bio.window_transform(tile).c + width * bio.transform.a/2),
                                     "y": float(bio.window_transform(tile).f + h * bio.transform.e/2),
                                     "positive_by_class": {}, "core_positive_by_class": {}}
@@ -191,6 +197,9 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                                 neighbour = nm.data[ys:ys+h, xs:xs+width]
                                 masked = np.ma.getmaskarray(nm)[ys:ys+h,xs:xs+width]
                                 stable &= (~masked) & np.isin(neighbour,codes)
+                        if name == "buildings": class_cores["building"] = stable.copy()
+                        elif name == "roads": class_cores["road"] = stable.copy()
+                        elif name == "other_developed_review": class_cores["developed"] = stable.copy()
                         core = int((pos & stable).sum())
                         rec["core_positive_pixels"] += core
                         rec["edge_positive_pixels"] += npos-core
@@ -217,13 +226,28 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                                 masked = np.ma.getmaskarray(nm)[ys:ys+h, xs:xs+width]
                                 stable &= (~masked) & (neighbor == code)
                         water_core |= stable
+                    core_masks = {"water": water_core, **class_cores}
+                    update_metrics(plausibility, valid, b.data, a, core_masks)
+                    points = review_points(valid, b.data, a, core_masks,
+                                           bio.window_transform(tile), max_points=24)
+                    for point in points:
+                        review_queue[point["rule"]].append(point)
                     accumulate_scenarios(scenarios, valid, b.data, water_core)
                     if tile_summary["positive_by_class"]:
                         spatial_tiles.append(tile_summary)
+    for category in review_queue:
+        # Bounded top-value sample per category for human review.
+        review_queue[category].sort(key=lambda r:r["raw_value"],reverse=True)
+        review_queue[category]=review_queue[category][:40]
     area_ha = abs(bio.transform.a*bio.transform.e - bio.transform.b*bio.transform.d)/10000
     return {"metadata": extent, "valid_sgd2_pixels": valid_sgd2, "valid_joint_pixels": matched_nmd,
             "native_cell_area_ha": area_ha, "nmd_class_counts_on_joint_pixels": dict(sorted(seen.items())),
             "categories": stats, "spatial_tiles": spatial_tiles,
+            "plausibility_review": {"metrics":plausibility, "review_points":review_queue,
+                "interpretation":"Flags only: NMD and raw values are not independent confirmation of errors.",
+                "rulebook":"docs/data/BIOMASS_PLAUSIBILITY_VALIDATION.md",
+                "independently_verified_errors":0,
+                "independent_validation_performed":False},
             "quality_scenarios": {"scenarios": scenarios,
                 "definition": "All scenarios share exactly the valid original SGD2 x NMD2018 pixel domain. Exclusions are simulated, not applied.",
                 "water_core": "Same NMD water code (61 OR 62) in all eight nearest neighbors on SGD2 10m native grid.",
