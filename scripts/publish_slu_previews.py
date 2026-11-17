@@ -12,8 +12,13 @@ doc=json.loads((source/"preview_audit.json").read_text(encoding="utf-8"))
 if doc.get("source_units_verified") is not False or doc.get("no_carbon_totals_computed") is not True:
     raise SystemExit("Unexpected audit flags; no publication")
 layers={}
-for key in ("biomass","soil","stock_dom","soil_all","change_soc","change_dom","change_all"):
+required=("biomass","soil","stock_dom","soil_all","change_soc","change_dom","change_all")
+optional=("biomass_2010","biomass_2015_leaf")
+for key in (*required,*optional):
     r=doc["files"][key]
+    if key in optional and r.get("status")!="visual_preview_created":
+        print(f"Optional archive {key} unavailable and excluded: {r.get('error','source missing')}",flush=True)
+        continue
     if r.get("status")!="visual_preview_created" or r.get("units_verified") is not False:
         raise SystemExit(f"Invalid source preview {key}")
     # Each product may use a DIFFERENT, valid source CRS. Rasterio's WarpedVRT
@@ -56,13 +61,15 @@ for key in ("biomass","soil","stock_dom","soil_all","change_soc","change_dom","c
       "source":r["source_url"],
       "source_crs":r["source_crs"],
       "product_family":r["product_family"],
+      "source_year":r.get("source_year"),
+      "biomass_component":r.get("biomass_component"),
       "source_resolution_m":r["source_resolution_m"],
       "source_unit_tag":r["source_unit_tag"],
       "source_band_scale":r["source_band_scale"],
       "source_band_offset":r["source_band_offset"],
       "display_crs":"EPSG:3857",
       "valid_preview_pixels":r["valid_pixels"],
-      "value_scale":("Beige true zero; positive-only log1p scale yellow to orange/red to dark brown; grey NoData" if key=="biomass" else "Beige true zero; red low-positive to black high-positive; grey NoData" if key in ("soil","soil_all","stock_dom") else "Blue negative, white zero, red positive; grey NoData" if key.startswith("change_") else "Red low, black high; grey NoData"),
+      "value_scale":("Beige true zero; positive-only log1p scale yellow to orange/red to dark brown; grey NoData" if key.startswith("biomass") else "Beige true zero; red low-positive to black high-positive; grey NoData" if key in ("soil","soil_all","stock_dom") else "Blue negative, white zero, red positive; grey NoData" if key.startswith("change_") else "Red low, black high; grey NoData"),
       "biomass_positive_source_p02":r.get("biomass_positive_source_p02"),
       "biomass_positive_source_p98":r.get("biomass_positive_source_p98"),
       "color_scale_type":r.get("color_scale_type"),
@@ -113,9 +120,12 @@ for key in ("biomass","soil","stock_dom","soil_all","change_soc","change_dom","c
       "color_scale_type":v["color_scale_type"],
       "source_crs":v["source_crs"],
       "product_family":v["product_family"],
+      "source_year":v.get("source_year"),
+      "biomass_component":v.get("biomass_component"),
       "source_resolution_m":v["source_resolution_m"],
       "source_unit_tag":v["source_unit_tag"],
       "sample_type":v["sample_type"],
    } for k,v in layers.items()}
  },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 print("Created",len(layers),"SLU visual previews with sampled numeric grid and unverified-unit statistics")
+print("Archive status:",{k:doc["files"].get(k,{}).get("status") for k in optional})

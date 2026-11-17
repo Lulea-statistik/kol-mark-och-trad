@@ -25,6 +25,11 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"metadata"/"lulea_carbon_preview"
 SOURCES={
  "biomass":"https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif",
+ # Archives are supplementary. Run-time CRS and valid pixels must be verified.
+ "biomass_2010":"https://gis.slu.se/data/slu_forest_map/2010/Data/Raster/Rt90/BIOMASS_XX_P_10.tif",
+ # The 2015 source explicitly says 'leaf'. It is a vegetation component,
+ # not proven equivalent to the total above-ground biomass of SGD2/2010.
+ "biomass_2015_leaf":"https://gis.slu.se/data/slu_forest_map/2015/data/Biomass_leaf.tif",
  "stock_dom":"https://gis.slu.se/data/carbon/2023/Stock_DOM_2023_Lan/DOM_2023_Norrbottens.tif",
  "change_soc":"https://gis.slu.se/data/carbon/2023/Change_SOC_2023_Lan/Change_SOC_2023_Norrbottens.tif",
  "change_dom":"https://gis.slu.se/data/carbon/2023/Change_DOM_2023_Lan/Change_DOM_2023_Norrbottens.tif",
@@ -77,7 +82,9 @@ def main():
     valid=inside&(~mask)&np.isfinite(a)&(a!=-9999)
     if not is_change: valid&=(a>=0)
     rec["valid_pixels"]=int(np.count_nonzero(valid))
-    rec["product_family"]="SLU/Skogsstyrelsen Skogliga grunddata SGD2" if name=="biomass" else "SLU Kolkartor 2023"
+    rec["product_family"]="SLU/Skogsstyrelsen Skogliga grunddata SGD2" if name=="biomass" else "SLU Skogskarta (arkiv)" if name.startswith("biomass_") else "SLU Kolkartor 2023"
+    rec["source_year"]=2010 if name=="biomass_2010" else 2015 if name=="biomass_2015_leaf" else None
+    rec["biomass_component"]="leaf (source filename; not total above-ground biomass)" if name=="biomass_2015_leaf" else "archived biomass (definition to verify)" if name=="biomass_2010" else "SGD2 above-ground biomass, not single-year 2020" if name=="biomass" else None
     rec["municipal_preview_pixels"]=int(np.count_nonzero(inside))
     if not np.any(valid):raise ValueError("No valid source pixels within municipality")
     q2,q98=np.percentile(a[valid],[2,98])
@@ -101,7 +108,7 @@ def main():
      image[valid,2]=np.asarray(blue,dtype="uint8")
      rec["signed_color_scale_max_abs_p98"]=float(maxabs)
      rec["color_scale_type"]="signed_blue_white_red"
-    elif name=="biomass":
+    elif name.startswith("biomass"):
      # Distinguish three semantically different states: NoData, true zero,
      # and positive source values. Only positive biomass values set the
      # contrast limits, so the large zero class cannot collapse the palette.
@@ -182,6 +189,12 @@ def main():
   result["files"][name]=rec
   print(name,rec["status"],"pixels",rec.get("valid_pixels",0),flush=True)
  (OUT/"preview_audit.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
- if any(v["status"]!="visual_preview_created" for v in result["files"].values()):
-  raise SystemExit("At least one source failed; review preview artifact")
+ # Keep seven existing layers intact if an archive endpoint cannot be read,
+ # but never publish or claim data for a failed optional archive.
+ required=("biomass","soil","stock_dom","soil_all","change_soc","change_dom","change_all")
+ if any(result["files"][key]["status"]!="visual_preview_created" for key in required):
+  raise SystemExit("A required source failed; review preview artifact")
+ for key in ("biomass_2010","biomass_2015_leaf"):
+  if result["files"][key]["status"]!="visual_preview_created":
+   print("WARNING: optional historical biomass unavailable:",key,result["files"][key].get("error"),flush=True)
 if __name__=="__main__":main()
