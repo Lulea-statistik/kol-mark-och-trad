@@ -4,7 +4,7 @@
  const status=document.getElementById('previewStatisticsStatus');
  const selector=document.getElementById('rawHistogramLayer');
  let stats=null, chart=null;
- const names={biomass:'Trädbiomassa ovan mark (SGD2)',soil:'Kolförråd – markkol (Stock_SOC)',stock_dom:'Kolförråd – dött organiskt material (Stock_DOM)',soil_all:'Kolförråd (totalt, inkl. dött material) – Stock_All',change_soc:'Förändring – markkol (Change_SOC)',change_dom:'Förändring – dött organiskt material (Change_DOM)',change_all:'Förändring – totalt (Change_All)'};
+ const names={biomass:'Trädbiomassa (SGD2, exakt år ej fastställt)',biomass_2010:'SLU Skogskarta 2010 – biomassa',biomass_2015_leaf:'SLU Skogskarta 2015 – Biomass_leaf (annan komponent)',soil:'Kolförråd – markkol (Stock_SOC)',stock_dom:'Kolförråd – dött organiskt material (Stock_DOM)',soil_all:'Kolförråd (totalt, inkl. dött material) – Stock_All',change_soc:'Förändring – markkol (Change_SOC)',change_dom:'Förändring – dött organiskt material (Change_DOM)',change_all:'Förändring – totalt (Change_All)'};
  const num=x=>x==null?'—':Number(x).toLocaleString('sv-SE',{maximumFractionDigits:4});
  function draw(){
    const key=selector.value,r=stats?.layers?.[key],canvas=document.getElementById('rawHistogram');
@@ -26,7 +26,11 @@
  .then(data=>{
    if(data.physical_units_verified!==false)throw Error('Oväntad datastatus');
    stats=data;table.replaceChildren();
-   for(const key of ['biomass','soil','stock_dom','soil_all','change_soc','change_dom','change_all']){
+   for(const [key,label] of [['biomass_2010','SLU Skogskarta 2010 – biomassa'],['biomass_2015_leaf','SLU Skogskarta 2015 – Biomass_leaf (särskild komponent)']]){
+     const option=selector.querySelector('option[value="'+key+'"]');
+     if(option&&data.layers?.[key]){option.disabled=false;option.textContent=label;}
+   }
+   for(const key of ['biomass','biomass_2010','biomass_2015_leaf','soil','stock_dom','soil_all','change_soc','change_dom','change_all']){
      const r=stats.layers?.[key];if(!r)continue;
      const tr=document.createElement('tr');
      for(const value of [names[key],num(r.valid_preview_pixels),num(r.null_inside_pixels),
