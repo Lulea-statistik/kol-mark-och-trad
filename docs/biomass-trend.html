@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Biomassatrend – Luleå kommun</title><link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script></head>
+<body><header><h1>Biomassa – jämförelse av tre rastergenerationer</h1><p>Luleå kommun · arkiv 2010 och 2015 samt SGD2</p></header>
+<nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="trend.html">Trend markkol</a><a href="biomass-trend.html" aria-current="page">Trend biomassa</a><a href="statistics.html">Diagram och tabeller</a></nav>
+<main>
+<section>
+<h2>Jämförelse på samma geografiska täckning</h2>
+<p>Den första kurvan omfattar endast förhandsgridets pixlar där <strong>alla tre raster faktiskt har data</strong>. Den del där 2015 saknar data ingår inte här. Alla serier använder exakt samma pixelmängd, även om de bakomliggande biomassaprodukterna inte är metodmässigt likvärdiga.</p>
+<p id="biomassTrendStatus" role="status">Laddar samplade rasterdata…</p>
+<div class="chart-wrap" style="height:380px"><canvas id="biomassCommonChart" aria-label="Tre årgångars summerade rasterråvärden på gemensamt täckt område"></canvas></div>
+<p id="commonAreaNote" class="hint"></p>
+</section>
+<section>
+<h2>Större täckning – uppskattade saknade värden</h2>
+<p>Den andra kurvan använder <strong>hela den yta där SGD2-rastret har giltiga värden</strong> inom kommunens arbetsgräns. Där 2010 eller 2015 saknar data uppskattas biomassaråvärdena med <em>SGD2-pixelvärdet × respektive äldre rasters kvot mot SGD2 i det gemensamma området</em>. Detta är en enkel, modellbaserad <strong>gissning</strong>, inte observationer. Skattningen inkluderar därmed även den saknade norra delen av 2015-kartan där SGD2 har data.</p>
+<div class="chart-wrap" style="height:380px"><canvas id="biomassExtendedChart" aria-label="Tre rasterårgångar på SGD2-täckt område, inklusive skattade saknade pixlar"></canvas></div>
+<p id="extendedAreaNote" class="hint"></p>
+</section>
+<section>
+<h2>Summerade värden och datatäckning</h2>
+<div class="table-scroll"><table><thead><tr><th>Underlag / år</th><th>Gemensam yta – summa råvärden</th><th>SGD2-yta – summa råvärden, inklusive skattning</th><th>Skattade pixlar på SGD2-ytan</th><th>Skattad andel av summan</th></tr></thead><tbody id="biomassTrendTable"></tbody></table></div>
+<p class="hint" id="biomassCoverageNote"></p>
+</section>
+<section>
+<h2>Källor, skanningsår och begränsningar</h2>
+<p><strong>Skanningsår för omdrev 2 i Luleå:</strong> Inte verifierat som ett enskilt år. Skogsstyrelsen anger att omdrev 2 genomförts nationellt 2018–2025 och publicerar lokala skanningsdatum per 2,5 km-ruta. Uppgifterna behöver kontrolleras mot just Luleås rutor. Därför markeras SGD2 som <strong>omdrev 2 – lokalt år ej fastställt</strong>, inte som 2020.</p>
+<p><strong>Produktskillnader:</strong> 2010 är arkivets `BIOMASS_XX_P_10` (definition behöver verifieras), medan 2015 är `Biomass_leaf` och alltså inte dokumenterat samma totala biomassa som 2010 eller SGD2. Detta är <strong>inte en harmoniserad tidsserie</strong>. Skillnader i linjens nivå kan främst bero på produktdefinition, metoder och datatäckning. Skattad 2015-norra-del korrigerar bara geografiskt databortfall, inte metodskillnader.</p>
+<p><strong>Beräkningsenhet:</strong> summan av faktiska råvärden samplade till samma nedskalade EPSG:3857-rastergrid; <strong>inte ton torr biomassa, ton C eller arealriktig kommunalsumma</strong>. Pixeldata är omsamplade från olika källraster i verifierade respektive käll-CRS (bland annat EPSG:3021 och EPSG:3006). NoData hålls isär från 0, även i skattningen. Ingen skattning görs utanför SGD2:s datatäckning. En arealriktig och jämförbar kommunserie skulle kräva harmoniserade biomassaprodukter, verifierade enheter och bearbetning av originalraster.</p>
+<p><strong>Källor:</strong> <a href="https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-skogskarta/">SLU Skogskarta</a> · <a href="https://www.skogsstyrelsen.se/e-tjanster-och-kartor/karttjanster/skogliga-grunddata/">Skogsstyrelsen – Skogliga grunddata</a> · <a href="https://geodpags.skogsstyrelsen.se/arcgis/rest/services/Geodataportal/GeodataportalVisaSkogligaGrunddataMetadata/MapServer/0">Skogsstyrelsens skanningsmetadata per 2,5 km-ruta</a>.</p>
+</section></main><footer>Jämförelsen är en explorativ rasteranalys med uttalade osäkerheter, inte officiell kolförrådsstatistik.</footer>
+<script src="biomass-trend.js"></script></body></html>

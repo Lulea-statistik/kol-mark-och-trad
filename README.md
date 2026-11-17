@@ -163,3 +163,17 @@ SLU:s dokumentation beskriver Skogskarta med årgångarna 2000, 2005, 2010 och 2
 **SDG2, inte 'biomassa 2020':** det hittills publicerade rasterlagret `SGD2_BIO.tif` är *Skogliga grunddata*, som uppdateras med nya laserskanningsomdrev. Det har inte ett verifierat gemensamt basår 2020 för varje pixel. Det ska inte märkas som en 2020-observation eller slås ihop med arkivserien utan produkt- och källårsgranskning. Se [Skogsstyrelsens omdrevsbeskrivningar](https://www.skogsstyrelsen.se/laddanergeodata).
 
 **Viktigt för tidsserier:** 2010 års Skogskarta är 25 m medan 2015 års produkt anges som 12,5 m, och metoderna skiljer sig. Kartans förhandsgrid ger inga verifierade kommunala ton C och ska inte ligga till grund för en sammanslagen fysisk trend; originalraster måste analyseras med gemensam mask, area-integral, enheter och dokumenterad produktdefinition.
+
+## Separat biomassatrend med gemensam rastertäckning och översiktlig imputering
+
+`docs/biomass-trend.html` läser tre redan publicerade `*_sampled_values.f32.gz` från `docs/data/preview/preview_layers.json`: SLU Skogskarta 2010, SLU Skogskarta `Biomass_leaf` 2015 och SGD2 omdrev 2 (verifierat Luleå-år saknas). JavaScript avkodar rasterfilerna i webbläsaren och kontrollerar att samtliga tre har **identisk gridstorlek, gridbounds och visnings-CRS EPSG:3857** innan beräkningen. NoData (-9999) hålls isär från sanna nollvärden.
+
+Två kurvor:
+1. **Gemensamt täckt område:** `valid_2010 & valid_2015 & valid_SGD2`. Samma samplade cellpositioner summeras för varje lager.
+2. **Större område inkl. uppskattad saknad norra del:** alla cellpositioner som har giltiga SGD2-värden används som referensyta. För respektive äldre lager beräknas `ratio = sum(old values on triple-overlap) / sum(SGD2 values on triple-overlap)` och saknade äldre celler får ett *hypotetiskt* råvärde `ratio * SGD2(cell)`. De befintliga äldre värdena behålls; endast saknade celler ersätts i den illustrativa totalen. Tabellen anger både antal skattade celler och andelen av summeringen som är skattad.
+
+Observera att modellens geografiska referens **inte är hela kommunytan**, utan SGD2:s giltiga rasterutbredning inom arbetsgeometrin. Inte heller den första kurvan ger en area-korrekt kommunsumma, eftersom det är nedskalade EPSG:3857-råvärdesprover, inte en integrering av originalpixlar i källans projicerade CRS.
+
+**Allvarligt jämförbarhetsproblem:** 2015 `Biomass_leaf` avser en separat biomassa-komponent medan 2010 `BIOMASS_XX_P_10` och SGD2 `SGD2_BIO` inte är produktverifierat likadana, inte har samma mätenhet eller täckning, och de kan inte presenteras som samma totala kolpool. Dessa linjer är explorativa, **inte** en metodmässigt giltig uppskattning av tidsutveckling av total torr biomassa eller lagrat kol. En verklig tidserie kräver källa med samma produktdefinition, validerad fysikalisk skala, originalrasterbaserad areaintegral samt dokumenterad osäkerhet och exakt skanningsår.
+
+**Omdrev 2-år i Luleå:** Skogsstyrelsen tillhandahåller skanningsdatum per 2,5-km-ruta i ArcGIS-tjänsten `GeodataportalVisaSkogligaGrunddataMetadata/MapServer/0` (`Datum`, `CenterKommunNamn`, `Omdrev`). Den nationella omdrevsperioden anges 2018–2025. Ett enskilt verifierat skanningsår för hela kommunen har ännu **inte** fastställts och ska inte uppfinnas. [Skogsstyrelsens karttjänst](https://geodpags.skogsstyrelsen.se/arcgis/rest/services/Geodataportal/GeodataportalVisaSkogligaGrunddataMetadata/MapServer/0).
