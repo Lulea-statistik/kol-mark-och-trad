@@ -57,7 +57,7 @@ def main():
             for row in range(int(w.row_off),int(w.row_off+w.height),CHUNK):
                 for col in range(int(w.col_off),int(w.col_off+w.width),CHUNK):
                     tile=Window(col,row,min(CHUNK,int(w.col_off+w.width)-col),
-                                min(CHUNK,int(w.row_off+w.width*0+w.height)-row))
+                                min(CHUNK,int(w.row_off+w.height)-row))
                     b=src.read(1,window=tile,masked=True)
                     l=nmd.read(1,window=tile,masked=True)
                     interior=geometry_mask([mapping(poly)],out_shape=b.shape,
