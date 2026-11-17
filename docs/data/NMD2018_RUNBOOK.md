@@ -27,3 +27,10 @@ Resultatet är en **diagnos**. Positiv biomassa över klass 51 (byggnader) eller
 ### Efter körningen
 
 Ladda ner artefakten `sgd2-nmd2018-lulea-audit` och granska `nmd2018_biomass_lulea_audit.json`. Ta sedan ställning till en separat validerad mask (och en reproducerbar skillnadsrapport) utan att skriva över källraster. En fysisk totalsumma i ton TS kräver verifierad numerisk produktskala och korrekt arealintegrering.
+
+
+## Utökad avvikelsekarta och konservativt vattenscenario (PR #27)
+
+Vid ny körning skapar samma arbetsflöde numera också `nmd2018_conflict_overview.png` och `nmd2018_conflict_report.md` som Actions-artefakter. Kartan visar antal positiva biomassapixlar per ursprunglig bearbetningsruta om upp till 512×512 originalceller (cirka 5 km); prickarna representerar aggregerade rutor och **inte** enskilda avvikelsepixlar. Sammanställningen redovisar för varje klass antal giltiga celler, andel med positiv biomassa samt 3×3-kärna kontra klassgränser.
+
+Rapporten gör också ett **icke-destruktivt testscenario**: sammanlagd cellarea och summa ursprungliga råvärden i positiva biomassa-pixlar där NMD klassar samma och alla åtta grannceller som inlandsvatten respektive hav. Detta är **inte en applicerad mask**, och råvärdessummorna är **inte ton TS**. Byggnader, vägar och annan exploaterad mark markeras enbart för granskning; ingen automatisk nollning. Även sammanhängande vattenområden kräver manuell geodata- och ortofotokontroll innan maskningsbeslut.
