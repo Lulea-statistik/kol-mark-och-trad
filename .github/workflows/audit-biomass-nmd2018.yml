@@ -15,7 +15,7 @@ jobs:
       - name: Install raster dependencies
         run: pip install -r requirements.txt 'matplotlib>=3.8'
       - name: Test iterative masks and overlap using synthetic source cells
-        run: python -m unittest scripts/test_nmd_quality_scenarios.py scripts/test_biomass_plausibility_rules.py
+        run: python -m unittest scripts/test_nmd_quality_scenarios.py scripts/test_biomass_plausibility_rules.py scripts/test_biomass_stratified_sampler.py
       - name: Download verified NMD2018 Norrbotten and cross-tab original SGD2
         run: python scripts/run_nmd2018_lulea_qa.py
       - name: Render conflict density overview and conservative water QA report
@@ -26,6 +26,8 @@ jobs:
         run: python scripts/render_biomass_plausibility_review.py
       - name: Create independent-evidence review register
         run: python scripts/create_biomass_review_register.py && python scripts/create_biomass_review_register.py --validate metadata/biomass_independent_review_register.csv
+      - name: Create probabilistic stratified sample for independent validation
+        run: python scripts/render_biomass_stratified_sample.py
       - name: Upload quality report
         if: always()
         uses: actions/upload-artifact@v4
@@ -40,5 +42,7 @@ jobs:
             metadata/biomass_plausibility_review.md
             metadata/biomass_review_candidates_epsg3006.csv
             metadata/biomass_independent_review_register.csv
+            metadata/biomass_stratified_validation_sample_epsg3006.csv
+            metadata/biomass_stratified_sample_design.md
           if-no-files-found: warn
           retention-days: 30
