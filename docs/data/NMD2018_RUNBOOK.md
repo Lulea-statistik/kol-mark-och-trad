@@ -34,3 +34,18 @@ Ladda ner artefakten `sgd2-nmd2018-lulea-audit` och granska `nmd2018_biomass_lul
 Vid ny körning skapar samma arbetsflöde numera också `nmd2018_conflict_overview.png` och `nmd2018_conflict_report.md` som Actions-artefakter. Kartan visar antal positiva biomassapixlar per ursprunglig bearbetningsruta om upp till 512×512 originalceller (cirka 5 km); prickarna representerar aggregerade rutor och **inte** enskilda avvikelsepixlar. Sammanställningen redovisar för varje klass antal giltiga celler, andel med positiv biomassa samt 3×3-kärna kontra klassgränser.
 
 Rapporten gör också ett **icke-destruktivt testscenario**: sammanlagd cellarea och summa ursprungliga råvärden i positiva biomassa-pixlar där NMD klassar samma och alla åtta grannceller som inlandsvatten respektive hav. Detta är **inte en applicerad mask**, och råvärdessummorna är **inte ton TS**. Byggnader, vägar och annan exploaterad mark markeras enbart för granskning; ingen automatisk nollning. Även sammanhängande vattenområden kräver manuell geodata- och ortofotokontroll innan maskningsbeslut.
+
+
+## Stegvis uppföljning av kvalitetskontroller (PR #29)
+
+Efter varje ny körning skapas ytterligare två artefakter: `nmd2018_quality_steps.md` och `nmd2018_quality_steps.png`. Det är **hypotetiska känslighetsscenarier** på samma samlokaliserade, giltiga originalceller i SGD2 och NMD2018:
+
+1. Nolläge – inga värden borttagna.
+2. Separat exkludering av NMD2018-vattenkärnor (klass 61/62, alla åtta grannar med **samma** klass).
+3. Separat extremvärdeskontroll med tröskel **råvärde >1000**.
+4. Kombinerat vattenkärnor + råvärde >1000, räknar överlapp en gång.
+5. Separat och kombinerad känslighetskontroll med råvärde >500.
+
+För varje alternativ jämförs behållna och exkluderade 10 m-celler och cellareal, behållen och exkluderad **råvärdessumma**, procentuell skillnad samt antal kvarvarande positiva värden i sammanhängande NMD-vatten och antal råvärden över tröskeln. Enheterna för råvärdena är ännu inte slutverifierade; dessa värden får inte betecknas ton torrsubstans.
+
+**Viktigt:** Mindre summa eller färre flaggade celler visar inte nödvändigtvis bättre kvalitet – en filterregel tar definitionsmässigt bort de celler den flaggar. En verklig kvalitetsvinst kräver oberoende validering (ortofoto, bättre vatten- och byggnadsgeometrier, rimlighetsprövning mot kända skogstyper, samt eventuell stickprovsvalidering). Trösklarna 500 och 1000 är valda enbart för att analysera känsligheten; de är **inte verifierade felgränser** och ska inte tillämpas som permanenta maskningar utan separat beslut. Alla scenarier kan jämföras både med och utan respektive filter. Inga originalraster eller publicerade biomassavärden ändras.
