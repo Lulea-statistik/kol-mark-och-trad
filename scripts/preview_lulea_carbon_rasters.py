@@ -27,8 +27,9 @@ SOURCES={
  "biomass":"https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif",
  # Archives are supplementary. Run-time CRS and valid pixels must be verified.
  "biomass_2010":"https://gis.slu.se/data/slu_forest_map/2010/Data/Raster/Rt90/BIOMASS_XX_P_10.tif",
- # The 2015 source explicitly says 'leaf'. It is a vegetation component,
- # not proven equivalent to the total above-ground biomass of SGD2/2010.
+ # In 2015, 'leaf' is a filename suffix. SLU's 2019 evaluation identifies
+ # Biomass_leaf.tif as TOTAL above-ground biomass (variable BiomassAbo).
+ # Comparable physical definition does not prove identical modeling methods.
  "biomass_2015_leaf":"https://gis.slu.se/data/slu_forest_map/2015/data/Biomass_leaf.tif",
  "stock_dom":"https://gis.slu.se/data/carbon/2023/Stock_DOM_2023_Lan/DOM_2023_Norrbottens.tif",
  "change_soc":"https://gis.slu.se/data/carbon/2023/Change_SOC_2023_Lan/Change_SOC_2023_Norrbottens.tif",
@@ -84,7 +85,7 @@ def main():
     rec["valid_pixels"]=int(np.count_nonzero(valid))
     rec["product_family"]="SLU/Skogsstyrelsen Skogliga grunddata SGD2" if name=="biomass" else "SLU Skogskarta (arkiv)" if name.startswith("biomass_") else "SLU Kolkartor 2023"
     rec["source_year"]=2010 if name=="biomass_2010" else 2015 if name=="biomass_2015_leaf" else 2018 if name=="biomass" else None
-    rec["biomass_component"]="leaf (source filename; not total above-ground biomass)" if name=="biomass_2015_leaf" else "archived biomass (definition to verify)" if name=="biomass_2010" else "SGD2 above-ground biomass, not single-year 2020" if name=="biomass" else None
+    rec["biomass_component"]="total above-ground biomass (SLU evaluation 2019; BiomassAbo)" if name=="biomass_2015_leaf" else "archived biomass (definition to verify)" if name=="biomass_2010" else "SGD2 above-ground biomass, not single-year 2020" if name=="biomass" else None
     rec["municipal_preview_pixels"]=int(np.count_nonzero(inside))
     if not np.any(valid):raise ValueError("No valid source pixels within municipality")
     q2,q98=np.percentile(a[valid],[2,98])
