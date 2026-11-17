@@ -6,7 +6,7 @@
  const coverageNote=document.getElementById('biomassCoverageNote');
  const body=document.getElementById('biomassTrendTable');
  const keys=['biomass_2010','biomass_2015_leaf','biomass'];
- const labels=['2010 – Skogskarta biomassa','2015 – Biomass_leaf (ej jämförbar total)','2018 – SGD2 Biomassa (omdrev 2)'];
+ const labels=['2010 – Skogskarta biomassa','2015 – SLU total biomassa ovan jord','2018 – SGD2 Biomassa (omdrev 2)'];
  const xLabels=['2010','2015','2018'];
  const colors=['#2d729e','#bc742f','#226f50'];
  const num=x=>Number(x).toLocaleString('sv-SE',{maximumFractionDigits:0});
@@ -99,7 +99,7 @@
    extendedNote.textContent='Referensyta: '+num(referenceCount)+' giltiga SGD2-pixlar. Kvot 2010/SGD2 på gemensam yta: '+
       ratios[0].toLocaleString('sv-SE',{maximumFractionDigits:4})+
       '; kvot 2015/SGD2: '+ratios[1].toLocaleString('sv-SE',{maximumFractionDigits:4})+
-      '. Saknade äldre värden skattas pixelvis som SGD2 × respektive kvot. Detta är en grov modell och de skilda biomassaprodukterna är inte harmoniserade.';
+      '. Saknade äldre värden skattas pixelvis som SGD2 × respektive kvot. Detta är en grov modell och modeller, enheter och rumslig täckning är ännu inte fullt harmoniserade.';
    for(let k=0;k<3;k++){
      const tr=document.createElement('tr');
      addCell(tr,labels[k]);addCell(tr,num(common[k]));addCell(tr,num(expanded[k]));
@@ -109,6 +109,6 @@
    }
    coverageNote.textContent='Källa: publicerade EPSG:3857-förhandsgrid med '+num(n)+
       ' cellpositioner. Referensytan är där SGD2 har giltiga rastervärden, inte exakt hela Luleå kommuns markyta. Saknade värden där inte ens SGD2 har data ingår inte. För 2015 skattas '+num(missingCount[1])+
-      ' celler, däribland den nordliga utbredning som saknas i 2015-lagret. Skattning är inte observation; 2015 Biomass_leaf representerar inte samma totala biomassa som SGD2.';
+      ' celler, däribland den nordliga utbredning som saknas i 2015-lagret. Skattning är inte observation; 2015 Biomass_leaf avser total biomassa ovan jord enligt SLU, men är ännu inte metodharmoniserad med SGD2.';
  }catch(e){status.textContent='Biomassatrenden kunde inte beräknas: '+e.message;status.classList.add('warning');}
 })();

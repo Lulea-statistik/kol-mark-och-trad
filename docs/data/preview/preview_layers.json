@@ -738,7 +738,7 @@
       "source_crs": "PROJCS[\"SWEREF99 TM\",GEOGCS[\"SWEREF99\",DATUM[\"SWEREF99\",SPHEROID[\"GRS 1980\",6378137,298.257222101004,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6619\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4619\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"3006\"]]",
       "product_family": "SLU Skogskarta (arkiv)",
       "source_year": 2015,
-      "biomass_component": "leaf (source filename; not total above-ground biomass)",
+      "biomass_component": "total above-ground biomass, per SLU evaluation of Biomass_leaf.tif (2019), NOT leaves-only",
       "source_resolution_m": [
         12.5,
         12.5
@@ -810,7 +810,9 @@
       "municipal_preview_pixels": 867050,
       "physical_units_verified": false,
       "total_tonnes_C": null,
-      "area_integral": false
+      "area_integral": false,
+      "product_definition_source": "https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf",
+      "product_definition_status": "Verified as above-ground total biomass in SLU evaluation; comparability with 2010 and SGD2 estimates still unverified"
     }
   }
 }

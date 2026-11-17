@@ -70,7 +70,7 @@ Den lyckade Actions-körningen [Inventory SLU carbon and forest raster sources #
 
 - [SLU SOC 2023 Norrbottens](https://gis.slu.se/data/carbon/2023/Stock_SOC_2023_Lan/SOC_2023_Norrbottens.tif) – markens organiska kolförråd.
 - [SLU Stock_All 2023 Norrbottens](https://gis.slu.se/data/carbon/2023/Stock_All_2023_Lan/Stock_All_2023_Norrbottens.tif) – totalt markförråd; **inkluderar** SOC (ska inte adderas till SOC).
-- [SLU Biomass_leaf 2015](https://gis.slu.se/data/slu_forest_map/2015/data/Biomass_leaf.tif) är bara blad-/barrbiomassa och duger inte ensamt som total ovanjordisk biomassa.
+- [SLU Biomass_leaf 2015](https://gis.slu.se/data/slu_forest_map/2015/data/Biomass_leaf.tif) är enligt [SLU:s utvärdering 2019](https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf) **total biomassa ovan jord** (variabel `BiomassAbo`), trots suffixet `leaf`. Produktens modell och täckning är inte automatiskt jämförbara med övriga årgångar.
 
 Kör [Audit SLU Norrbotten carbon raster metadata](../../actions/workflows/audit-norrbotten-carbon-rasters.yml) efter PR #5. Flödet granskar direkt länsrasterformat och **verifierar om läsbara CRS, NoData, bandmetadata och pixelupplösning finns**, utan att försöka hämta hela Norrbottens raster. Artefakten `slu-norrbotten-carbon-raster-metadata` innehåller alla hittade fält och källfel.
 
@@ -111,7 +111,7 @@ Efter merge krävs en ny manuell körning av `Publish SLU Lulea carbon preview m
 
 ## Biomasstäckning – prioriterat lager
 
-**Faktisk källfil:** [SLU Skogliga grunddata, SGD2_BIO.tif](https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif). Enligt Skogsstyrelsens produktbeskrivning avser biomassa **stamved, grenar och toppar**, normalt i ton torrsubstans/ha; **rötter och stubbar ingår inte**. Skogsprodukten modelleras utifrån laserskanning och fältdata och har begränsad geografisk täckning. Den tidigare inventerade filen `Biomass_leaf.tif` är **inte** en validerad total biomassa för detta syfte.
+**Faktisk källfil:** [SLU Skogliga grunddata, SGD2_BIO.tif](https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/SGD2_BIO.tif). Enligt Skogsstyrelsens produktbeskrivning avser biomassa **stamved, grenar och toppar**, normalt i ton torrsubstans/ha; **rötter och stubbar ingår inte**. Skogsprodukten modelleras utifrån laserskanning och fältdata och har begränsad geografisk täckning. Den tidigare inventerade filen `Biomass_leaf.tif` är dokumenterad som **total biomassa ovan jord** enligt SLU:s utvärdering, men modell- och metodjämförbarhet med SGD2 måste fortfarande verifieras.
 
 Efter att denna PR sammanslagits kan `Publish SLU Lulea carbon preview maps` skapa ett tredje, faktiskt **kommunmaskat** förhandsraster, `biomass_preview.png`, med klickbara råvärden `biomass_sampled_values.f32.gz` och rådatastatistik i `preview_statistics.json`. `preview_layers.json` dokumenterar även CRS, källupplösning, enhetstagg och bandskala från GeoTIFF; körningen stoppar vid ogiltigt CRS eller uteblivna källvärden.
 
@@ -174,6 +174,11 @@ Två kurvor:
 
 Observera att modellens geografiska referens **inte är hela kommunytan**, utan SGD2:s giltiga rasterutbredning inom arbetsgeometrin. Inte heller den första kurvan ger en area-korrekt kommunsumma, eftersom det är nedskalade EPSG:3857-råvärdesprover, inte en integrering av originalpixlar i källans projicerade CRS.
 
-**Allvarligt jämförbarhetsproblem:** 2015 `Biomass_leaf` avser en separat biomassa-komponent medan 2010 `BIOMASS_XX_P_10` och SGD2 `SGD2_BIO` inte är produktverifierat likadana, inte har samma mätenhet eller täckning, och de kan inte presenteras som samma totala kolpool. Dessa linjer är explorativa, **inte** en metodmässigt giltig uppskattning av tidsutveckling av total torr biomassa eller lagrat kol. En verklig tidserie kräver källa med samma produktdefinition, validerad fysikalisk skala, originalrasterbaserad areaintegral samt dokumenterad osäkerhet och exakt skanningsår.
+**Allvarligt jämförbarhetsproblem:** 2015 `Biomass_leaf` avser enligt SLU:s utvärdering total biomassa ovan jord, INTE en separat blad-/barrkomponent. Modellmetoder, enhets-/skalhantering och geografisk täckning behöver dock harmoniseras gentemot 2010 `BIOMASS_XX_P_10` och SGD2 `SGD2_BIO` innan en metodmässigt säker trend kan redovisas. Dessa linjer är explorativa, **inte** en metodmässigt giltig uppskattning av tidsutveckling av total torr biomassa eller lagrat kol. En verklig tidserie kräver källa med samma produktdefinition, validerad fysikalisk skala, originalrasterbaserad areaintegral samt dokumenterad osäkerhet och exakt skanningsår.
 
 **Omdrev 2-år i Luleå:** Skogsstyrelsen tillhandahåller skanningsdatum per 2,5-km-ruta i ArcGIS-tjänsten `GeodataportalVisaSkogligaGrunddataMetadata/MapServer/0` (`Datum`, `CenterKommunNamn`, `Omdrev`). Den nationella omdrevsperioden anges 2018–2025. Efter [metadatainventeringen](docs/data/sgd2_lulea_scan_years.json) matchar 540 av 540 daterade skanningsposter från omdrev 2 i Luleås arbetsgeometri år **2018** (juli–september). Detta är referensåret för SGD2-rastret i trendvyn, men är inte en verifiering av samtliga rastercellers observationsdatum. [Skogsstyrelsens karttjänst](https://geodpags.skogsstyrelsen.se/arcgis/rest/services/Geodataportal/GeodataportalVisaSkogligaGrunddataMetadata/MapServer/0).
+
+
+## Korrigering av biomassadefinitionen 2015 (2026-11-17)
+
+SLU:s utvärdering [EvaluateSLUSkogskarta.pdf](https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf), avsnitt **Total biomassa (ovan jord)**, kopplar uttryckligen rasterfilen `Biomass_leaf.tif` till `BiomassAbo`, total biomassa ovan jord, ton TS/ha. Den tidigare filnamnsbaserade tolkningen att `leaf` betydde enbart blad-/barrbiomassa var felaktig. Skattad biomassatrend är fortfarande preliminär: kontrollera 2010-produkten, skalfaktorer, källraster och areaintegral före slutsats om förändring.
