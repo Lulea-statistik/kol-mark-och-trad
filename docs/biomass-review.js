@@ -12,6 +12,7 @@
   osm.addTo(map);
   const kind=document.getElementById("kind");
   const stratum=document.getElementById("stratum");
+  const reviewFilter=document.getElementById("reviewFilter");
   const status=document.getElementById("review-status");
   let data=null;
   let selected=L.featureGroup().addTo(map);
@@ -28,9 +29,12 @@
   };
   const text=v=>String(v??"");
   const safe=v=>text(v).replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[x]));
+  function reviewDetails(p){return p.user_observation||(p.origin==="user_observation"?p:null);}
+  function isReviewed(p){const record=reviewDetails(p);return Boolean(record&&record.individually_reviewed===true&&record.review_status==="user_individually_reviewed");}
   function props(p){
     if(p.origin==="user_observation"){
       return "<strong>Manuell observation: "+safe(p.reported_context)+"</strong>"+
+        "<p><strong>Status:</strong> "+(isReviewed(p)?"Individuellt granskad (inte oberoende verifierat fel)":"Utpekad, ännu inte individuellt granskad")+"</p>"+
         "<p>Kluster: "+safe(p.cluster)+"<br>Centrum EPSG:3006: "+
         safe(p.east_epsg3006)+", "+safe(p.north_epsg3006)+"</p>"+
         "<p>"+safe(p.observation_note)+"</p><p>Ej oberoende verifierat fel. Inga grannceller har automatiskt klassats.</p>";
@@ -42,11 +46,12 @@
     const manualBlock=manual?
       "<p><strong>Manuell observation:</strong> "+safe(manual.reported_context)+
       " ("+safe(manual.cluster)+")<br>"+safe(manual.observation_note)+
-      "<br><em>Behöver oberoende verifiering.</em></p>":"";
+      "<br><strong>Status: </strong>"+(isReviewed(p)?"Individuellt granskad":"Utpekad, ej individuellt granskad")+
+      " – inte oberoende verifierat fel.</p>":"";
     return "<strong>"+safe(nice[p.stratum]||p.flag_rules||p.origin)+"</strong>"+
       "<p>Råvärde: "+safe(p.raw_biomass)+" (ej verifierad fysisk enhet)<br>NMD2018: "+safe(p.nmd_code)+
       "<br>Centrum (EPSG:3006): "+safe(p.east_epsg3006)+", "+safe(p.north_epsg3006)+
-      "<br>Urval: "+safe(p.origins.join(" + "))+"<br>Status: ej granskad</p>"+
+      "<br>Urval: "+safe(p.origins.join(" + "))+"<br>Status: "+(manual?(isReviewed(p)?"individuellt granskad":"utpekad, ännu inte granskad"):"ej manuellt granskad")+"</p>"+
       manualBlock+"<p>Bedöm mot daterat ortofoto och andra oberoende geodata; registrera manuellt i CSV.</p>";
   }
   function render(){
@@ -58,9 +63,11 @@
       const origins=p.origins||[p.origin];
       if(kind.value!=="all"&&!origins.includes(kind.value))continue;
       if(stratum.value!=="all"&&p.stratum!==stratum.value)continue;
+      if(reviewFilter.value==="reviewed"&&!isReviewed(p))continue;
+      if(reviewFilter.value==="unreviewed"&&isReviewed(p))continue;
       const point=feature.geometry.type==="Point";
       const manual=origins.includes("user_observation");
-      const color=manual?"#b91c1c":p.origin==="harbor_hypothesis"?"#a21caf":
+      const color=isReviewed(p)?"#16a34a":manual?"#b91c1c":p.origin==="harbor_hypothesis"?"#a21caf":
         (origins.includes("risk")?"#ea580c":"#2563eb");
       const layer=L.geoJSON(feature,{
         style:()=>({color,weight:manual?3:2,fillOpacity:manual?.16:.15}),
@@ -81,10 +88,11 @@
       }
       count++;
     }
-    status.textContent="Visar "+count+" geografiska objekt. Inga av dem är oberoende verifierade fel. Underlag från "+safe(data.metadata.audit_timestamp||"senaste audit")+".";
+    status.textContent="Visar "+count+" geografiska objekt. Grönt = individuellt granskat av användaren, inte oberoende verifierat fel. Underlag från "+safe(data.metadata.audit_timestamp||"senaste audit")+".";
   }
   kind.addEventListener("change",render);
   stratum.addEventListener("change",render);
+  reviewFilter.addEventListener("change",render);
   document.getElementById("basemap").addEventListener("change",e=>{
     map.removeLayer(osm);map.removeLayer(imagery);
     (e.target.value==="imagery"?imagery:osm).addTo(map);
