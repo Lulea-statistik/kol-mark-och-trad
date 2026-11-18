@@ -1,0 +1,46 @@
+name: Compare native biomass rasters by area (2010, 2015, 2018)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
+      GDAL_HTTP_MAX_RETRY: "2"
+      GDAL_HTTP_TIMEOUT: "35"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install native-raster analysis dependencies
+        run: pip install -r requirements.txt
+      - name: Clip each source in its own CRS and compare original raster area integrals
+        run: |
+          python scripts/fetch_and_compare_biomass_native.py \
+            --diagnostics metadata/biomass_native_fetch_diagnostics.json \
+            --output metadata/biomass_native_area_comparison.json
+      - name: Display source access and result diagnostics
+        if: always()
+        run: |
+          if test -f metadata/biomass_native_fetch_diagnostics.json; then
+            cat metadata/biomass_native_fetch_diagnostics.json
+          else
+            echo "Source fetch did not start or preflight failed."
+          fi
+          if test -f metadata/biomass_native_area_comparison.json; then
+            cat metadata/biomass_native_area_comparison.json
+          fi
+      - name: Upload source diagnostics and raw-unit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass-native-area-analysis
+          path: |
+            metadata/biomass_native_fetch_diagnostics.json
+            metadata/biomass_native_area_comparison.json
+          if-no-files-found: warn
+          retention-days: 30
