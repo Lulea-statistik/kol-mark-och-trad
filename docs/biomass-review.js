@@ -55,16 +55,17 @@
     let count=0;
     for(const feature of data.features){
       const p=feature.properties;
-      if(kind.value!=="all"&&!p.origins.includes(kind.value))continue;
+      const origins=p.origins||[p.origin];
+      if(kind.value!=="all"&&!origins.includes(kind.value))continue;
       if(stratum.value!=="all"&&p.stratum!==stratum.value)continue;
       const point=feature.geometry.type==="Point";
-      const manual=p.origin==="user_observation"||p.origins.includes("user_observation");
+      const manual=origins.includes("user_observation");
       const color=manual?"#b91c1c":p.origin==="harbor_hypothesis"?"#a21caf":
-        (p.origins.includes("risk")?"#ea580c":"#2563eb");
+        (origins.includes("risk")?"#ea580c":"#2563eb");
       const layer=L.geoJSON(feature,{
         style:()=>({color,weight:manual?3:2,fillOpacity:manual?.16:.15}),
         pointToLayer:(_f,ll)=>L.circleMarker(ll,{
-          radius:manual?16:12,color,weight:3,fillColor:color,fillOpacity:.24
+          radius:manual?22:18,color,weight:3,fillColor:color,fillOpacity:.24
         })
       });
       layer.bindPopup(props(p),{maxWidth:380});
@@ -73,7 +74,7 @@
         // A large, fixed-size marker makes the 10 m cell easy to identify
         // at low zoom; the actual geographic cell polygon remains unchanged.
         const center=L.latLngBounds(feature.geometry.coordinates[0].map(pt=>[pt[1],pt[0]])).getCenter();
-        const marker=L.circleMarker(center,{radius:manual?16:12,color,
+        const marker=L.circleMarker(center,{radius:manual?22:18,color,
           weight:3,fillColor:color,fillOpacity:.30,interactive:true});
         marker.bindPopup(props(p),{maxWidth:380});
         selected.addLayer(marker);
