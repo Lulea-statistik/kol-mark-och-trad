@@ -107,3 +107,11 @@ Grön färg fortsätter att betyda **individuellt granskad**. För att inte blan
 Användaren har klassificerat **25 nya unika centrumkoordinater**, alla angivna i EPSG:3006: **13 vatten, 1 hårdgjord yta, 5 skog (rimlig förekomst av biomassa), 1 byggnad och 5 väg**. Dessa läggs till utan dubbletter i det tidigare registret med 64 poster. Ny totalsiffra: **89 individuellt granskade**, varav **17 rimliga skogsceller** (`plausible_biomass`) och **72 misstänkta falskt positiva** (`suspected_false_positive`). Färgkodningen och de två bedömningsfiltren är oförändrade.
 
 Marktäckebedömningar är användarens visuella observationer, inte oberoende daterat facit. Även i skog gäller rimlig *förekomst* av biomassa, inte verifierad fysisk mängd. Original-SGD2, NMD-raster, källgrid och sannolikhetsurval påverkas inte. Kör den fristående `refresh-biomass-review-map.yml` för att föra över ändringarna till den offentliga GeoJSON-filen utan att vara beroende av SLU:s server.
+
+## Ny manuellt granskad omgång – 64 unika lägen (2026-11-18)
+
+Användaren anger **65 centrumkoordinater i EPSG:3006**, varav en hårdgjord yta `829955,7291915` förekommer två gånger. Efter dubblettkontroll mot både hela listan och befintliga CSV-registret registreras **64 nya unika** centrumlägen: **21 vatten**, **2 strandkant**, **2 väg**, **13 hårdgjord yta** och **26 byggnad**. Inga av de 64 fanns redan i registret.
+
+Totalt **153 individuellt granskade** punkter, uppdelade i **17 skogspunkter med bedömt rimlig förekomst av biomassa** och **136 misstänkta felvärden**. Alla 64 nya poster tilldelas `user_individually_reviewed` och `suspected_false_positive` för användarens visuella marktäckesbedömning, inte `independently_confirmed`. Användarens bedömningar kräver fortfarande separat verifiering mot historiskt daterat underlag, särskilt vid strandlinjer, vägrenar och byggnader. Inga angränsande pixlar maskas automatiskt.
+
+Publicera utan hämtning av SGD2 genom att köra flödet **Refresh biomass review map annotations** efter sammanslagning av ändringen. Originalraster och tidigare representativa slumpurval förändras inte.
