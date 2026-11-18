@@ -38,6 +38,7 @@
   $('reduction-label').textContent=fmt(fraction*100)+' %';
   $('scenario-delta').textContent='−'+fmt(suspected.sum*fraction,2)+' råvärdesenheter';
   $('scenario-remainder').textContent=fmt(suspected.sum*(1-fraction),2)+' råvärdesenheter';
+  $('scenario-conditional-carbon').textContent='−'+fmt(suspected.sum*fraction*0.01*0.5,2)+' ton C (villkorat)';
  }
  try{
   const response=await fetch('data/biomass_review_snapshot.geojson',{cache:'no-store'});
