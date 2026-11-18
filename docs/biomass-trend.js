@@ -18,7 +18,7 @@
    new Chart(document.getElementById(id),{
      type:'line',
      data:{labels:xLabels,datasets:[{
-       label:'Summa samplade rasterråvärden – inte ton',
+       label:'Medelvärde samplade rasterråvärden – inte ton',
        data:values,
        borderColor:'#165c72',
        backgroundColor:'#165c72',
@@ -27,7 +27,7 @@
      }]},
      options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'nearest'},
        plugins:{legend:{display:false},
-         tooltip:{callbacks:{title:items=>labels[items[0].dataIndex],label:item=>num(item.parsed.y)+' summerade råvärden (ej ton)'}}},
+         tooltip:{callbacks:{title:items=>labels[items[0].dataIndex],label:item=>Number(item.parsed.y).toLocaleString('sv-SE',{maximumFractionDigits:2})+' råvärde i medeltal (ej ton)'}}},
        scales:{y:{title:{display:true,text:yLabel},ticks:{callback:v=>Number(v).toLocaleString('sv-SE',{notation:'compact',maximumFractionDigits:2})}},
                x:{title:{display:true,text:'Källår / omdrev (SGD2-skanning 2018)'}}}
      }
@@ -66,7 +66,7 @@
    // 1. Cells where all three datasets are valid (common footprint).
    // 2. Every cell valid in SGD2 (larger footprint, NO claim of full municipality).
    // Summing comparable grid samples is only an exploratory proxy. No area integrals.
-   const common=[0,0,0],observed=[0,0,0],missingCount=[0,0,0],missingSum=[0,0,0];
+   const common=[0,0,0],observed=[0,0,0],missingCount=[0,0,0],missingSum=[0,0,0],observedCount=[0,0,0];
    let commonCount=0,referenceCount=0;
    const rasters=[old,leaf,latest];
    for(let i=0;i<n;i++){
@@ -78,7 +78,7 @@
      if(ok2){
        referenceCount++;
        for(let k=0;k<3;k++){
-         if(!invalid(rasters[k][i]))observed[k]+=rasters[k][i];
+         if(!invalid(rasters[k][i])){observed[k]+=rasters[k][i];observedCount[k]++;}
          else{missingCount[k]++;missingSum[k]+=v2;}
        }
      }
@@ -90,9 +90,14 @@
      throw Error('Kunde inte beräkna rimliga kvoter för täckningsskattning.');
    const estimated=ratios.map((r,k)=>r*missingSum[k]);
    const expanded=observed.map((sum,k)=>sum+estimated[k]);
-   draw('biomassCommonChart',common,'Summa råvärden på gemensamma pixlar');
-   draw('biomassExtendedChart',expanded,'Summa råvärden på SGD2-täckt yta');
-   status.textContent='Tre faktiska, publicerade rastergrid analyserade. Alla summor avser samplade råvärden, inte verifierad biomassamassa.';
+   // Divide each sum by the identical geographic cell count. This explicitly
+   // compares mean sampled density rather than mislabelling raw sums as biomass.
+   // This is NOT a physical area integral; native rasters remain unharmonised.
+   const commonMean=common.map(sum=>sum/commonCount);
+   const expandedMean=expanded.map(sum=>sum/referenceCount);
+   draw('biomassCommonChart',commonMean,'Medelvärde råvärden, gemensam yta');
+   draw('biomassExtendedChart',expandedMean,'Medelvärde råvärden, SGD2-yta');
+   status.textContent='Tre publicerade rastergrid jämförda som medelvärden på ett gemensamt EPSG:3857-förhandsgrid. En fysisk arealviktad totalsumma i ton torr biomassa eller kol kan ännu inte beräknas jämförbart.';
    commonNote.textContent='Gemensamma giltiga pixlar: '+num(commonCount)+
       ' (av '+num(referenceCount)+' giltiga SGD2-pixlar, '+pct(commonCount/referenceCount)+
       '). Identisk geografisk avgränsning används för alla tre datapunkterna.';
@@ -102,13 +107,13 @@
       '. Saknade äldre värden skattas pixelvis som SGD2 × respektive kvot. Detta är en grov modell och modeller, enheter och rumslig täckning är ännu inte fullt harmoniserade.';
    for(let k=0;k<3;k++){
      const tr=document.createElement('tr');
-     addCell(tr,labels[k]);addCell(tr,num(common[k]));addCell(tr,num(expanded[k]));
+     addCell(tr,labels[k]);addCell(tr,commonMean[k].toLocaleString('sv-SE',{maximumFractionDigits:2}));addCell(tr,expandedMean[k].toLocaleString('sv-SE',{maximumFractionDigits:2}));
      addCell(tr,num(missingCount[k])+' ('+pct(missingCount[k]/referenceCount)+')');
      addCell(tr,pct(expanded[k]===0?0:estimated[k]/expanded[k]));
      body.appendChild(tr);
    }
    coverageNote.textContent='Källa: publicerade EPSG:3857-förhandsgrid med '+num(n)+
-      ' cellpositioner. Referensytan är där SGD2 har giltiga rastervärden, inte exakt hela Luleå kommuns markyta. Saknade värden där inte ens SGD2 har data ingår inte. För 2015 skattas '+num(missingCount[1])+
+      ' cellpositioner. Referensytan är där SGD2 har giltiga rastervärden, inte exakt hela Luleå kommuns markyta. Rasterupplösning i källorna är 25 m (2010), 12,5 m (2015) och 10 m (2018). Alla tre har samplats med närmaste granne till samma nedskalade 3857-grid. Det gör antalet kartpixlar jämförbart men inte värdenas definition, enhet eller geometriska arealintegral. Saknade värden där inte ens SGD2 har data ingår inte. För 2015 skattas '+num(missingCount[1])+
       ' celler, däribland den nordliga utbredning som saknas i 2015-lagret. Skattning är inte observation; 2015 Biomass_leaf avser total biomassa ovan jord enligt SLU, men är ännu inte metodharmoniserad med SGD2.';
  }catch(e){status.textContent='Biomassatrenden kunde inte beräknas: '+e.message;status.classList.add('warning');}
 })();
