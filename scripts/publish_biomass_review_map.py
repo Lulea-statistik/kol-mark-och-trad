@@ -17,6 +17,7 @@ AUDIT=ROOT/"metadata/nmd2018_biomass_lulea_audit.json"
 STRAT=ROOT/"metadata/biomass_stratified_validation_sample_epsg3006.csv"
 RISK=ROOT/"metadata/biomass_independent_review_register.csv"
 OUTPUT=ROOT/"docs/data/biomass_review_snapshot.geojson"
+USER_OBSERVATIONS=ROOT/"docs/data/biomass_user_observations_epsg3006.csv"
 PORTS=[
  {"name":"Isbrytarhamn, kontrollpunkt A","lon":22.171025,"lat":65.571144},
  {"name":"Isbrytarhamn, kontrollpunkt B","lon":22.170352,"lat":65.572057}
@@ -69,6 +70,31 @@ def create():
         for row in csv.DictReader(f):add(row,"random")
     with RISK.open(newline="",encoding="utf-8") as f:
         for row in csv.DictReader(f):add(row,"risk")
+    # Attach user-reported observations to *exact* cells, where present in
+    # the published review sample, and retain a point otherwise.
+    # These are not automatically confirmed errors or whole-cluster masks.
+    with USER_OBSERVATIONS.open(newline="",encoding="utf-8") as obsfile:
+        for obs in csv.DictReader(obsfile):
+            x,y=float(obs["east_epsg3006"]),float(obs["north_epsg3006"])
+            col,rowix=inverse*(x,y)
+            key=(int(round(rowix-.5)),int(round(col-.5)))
+            properties={"origin":"user_observation","origins":["user_observation"],
+                "east_epsg3006":x,"north_epsg3006":y,
+                "reported_context":obs["reported_context"],
+                "cluster":obs["cluster"],
+                "review_status":obs["observation_status"],
+                "observation_note":obs["observation_note"],
+                "evidence_source":obs["source"],
+                "independently_confirmed":False}
+            if key in known:
+                cell=known[key]["properties"]
+                cell["origins"].append("user_observation")
+                cell["user_observation"]=properties
+            else:
+                lon,lat=transformer.transform(x,y)
+                features.append({"type":"Feature",
+                    "geometry":{"type":"Point","coordinates":[lon,lat]},
+                    "properties":properties})
     for port in PORTS:
         features.append({"type":"Feature","geometry":{"type":"Point","coordinates":[port["lon"],port["lat"]]},
              "properties":{"origin":"harbor_hypothesis","name":port["name"],
