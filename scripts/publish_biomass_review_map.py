@@ -84,6 +84,7 @@ def create():
                 "cluster":obs["cluster"],
                 "review_status":obs["observation_status"],
                 "individually_reviewed":obs["observation_status"]=="user_individually_reviewed",
+                "manual_plausibility_assessment":obs["manual_plausibility_assessment"],
                 "observation_note":obs["observation_note"],
                 "evidence_source":obs["source"],
                 "independently_confirmed":False}

@@ -1,36 +1,65 @@
-east_epsg3006,north_epsg3006,reported_context,cluster,observation_status,source,observation_note
-829345,7292395,byggnad,centrum_byggnad,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad och intilliggande felceller; kontrollera byggnadsfotavtryck och källdatum"
-830325,7291055,vatten/hamn,hamn_vatten,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vatten och möjlig fartygspåverkan; isbrytare är obekräftad orsak"
-832375,7290205,stålindustri,stalindustri_1,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler"
-832035,7290645,stålindustri,stalindustri_2,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler"
-831895,7290125,stålindustri,stalindustri_3,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler"
-818135,7300915,sjukhusområde,sjukhus,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt och närliggande kluster vid sjukhuset; skilj byggnad från planterade träd"
-824555,7296255,väg,vag_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägpunkt; verifiera vägbana kontra vägren"
-819255,7299995,oklar exploaterad miljö,ovrigt_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger orimlig biomassa; konkret marktyp behöver bestämmas"
-818485,7300425,oklar exploaterad miljö,ovrigt_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger orimlig biomassa; konkret marktyp behöver bestämmas"
-823225,7273115,hårdgjord yta,hardgjord_yta_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger hårdgjord yta; kontrollera marktäcke och datum"
-815775,7286825,väg,vag_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägbana; kontrollera skillnad mellan körbana och vägren"
-822205,7291365,väg,vag_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägbana; kontrollera skillnad mellan körbana och vägren"
-824205,7293265,väg,vag_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägbana; kontrollera skillnad mellan körbana och vägren"
-826635,7290305,byggnad,byggnad_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa"
-824955,7293325,byggnad,byggnad_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa"
-824985,7293215,byggnad,byggnad_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa"
-832855,7307255,byggnad,byggnad_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa"
-832855,7307365,byggnad,byggnad_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa"
-822315,7332245,byggnad,byggnad_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa"
-825245,7293275,uppställda tåg,uppstallda_tag,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger uppställda tåg; möjlig höjdartefakt, men närvaro vid laserskanning är inte verifierad"
-825235,7293305,uppställda tåg,uppstallda_tag,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger uppställda tåg; möjlig höjdartefakt, men närvaro vid laserskanning är inte verifierad"
-825805,7293775,vatten,vatten_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden"
-836765,7301355,vatten,vatten_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden"
-830135,7310445,vatten,vatten_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden"
-848545,7317675,vatten,vatten_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden"
-830215,7350785,vatten,vatten_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden"
-828235,7335215,jordbruksmark,jordbruksmark_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger jordbruksmark; undersök om cellen verkligen saknar träd eller annan vedartad biomassa"
-836735,7322795,vatten,vatten_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling"
-841265,7327685,vatten,vatten_8,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling"
-841335,7327355,vatten,vatten_9,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling"
-841445,7327405,vatten,vatten_10,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling"
-838715,7332825,vatten,vatten_11,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling"
-857495,7300605,vatten,vatten_12,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling"
-855205,7303875,vatten,vatten_13,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling"
-846525,7317675,obevuxen strandkant,strandkant_obevuxen_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger obevuxen strandkant; kontrollera strandlinje och förekomst av vegetation vid insamlingsåret"
+east_epsg3006,north_epsg3006,reported_context,cluster,observation_status,source,observation_note,manual_plausibility_assessment
+829345,7292395,byggnad,centrum_byggnad,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad och intilliggande felceller; kontrollera byggnadsfotavtryck och källdatum",suspected_false_positive
+830325,7291055,vatten/hamn,hamn_vatten,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vatten och möjlig fartygspåverkan; isbrytare är obekräftad orsak",suspected_false_positive
+832375,7290205,stålindustri,stalindustri_1,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler",suspected_false_positive
+832035,7290645,stålindustri,stalindustri_2,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler",suspected_false_positive
+831895,7290125,stålindustri,stalindustri_3,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler",suspected_false_positive
+818135,7300915,sjukhusområde,sjukhus,user_individually_reviewed,user_visual_review_2026-11-18,"Exempelpunkt och närliggande kluster vid sjukhuset; skilj byggnad från planterade träd",suspected_false_positive
+824555,7296255,väg,vag_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägpunkt; verifiera vägbana kontra vägren",suspected_false_positive
+819255,7299995,oklar exploaterad miljö,ovrigt_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger orimlig biomassa; konkret marktyp behöver bestämmas",suspected_false_positive
+818485,7300425,oklar exploaterad miljö,ovrigt_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger orimlig biomassa; konkret marktyp behöver bestämmas",suspected_false_positive
+823225,7273115,hårdgjord yta,hardgjord_yta_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger hårdgjord yta; kontrollera marktäcke och datum",suspected_false_positive
+815775,7286825,väg,vag_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägbana; kontrollera skillnad mellan körbana och vägren",suspected_false_positive
+822205,7291365,väg,vag_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägbana; kontrollera skillnad mellan körbana och vägren",suspected_false_positive
+824205,7293265,väg,vag_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger vägbana; kontrollera skillnad mellan körbana och vägren",suspected_false_positive
+826635,7290305,byggnad,byggnad_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa",suspected_false_positive
+824955,7293325,byggnad,byggnad_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa",suspected_false_positive
+824985,7293215,byggnad,byggnad_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa",suspected_false_positive
+832855,7307255,byggnad,byggnad_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa",suspected_false_positive
+832855,7307365,byggnad,byggnad_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa",suspected_false_positive
+822315,7332245,byggnad,byggnad_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger byggnad; verifiera takfotavtryck och källa",suspected_false_positive
+825245,7293275,uppställda tåg,uppstallda_tag,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger uppställda tåg; möjlig höjdartefakt, men närvaro vid laserskanning är inte verifierad",suspected_false_positive
+825235,7293305,uppställda tåg,uppstallda_tag,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger uppställda tåg; möjlig höjdartefakt, men närvaro vid laserskanning är inte verifierad",suspected_false_positive
+825805,7293775,vatten,vatten_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden",suspected_false_positive
+836765,7301355,vatten,vatten_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden",suspected_false_positive
+830135,7310445,vatten,vatten_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden",suspected_false_positive
+848545,7317675,vatten,vatten_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden",suspected_false_positive
+830215,7350785,vatten,vatten_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; bekräfta vattenlinje och tidsförhållanden",suspected_false_positive
+828235,7335215,jordbruksmark,jordbruksmark_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger jordbruksmark; undersök om cellen verkligen saknar träd eller annan vedartad biomassa",suspected_false_positive
+836735,7322795,vatten,vatten_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling",suspected_false_positive
+841265,7327685,vatten,vatten_8,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling",suspected_false_positive
+841335,7327355,vatten,vatten_9,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling",suspected_false_positive
+841445,7327405,vatten,vatten_10,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling",suspected_false_positive
+838715,7332825,vatten,vatten_11,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling",suspected_false_positive
+857495,7300605,vatten,vatten_12,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling",suspected_false_positive
+855205,7303875,vatten,vatten_13,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger öppen vattenyta; verifiera vattenutbredning vid SGD2-insamling",suspected_false_positive
+846525,7317675,obevuxen strandkant,strandkant_obevuxen_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren anger obevuxen strandkant; kontrollera strandlinje och förekomst av vegetation vid insamlingsåret",suspected_false_positive
+856555,7303995,skog,skog_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+845145,7320155,skog,skog_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+842505,7329245,skog,skog_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+839645,7331015,skog,skog_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+834595,7328605,skog,skog_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+816075,7333735,skog,skog_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+816635,7356025,skog,skog_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+823445,7270275,skog,skog_8,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+824245,7268905,skog,skog_9,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+796555,7296625,skog,skog_10,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+795215,7299965,skog,skog_11,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+822245,7307195,skog,skog_12,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; biomassa är rimlig i denna cell men exakt biomassamängd ej verifierad",plausible_biomass
+811445,7300925,jordbruksmark (ingen skog),jordbruksmark_utan_skog_13,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer jordbruksmark utan skog; verifiera eventuella buskar/träd och skanningstidpunkt",suspected_false_positive
+818105,7300525,jordbruksmark (ingen skog),jordbruksmark_utan_skog_14,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer jordbruksmark utan skog; verifiera eventuella buskar/träd och skanningstidpunkt",suspected_false_positive
+838305,7330975,byggnad,byggnad_ny_15,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera cellens exakta takgeometri och historiskt underlag",suspected_false_positive
+817795,7300165,byggnad,byggnad_ny_16,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera cellens exakta takgeometri och historiskt underlag",suspected_false_positive
+818135,7300925,byggnad,byggnad_ny_17,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera cellens exakta takgeometri och historiskt underlag",suspected_false_positive
+818135,7300905,byggnad,byggnad_ny_18,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera cellens exakta takgeometri och historiskt underlag",suspected_false_positive
+818135,7300895,byggnad,byggnad_ny_19,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera cellens exakta takgeometri och historiskt underlag",suspected_false_positive
+818135,7300885,byggnad,byggnad_ny_20,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera cellens exakta takgeometri och historiskt underlag",suspected_false_positive
+818145,7300885,byggnad,byggnad_ny_21,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera cellens exakta takgeometri och historiskt underlag",suspected_false_positive
+843055,7262545,vatten,vatten_ny_22,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
+825745,7276135,vatten,vatten_ny_23,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
+825965,7273845,vatten,vatten_ny_24,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
+826845,7273595,vatten,vatten_ny_25,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
+798405,7295195,vatten,vatten_ny_26,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
+813375,7299965,vatten,vatten_ny_27,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
+814485,7300155,vatten,vatten_ny_28,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
+816865,7299865,vatten,vatten_ny_29,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuellt blandpixelområde",suspected_false_positive
