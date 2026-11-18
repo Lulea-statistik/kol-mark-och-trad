@@ -71,3 +71,11 @@ Utökade markörer är cirklar i **skärmpixlar**; geografiskt korrekta ytor vis
 Ytterligare **17 koordinater i EPSG:3006** från användarens kartgranskning har lagts in i `biomass_user_observations_epsg3006.csv`. Det ger sammanlagt **26 manuella observationer**. De nya punkterna omfattar hårdgjord yta (1), vägar (3), byggnader (6), uppställda tåg (2) och vatten (5). **Uppställda tåg** är en ny hypotes om temporära höga objekt vid laserskanning, motsvarande hamnens möjliga fartygspåverkan, men ingen faktisk närvaro vid flygningstidpunkten har verifierats. Vattenpunkter kräver historisk vattenlinje och ortofoto, och byggnader/vägar kräver geometri med känt datum och CRS.
 
 Alla 26 kartobservationer exporteras till samma Leaflet-GeoJSON i EPSG:4326 efter transformering från verifierat käll-CRS EPSG:3006. Befintliga slumpmässiga kontrollurval och deras inklusionssannolikheter **ändras inte**. Observationerna är manuellt rapporterade, inte oberoende facit; hela kluster eller intilliggande rasterceller markeras inte automatiskt som fel.
+
+## Nya observationer: jordbruksmark, vatten och strandkant (2026-11-18)
+
+Ytterligare **nio nya unika EPSG:3006-positioner** har lagts till i `docs/data/biomass_user_observations_epsg3006.csv`: jordbruksmark (1), öppet vatten (7) och obevuxen strandkant (1). En åttonde angiven vattenpunkt, `848545, 7317675`, förekom redan sedan tidigare och har **inte** dubbelregistrerats. Totalt finns **35 unika manuella observationer**. Dessa är rapporterade granskningsindikationer och aldrig automatiskt verifierade fel. Jordbruksmark kan innehålla träd eller buskar, och strandkant kan ha glest växttäcke; historiska, oberoende bild- och marktäckesunderlag krävs före maskbeslut.
+
+## Tillfällig källaotillgänglighet
+
+GitHub Actions #11 stoppades av att `gis.slu.se` inte kunde nås på HTTPS 443, trots godkända enhetstester; #10 kördes med framgång. Analysen provar nu att öppna original-SGD2 upp till tre gånger vid **RasterioIOError** med paus mellan försöken. Om källan fortfarande inte går att öppna avbryts granskningen; data ersätts aldrig av preliminära eller äldre raster och inga nya kvalitetspåståenden görs.
