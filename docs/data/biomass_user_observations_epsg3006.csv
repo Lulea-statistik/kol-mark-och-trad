@@ -202,3 +202,23 @@ east_epsg3006,north_epsg3006,reported_context,cluster,observation_status,source,
 830695,7293485,byggnad,byggnad_batch6_15,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
 830695,7293475,byggnad,byggnad_batch6_16,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
 829955,7291935,hårdgjord yta,hardgjord_batch6_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer hårdgjord mark; kontrollera markyta och insamlingsdatum",suspected_false_positive
+834245,7287585,vatten,vatten_batch7_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje samt tidpunkt för datainsamling",suspected_false_positive
+844315,7272965,vatten,vatten_batch7_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje samt tidpunkt för datainsamling",suspected_false_positive
+825715,7300545,väg,vag_batch7_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer väg; kontrollera vägyta mot vägren och historiskt marktäcke",suspected_false_positive
+830525,7279975,väg,vag_batch7_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer väg; kontrollera vägyta mot vägren och historiskt marktäcke",suspected_false_positive
+830805,7281045,väg,vag_batch7_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer väg; kontrollera vägyta mot vägren och historiskt marktäcke",suspected_false_positive
+802565,7298165,väg,vag_batch7_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer väg; kontrollera vägyta mot vägren och historiskt marktäcke",suspected_false_positive
+802155,7298675,väg,vag_batch7_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer väg; kontrollera vägyta mot vägren och historiskt marktäcke",suspected_false_positive
+830705,7293485,byggnad,byggnad_batch7_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+830705,7293475,byggnad,byggnad_batch7_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+830695,7293465,byggnad,byggnad_batch7_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+830655,7293485,byggnad,byggnad_batch7_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+830665,7293485,byggnad,byggnad_batch7_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+830655,7293475,byggnad,byggnad_batch7_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+830665,7293475,byggnad,byggnad_batch7_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+826705,7281925,byggnad,byggnad_batch7_8,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; kontrollera byggnadsfotavtryck och historisk datering",suspected_false_positive
+840625,7277355,skog,skog_batch7_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; rimlig förekomst av biomassa men inte verifierad mängd",plausible_biomass
+827075,7281275,skog,skog_batch7_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; rimlig förekomst av biomassa men inte verifierad mängd",plausible_biomass
+808865,7292405,skog,skog_batch7_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; rimlig förekomst av biomassa men inte verifierad mängd",plausible_biomass
+806135,7293095,skog,skog_batch7_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer skog; rimlig förekomst av biomassa men inte verifierad mängd",plausible_biomass
+802255,7297255,jordbruksmark,jordbruksmark_batch7_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer jordbruksmark; verifiera om träd och buskar saknas och kontrollera historiskt marktäcke",suspected_false_positive
