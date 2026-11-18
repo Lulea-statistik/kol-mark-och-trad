@@ -15,7 +15,7 @@ jobs:
       - name: Install raster dependencies
         run: pip install -r requirements.txt 'matplotlib>=3.8'
       - name: Test iterative masks and overlap using synthetic source cells
-        run: python -m unittest scripts/test_nmd_quality_scenarios.py scripts/test_biomass_plausibility_rules.py scripts/test_biomass_stratified_sampler.py
+        run: python -m unittest scripts/test_nmd_quality_scenarios.py scripts/test_biomass_plausibility_rules.py scripts/test_biomass_stratified_sampler.py scripts/test_sgd2_remote_retries.py
       - name: Download verified NMD2018 Norrbotten and cross-tab original SGD2
         run: python scripts/run_nmd2018_lulea_qa.py
       - name: Render conflict density overview and conservative water QA report
