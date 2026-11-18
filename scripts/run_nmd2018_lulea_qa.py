@@ -140,6 +140,7 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                   "sgd2_nodata": bio.nodata, "nmd_nodata": land.nodata,
                   "sgd2_scale": bio.scales[0], "sgd2_offset": bio.offsets[0],
                   "sgd2_source_res": list(bio.res), "nmd_source_res": list(land.res),
+                  "sgd2_transform": list(bio.transform)[:6],
                   "sgd2_native_window": [int(w.col_off), int(w.row_off), int(w.width), int(w.height)],
                   "nmd_metadata": {"dtype": land.dtypes[0], "tags": land.tags(), "band_tags": land.tags(1)}}
         matched_nmd = 0
