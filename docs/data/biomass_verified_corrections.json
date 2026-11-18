@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source": "SGD2 biomass review; registered manual observation positions in EPSG:3006",
+  "source_crs": "EPSG:3006",
+  "raw_value_units": "unverified_source_raw_units",
+  "note": "No approved corrections exist. Add a cell correction only after independently checking original raw units, reference surface and time, and documenting evidence. Changes are a separate, non-destructive analytical layer; this file never edits the source GeoTIFF.",
+  "corrections": []
+}
