@@ -153,3 +153,32 @@ Valideraren `scripts/validate_biomass_corrections.py` läser detta lager mot den
 **Enhet – källbeskrivning kontra filverifiering:** Skogsstyrelsens produktbeskrivning av Skogliga grunddata anger biomassa i **ton torrsubstans/ha**, med cellstorlek normalt **10 × 10 m**. Produktbeskrivningen kan läsas på https://www.skogsstyrelsen.se/e-tjanster-och-kartor/karttjanster/skogliga-grunddata/. Den metadatauppgiften ger under **villkoret** att GeoJSON-fältet `raw_biomass` är direkt från det aktuella biomassabandet, utan numerisk skalning och med faktiskt 100 m² per cell, en faktor `råvärde × 0,01 ha × 0,5 ton C/ton TS = råvärde × 0,005 ton C`. Faktorn 0,5 är en preliminär antagen kolandel, inte fastställd för enskild pixel.
 
 Baserat på den publicerade granskningen av **201 manuellt misstänkta celler**, varav **178 positiva** och **23 noll**, är deras ursprungliga positiva råvärdessumma **75 644**. Om samtliga positiva råvärden hypotetiskt ersattes med noll skulle det under ovanstående villkor innebära **−378,22 ton C** inom just det riktat granskade urvalet. Detta är **varken genomförd korrigering, verifierad riktig mängd eller kommuntotal**. Verifiera originalbandets kodning/skalning, faktiska affine-transform och pixelarea innan ton C får användas som rapporterat utfall. Alla fyra olösta vatten/byggnad-konflikter kvarstår.
+
+## Kontroll av olika rastercellstorlekar – areariktig originalrasterjämförelse (2026-11-18)
+
+Källupplösning enligt den publicerade metadatafilen `docs/data/preview/preview_layers.json`:
+- **2010:** `BIOMASS_XX_P_10.tif` i EPSG:3021, 25 × 25 meter, 16 celler/ha.
+- **2015:** `Biomass_leaf.tif` i EPSG:3006, 12,5 × 12,5 meter, 64 celler/ha.
+- **2018/SGD2:** `SGD2_BIO.tif` i EPSG:3006, 10 × 10 meter, 100 celler/ha.
+
+Den publicerade kurvan har tidigare summerat råvärden på samma **grovt omsamplade EPSG:3857-visningsgrid**, och efter PR #49 visar den **medelråvärden**. Dessa är inte verifierade fysiska totalsummor och är inte något bevis för minskning av verklig biomassa efter 2010.
+
+### Beräkning från originalraster
+
+`scripts/compare_biomass_native_area.py` tar tre **lokalt tillgängliga original-GeoTIFF** och beräknar en **gemensam areabaserad analys**. Den läser/bekräftar CRS, bandens NoData, upplösning och skalfaktor; reprojicerar rastervärden (inte bara bounds) med areaorienterad medelvärdesomsampling till samma EPSG:3006-grid med 25 m upplösning; maskar de faktiska polygonerna från projektets Luleå-arbetsgeometri; och beräknar täckning samt densitetsintegral som `summa(omräknad densitet × 0,0625 ha)`. Beräkningen är fönsterbaserad för att begränsa minne, berör inte någon originalfil och extrapolerar inte till saknade nordliga områden.
+
+Exempel (filvägarna ersätts av verkliga lokala originalfiler):
+
+```bash
+python scripts/compare_biomass_native_area.py \
+  --raster-2010 /data/BIOMASS_XX_P_10.tif \
+  --raster-2015 /data/Biomass_leaf.tif \
+  --raster-2018 /data/SGD2_BIO.tif \
+  --output metadata/biomass_native_area_comparison.json
+```
+
+De inlästa källornas **fysiska råenheter är ännu inte oberoende verifierade som samma ton torrsubstans/ha**, och 2010-produktens komponentdefinition behöver särskild granskning. Resultatfilen märks därför som **rådensitet × hektar (osäker fysisk enhet)** så länge som källbelägg saknas. För att auktorisera ton torrsubstans kräver skriptet båda `--units-confirmed --unit-evidence "..." --component-evidence "..."`. Detta är inte verifiering i sig utan en dokumenterad deklaration som måste granskas av en människa. Kolmängder i ton C ges aldrig automatiskt.
+
+Den gemensamma giltiga ytan används för *likadant geografiskt urval* mellan årgångarna. Separata summor på respektive produkts egen täckning redovisas, men får inte tolkas som en jämförbar trend. 2015 års saknade nordliga del fylls inte med modellerade värden i denna kontroll. Ett samplat medelvärde kan fortsatt vara påverkat av omsamplingsmetod och källornas olika modell- och produktdefinitioner.
+
+**Status:** Beräkningsrutinen finns, men någon dokumenterad treårig originalrasterkörning har **ännu inte genomförts**, och inga areariktiga biomassasummor har därför publicerats.
