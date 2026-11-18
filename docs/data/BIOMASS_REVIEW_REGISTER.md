@@ -65,3 +65,9 @@ Manuellt rapporterade koordinater lagras i `docs/data/biomass_user_observations_
 Kartfilens export `scripts/publish_biomass_review_map.py` läser observations-CSV i dess uttryckliga EPSG:3006, transformerar varje faktisk centrumkoordinat till EPSG:4326 och kopplar observationen till motsvarande originalcell när den redan ingår i urvalet. Annars visas en separat symbol på den angivna platsen. Exportens test `scripts/test_review_map_export.py` kräver att varje rapporterad plats finns **exakt en gång** och att alla förblir oberäftade. Ingen ytterligare klassning eller rasterändring görs.
 
 Utökade markörer är cirklar i **skärmpixlar**; geografiskt korrekta ytor visas separat med befintliga cellpolygoner från verifierad rastertransform.
+
+## Kompletterande manuella observationer 2026-11-18
+
+Ytterligare **17 koordinater i EPSG:3006** från användarens kartgranskning har lagts in i `biomass_user_observations_epsg3006.csv`. Det ger sammanlagt **26 manuella observationer**. De nya punkterna omfattar hårdgjord yta (1), vägar (3), byggnader (6), uppställda tåg (2) och vatten (5). **Uppställda tåg** är en ny hypotes om temporära höga objekt vid laserskanning, motsvarande hamnens möjliga fartygspåverkan, men ingen faktisk närvaro vid flygningstidpunkten har verifierats. Vattenpunkter kräver historisk vattenlinje och ortofoto, och byggnader/vägar kräver geometri med känt datum och CRS.
+
+Alla 26 kartobservationer exporteras till samma Leaflet-GeoJSON i EPSG:4326 efter transformering från verifierat käll-CRS EPSG:3006. Befintliga slumpmässiga kontrollurval och deras inklusionssannolikheter **ändras inte**. Observationerna är manuellt rapporterade, inte oberoende facit; hela kluster eller intilliggande rasterceller markeras inte automatiskt som fel.
