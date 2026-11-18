@@ -1,0 +1,10 @@
+east_epsg3006,north_epsg3006,reported_context,cluster,observation_status,source,observation_note
+829345,7292395,byggnad,centrum_byggnad,user_reported_likely_error,user_visual_review_2026-11-18,"Användaren anger byggnad och intilliggande felceller; kontrollera byggnadsfotavtryck och källdatum"
+830325,7291055,vatten/hamn,hamn_vatten,user_reported_likely_error,user_visual_review_2026-11-18,"Användaren anger vatten och möjlig fartygspåverkan; isbrytare är obekräftad orsak"
+832375,7290205,stålindustri,stalindustri_1,user_reported_likely_error,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler"
+832035,7290645,stålindustri,stalindustri_2,user_reported_likely_error,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler"
+831895,7290125,stålindustri,stalindustri_3,user_reported_likely_error,user_visual_review_2026-11-18,"Exempelpunkt från ett av tre kluster; kontrollera faktisk industriyta och närliggande celler"
+818135,7300915,sjukhusområde,sjukhus,user_reported_likely_error,user_visual_review_2026-11-18,"Exempelpunkt och närliggande kluster vid sjukhuset; skilj byggnad från planterade träd"
+824555,7296255,väg,vag_1,user_reported_likely_error,user_visual_review_2026-11-18,"Användaren anger vägpunkt; verifiera vägbana kontra vägren"
+819255,7299995,oklar exploaterad miljö,ovrigt_1,user_reported_likely_error,user_visual_review_2026-11-18,"Användaren anger orimlig biomassa; konkret marktyp behöver bestämmas"
+818485,7300425,oklar exploaterad miljö,ovrigt_2,user_reported_likely_error,user_visual_review_2026-11-18,"Användaren anger orimlig biomassa; konkret marktyp behöver bestämmas"

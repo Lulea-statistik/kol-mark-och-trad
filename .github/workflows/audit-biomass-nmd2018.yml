@@ -30,6 +30,8 @@ jobs:
         run: python scripts/render_biomass_stratified_sample.py
       - name: Export independent review map GeoJSON in original SGD2 grid
         run: python scripts/publish_biomass_review_map.py
+      - name: Verify all user observations are mapped without false confirmations
+        run: python scripts/test_review_map_export.py
       - name: Publish read-only review snapshot for GitHub Pages
         if: success() && github.ref == 'refs/heads/main'
         run: |
