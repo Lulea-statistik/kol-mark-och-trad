@@ -172,3 +172,33 @@ east_epsg3006,north_epsg3006,reported_context,cluster,observation_status,source,
 822195,7291365,väg,vag_batch5_18,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; kontrollera vegetation på vägren samt historiskt underlag",suspected_false_positive
 818315,7288905,väg,vag_batch5_19,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; kontrollera vegetation på vägren samt historiskt underlag",suspected_false_positive
 815785,7286825,väg,vag_batch5_20,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; kontrollera vegetation på vägren samt historiskt underlag",suspected_false_positive
+808355,7292555,väg,vag_batch6_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+817095,7300985,väg,vag_batch6_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+819255,7300005,väg,vag_batch6_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+824555,7296265,väg,vag_batch6_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+824195,7293275,väg,vag_batch6_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+828395,7294505,väg,vag_batch6_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+828395,7294495,väg,vag_batch6_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+829615,7293395,väg,vag_batch6_8,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+829725,7293455,väg,vag_batch6_9,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vägbana; verifiera vägyta kontra vägren och bilddatum",suspected_false_positive
+819545,7296925,vatten,vatten_batch6_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuella tillfälliga objekt",suspected_false_positive
+827755,7293395,vatten,vatten_batch6_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuella tillfälliga objekt",suspected_false_positive
+831995,7290975,vatten,vatten_batch6_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuella tillfälliga objekt",suspected_false_positive
+830305,7290615,vatten,vatten_batch6_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer vatten; kontrollera historisk strandlinje och eventuella tillfälliga objekt",suspected_false_positive
+824945,7293325,byggnad,byggnad_batch6_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+824955,7293315,byggnad,byggnad_batch6_2,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+824985,7293225,byggnad,byggnad_batch6_3,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+824995,7293215,byggnad,byggnad_batch6_4,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+828975,7293835,byggnad,byggnad_batch6_5,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+828965,7293835,byggnad,byggnad_batch6_6,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+828965,7293825,byggnad,byggnad_batch6_7,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+828975,7293805,byggnad,byggnad_batch6_8,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+828995,7293775,byggnad,byggnad_batch6_9,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+829005,7293775,byggnad,byggnad_batch6_10,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+830375,7293615,byggnad,byggnad_batch6_11,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+830385,7293615,byggnad,byggnad_batch6_12,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+830425,7293515,byggnad,byggnad_batch6_13,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+830425,7293505,byggnad,byggnad_batch6_14,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+830695,7293485,byggnad,byggnad_batch6_15,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+830695,7293475,byggnad,byggnad_batch6_16,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer byggnad; verifiera byggnadsfotavtryck och insamlingsdatum",suspected_false_positive
+829955,7291935,hårdgjord yta,hardgjord_batch6_1,user_individually_reviewed,user_visual_review_2026-11-18,"Användaren bedömer hårdgjord mark; kontrollera markyta och insamlingsdatum",suspected_false_positive
