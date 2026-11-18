@@ -19,7 +19,10 @@ for obs in observations:
     actual=prop.get("user_observation",prop)
     assert actual["cluster"]==obs["cluster"]
     assert actual["independently_confirmed"] is False
+    assert obs["observation_status"]=="user_individually_reviewed"
+    assert actual["review_status"]=="user_individually_reviewed"
+    assert actual["individually_reviewed"] is True
     assert "user_observation" in prop["origins"]
 assert snapshot["metadata"]["original_raster_modified"] is False
 assert snapshot["metadata"]["independent_errors_confirmed"]==0
-print("Review snapshot QA passed: 35 user observations, no false confirmations.")
+print("Review snapshot QA passed: 35 individually reviewed user observations, zero independent confirmations.")

@@ -83,6 +83,7 @@ def create():
                 "reported_context":obs["reported_context"],
                 "cluster":obs["cluster"],
                 "review_status":obs["observation_status"],
+                "individually_reviewed":obs["observation_status"]=="user_individually_reviewed",
                 "observation_note":obs["observation_note"],
                 "evidence_source":obs["source"],
                 "independently_confirmed":False}

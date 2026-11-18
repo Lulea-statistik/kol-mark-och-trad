@@ -79,3 +79,11 @@ Ytterligare **nio nya unika EPSG:3006-positioner** har lagts till i `docs/data/b
 ## Tillfällig källaotillgänglighet
 
 GitHub Actions #11 stoppades av att `gis.slu.se` inte kunde nås på HTTPS 443, trots godkända enhetstester; #10 kördes med framgång. Analysen provar nu att öppna original-SGD2 upp till tre gånger vid **RasterioIOError** med paus mellan försöken. Om källan fortfarande inte går att öppna avbryts granskningen; data ersätts aldrig av preliminära eller äldre raster och inga nya kvalitetspåståenden görs.
+
+## Individuell visuell granskning – grön karta (2026-11-18)
+
+De **35 platser som användaren själv pekat ut och bedömt** får nu `observation_status=user_individually_reviewed` i `docs/data/biomass_user_observations_epsg3006.csv`. Exporten anger `individually_reviewed=true` på respektive observation och, för observationer som sammanfaller med slump-/riskurvalet, inom `user_observation` för samma cellpolygon. Enhetstestet kräver 35 individuellt granskade positioner och `independently_confirmed=false` för samtliga.
+
+**Kartans symboler:** grönt `#16a34a` = individuellt granskad av användaren; rött = utpekad men inte individuellt granskad; lila = hamnhypotes; orange/blått = risk-/slumpurval. Statusfiltret delar upp granskade och övriga objekt. Grön betyder uttryckligen **inte** bekräftad felaktig biomassacell och innebär ingen korrigering eller statistik över verifierade fel. Varje observation behåller sin ursprungliga marktyp och motivering. Historiskt daterat oberoende kontrollunderlag behövs fortsatt inför maskningsbeslut.
+
+De fasta cirkelsymbolerna är 36–44 **skärmpixlar**, inte större geografiska maskytor. Källraster och ursprungliga SGD2-pixelkonturer i EPSG:3006 förblir oförändrade.
