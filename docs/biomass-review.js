@@ -13,6 +13,7 @@
   const kind=document.getElementById("kind");
   const stratum=document.getElementById("stratum");
   const reviewFilter=document.getElementById("reviewFilter");
+  const assessmentFilter=document.getElementById("assessmentFilter");
   const status=document.getElementById("review-status");
   let data=null;
   let selected=L.featureGroup().addTo(map);
@@ -31,9 +32,12 @@
   const safe=v=>text(v).replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[x]));
   function reviewDetails(p){return p.user_observation||(p.origin==="user_observation"?p:null);}
   function isReviewed(p){const record=reviewDetails(p);return Boolean(record&&record.individually_reviewed===true&&record.review_status==="user_individually_reviewed");}
+  function assessment(p){return reviewDetails(p)?.manual_plausibility_assessment||null;}
+  function assessmentLabel(p){return assessment(p)==="plausible_biomass"?"Biomassa rimlig – skog":assessment(p)==="suspected_false_positive"?"Misstänkt felaktig biomassa":"Ingen manuell rimlighetsbedömning";}
   function props(p){
     if(p.origin==="user_observation"){
       return "<strong>Manuell observation: "+safe(p.reported_context)+"</strong>"+
+        "<p><strong>Rimlighetsbedömning:</strong> "+safe(assessmentLabel(p))+"</p>"+
         "<p><strong>Status:</strong> "+(isReviewed(p)?"Individuellt granskad (inte oberoende verifierat fel)":"Utpekad, ännu inte individuellt granskad")+"</p>"+
         "<p>Kluster: "+safe(p.cluster)+"<br>Centrum EPSG:3006: "+
         safe(p.east_epsg3006)+", "+safe(p.north_epsg3006)+"</p>"+
@@ -46,6 +50,7 @@
     const manualBlock=manual?
       "<p><strong>Manuell observation:</strong> "+safe(manual.reported_context)+
       " ("+safe(manual.cluster)+")<br>"+safe(manual.observation_note)+
+      "<br><strong>Rimlighetsbedömning:</strong> "+safe(assessmentLabel(p))+
       "<br><strong>Status: </strong>"+(isReviewed(p)?"Individuellt granskad":"Utpekad, ej individuellt granskad")+
       " – inte oberoende verifierat fel.</p>":"";
     return "<strong>"+safe(nice[p.stratum]||p.flag_rules||p.origin)+"</strong>"+
@@ -65,6 +70,7 @@
       if(stratum.value!=="all"&&p.stratum!==stratum.value)continue;
       if(reviewFilter.value==="reviewed"&&!isReviewed(p))continue;
       if(reviewFilter.value==="unreviewed"&&isReviewed(p))continue;
+      if(assessmentFilter.value!=="all"&&assessment(p)!==assessmentFilter.value)continue;
       const point=feature.geometry.type==="Point";
       const manual=origins.includes("user_observation");
       const color=isReviewed(p)?"#16a34a":manual?"#b91c1c":p.origin==="harbor_hypothesis"?"#a21caf":
@@ -72,7 +78,7 @@
       const layer=L.geoJSON(feature,{
         style:()=>({color,weight:manual?3:2,fillOpacity:manual?.16:.15}),
         pointToLayer:(_f,ll)=>L.circleMarker(ll,{
-          radius:manual?22:18,color,weight:3,fillColor:color,fillOpacity:.24
+          radius:manual?22:18,color,weight:3,fillColor:color,fillOpacity:assessment(p)==="plausible_biomass"?.65:.12
         })
       });
       layer.bindPopup(props(p),{maxWidth:380});
@@ -82,7 +88,7 @@
         // at low zoom; the actual geographic cell polygon remains unchanged.
         const center=L.latLngBounds(feature.geometry.coordinates[0].map(pt=>[pt[1],pt[0]])).getCenter();
         const marker=L.circleMarker(center,{radius:manual?22:18,color,
-          weight:3,fillColor:color,fillOpacity:.30,interactive:true});
+          weight:3,fillColor:color,fillOpacity:assessment(p)==="plausible_biomass"?.65:.12,interactive:true});
         marker.bindPopup(props(p),{maxWidth:380});
         selected.addLayer(marker);
       }
@@ -93,6 +99,7 @@
   kind.addEventListener("change",render);
   stratum.addEventListener("change",render);
   reviewFilter.addEventListener("change",render);
+  assessmentFilter.addEventListener("change",render);
   document.getElementById("basemap").addEventListener("change",e=>{
     map.removeLayer(osm);map.removeLayer(imagery);
     (e.target.value==="imagery"?imagery:osm).addTo(map);
