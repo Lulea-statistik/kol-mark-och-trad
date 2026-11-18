@@ -2,7 +2,7 @@ name: Audit SGD2 biomass vs NMD2018 Norrbotten
 on:
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   audit:
     runs-on: ubuntu-latest
@@ -28,6 +28,18 @@ jobs:
         run: python scripts/create_biomass_review_register.py && python scripts/create_biomass_review_register.py --validate metadata/biomass_independent_review_register.csv
       - name: Create probabilistic stratified sample for independent validation
         run: python scripts/render_biomass_stratified_sample.py
+      - name: Export independent review map GeoJSON in original SGD2 grid
+        run: python scripts/publish_biomass_review_map.py
+      - name: Publish read-only review snapshot for GitHub Pages
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/biomass_review_snapshot.geojson
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update reviewed biomass sample map from NMD audit'
+            git push origin HEAD:main
+          fi
       - name: Upload quality report
         if: always()
         uses: actions/upload-artifact@v4
@@ -44,5 +56,6 @@ jobs:
             metadata/biomass_independent_review_register.csv
             metadata/biomass_stratified_validation_sample_epsg3006.csv
             metadata/biomass_stratified_sample_design.md
+            docs/data/biomass_review_snapshot.geojson
           if-no-files-found: warn
           retention-days: 30
