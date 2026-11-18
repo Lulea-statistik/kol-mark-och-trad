@@ -49,6 +49,7 @@ def refresh():
                 "east_epsg3006":x,"north_epsg3006":y,
                 "reported_context":r["reported_context"],"cluster":r["cluster"],
                 "review_status":r["observation_status"],"individually_reviewed":reviewed,
+                "manual_plausibility_assessment":r["manual_plausibility_assessment"],
                 "observation_note":r["observation_note"],"evidence_source":r["source"],
                 "independently_confirmed":False}
         if (x,y) in existing:
