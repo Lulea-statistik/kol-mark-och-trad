@@ -29,14 +29,25 @@
   const text=v=>String(v??"");
   const safe=v=>text(v).replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[x]));
   function props(p){
+    if(p.origin==="user_observation"){
+      return "<strong>Manuell observation: "+safe(p.reported_context)+"</strong>"+
+        "<p>Kluster: "+safe(p.cluster)+"<br>Centrum EPSG:3006: "+
+        safe(p.east_epsg3006)+", "+safe(p.north_epsg3006)+"</p>"+
+        "<p>"+safe(p.observation_note)+"</p><p>Ej oberoende verifierat fel. Inga grannceller har automatiskt klassats.</p>";
+    }
     if(p.origin==="harbor_hypothesis"){
       return "<strong>"+safe(p.name)+"</strong><p>Hypotes: isbrytare eller andra höga fartyg kan påverka höjdmodeller. Inte verifierat som biomassaavvikelse.</p><p>Kontrollera datum för laserskanning och ortofoto.</p><p>Koordinater i grader, antagna EPSG:4326.</p>";
     }
+    const manual=p.user_observation;
+    const manualBlock=manual?
+      "<p><strong>Manuell observation:</strong> "+safe(manual.reported_context)+
+      " ("+safe(manual.cluster)+")<br>"+safe(manual.observation_note)+
+      "<br><em>Behöver oberoende verifiering.</em></p>":"";
     return "<strong>"+safe(nice[p.stratum]||p.flag_rules||p.origin)+"</strong>"+
       "<p>Råvärde: "+safe(p.raw_biomass)+" (ej verifierad fysisk enhet)<br>NMD2018: "+safe(p.nmd_code)+
       "<br>Centrum (EPSG:3006): "+safe(p.east_epsg3006)+", "+safe(p.north_epsg3006)+
       "<br>Urval: "+safe(p.origins.join(" + "))+"<br>Status: ej granskad</p>"+
-      "<p>Bedöm mot daterat ortofoto och andra oberoende geodata; registrera manuellt i CSV.</p>";
+      manualBlock+"<p>Bedöm mot daterat ortofoto och andra oberoende geodata; registrera manuellt i CSV.</p>";
   }
   function render(){
     if(!data)return;
@@ -46,14 +57,28 @@
       const p=feature.properties;
       if(kind.value!=="all"&&!p.origins.includes(kind.value))continue;
       if(stratum.value!=="all"&&p.stratum!==stratum.value)continue;
-      const point=p.origin==="harbor_hypothesis";
+      const point=feature.geometry.type==="Point";
+      const manual=p.origin==="user_observation"||p.origins.includes("user_observation");
+      const color=manual?"#b91c1c":p.origin==="harbor_hypothesis"?"#a21caf":
+        (p.origins.includes("risk")?"#ea580c":"#2563eb");
       const layer=L.geoJSON(feature,{
-        style:()=>({color:point?"#be123c":(p.origins.includes("risk")?"#ea580c":"#2563eb"),
-          weight:point?2:2,fillOpacity:.23}),
-        pointToLayer:(_f,ll)=>L.circleMarker(ll,{radius:9,color:"#be123c",fillColor:"#be123c",fillOpacity:.8})
+        style:()=>({color,weight:manual?3:2,fillOpacity:manual?.16:.15}),
+        pointToLayer:(_f,ll)=>L.circleMarker(ll,{
+          radius:manual?16:12,color,weight:3,fillColor:color,fillOpacity:.24
+        })
       });
-      layer.bindPopup(props(p),{maxWidth:340});
-      selected.addLayer(layer);count++;
+      layer.bindPopup(props(p),{maxWidth:380});
+      selected.addLayer(layer);
+      if(!point){
+        // A large, fixed-size marker makes the 10 m cell easy to identify
+        // at low zoom; the actual geographic cell polygon remains unchanged.
+        const center=L.latLngBounds(feature.geometry.coordinates[0].map(pt=>[pt[1],pt[0]])).getCenter();
+        const marker=L.circleMarker(center,{radius:manual?16:12,color,
+          weight:3,fillColor:color,fillOpacity:.30,interactive:true});
+        marker.bindPopup(props(p),{maxWidth:380});
+        selected.addLayer(marker);
+      }
+      count++;
     }
     status.textContent="Visar "+count+" geografiska objekt. Inga av dem är oberoende verifierade fel. Underlag från "+safe(data.metadata.audit_timestamp||"senaste audit")+".";
   }
