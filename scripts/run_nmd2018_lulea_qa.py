@@ -11,6 +11,7 @@ import argparse
 from collections import Counter
 from datetime import datetime, timezone
 import json
+import time
 from pathlib import Path
 import urllib.request
 import zipfile
@@ -44,6 +45,21 @@ ENV = {"GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif",
        "GDAL_HTTP_MAX_RETRY": "3", "GDAL_HTTP_RETRY_DELAY": "2",
        "GDAL_HTTP_TIMEOUT": "90"}
+
+def open_remote_biomass(url, attempts=3, delay_seconds=15):
+    """Retry transient failures opening the original SGD2 source, never silently substitute data.
+
+    Inside rasterio.Env; once opened, ordinary GDAL block retries remain active.
+    A failed final attempt raises the original exception and stops the audit.
+    """
+    for attempt in range(1, attempts + 1):
+        try:
+            return rasterio.open("/vsicurl/" + url)
+        except rasterio.errors.RasterioIOError as exc:
+            print(f"SGD2 connection/open attempt {attempt}/{attempts} failed: {exc}",flush=True)
+            if attempt == attempts:
+                raise
+            time.sleep(delay_seconds)
 
 def download_nmd(out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -121,7 +137,7 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
     plausibility = empty_metrics()
     sampler = Sampler()
     review_queue = {k: [] for k in ("water", "building", "road", "high")}
-    with rasterio.Env(**ENV), rasterio.open("/vsicurl/" + sgd2_url) as bio, rasterio.open(nmd_path) as land:
+    with rasterio.Env(**ENV), open_remote_biomass(sgd2_url) as bio, rasterio.open(nmd_path) as land:
         if not bio.crs or not land.crs:
             raise ValueError("Source CRS missing")
         if not bio.crs.is_projected or not land.crs.is_projected:
