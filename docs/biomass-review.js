@@ -78,7 +78,7 @@
       const layer=L.geoJSON(feature,{
         style:()=>({color,weight:manual?3:2,fillOpacity:manual?.16:.15}),
         pointToLayer:(_f,ll)=>L.circleMarker(ll,{
-          radius:manual?22:18,color,weight:3,fillColor:color,fillOpacity:assessment(p)==="plausible_biomass"?.65:.12
+          radius:manual?22:18,color,weight:3,fillColor:color,fillOpacity:assessment(p)==="plausible_biomass" ? 0.65 : 0.12
         })
       });
       layer.bindPopup(props(p),{maxWidth:380});
@@ -88,7 +88,7 @@
         // at low zoom; the actual geographic cell polygon remains unchanged.
         const center=L.latLngBounds(feature.geometry.coordinates[0].map(pt=>[pt[1],pt[0]])).getCenter();
         const marker=L.circleMarker(center,{radius:manual?22:18,color,
-          weight:3,fillColor:color,fillOpacity:assessment(p)==="plausible_biomass"?.65:.12,interactive:true});
+          weight:3,fillColor:color,fillOpacity:assessment(p)==="plausible_biomass" ? 0.65 : 0.12,interactive:true});
         marker.bindPopup(props(p),{maxWidth:380});
         selected.addLayer(marker);
       }
