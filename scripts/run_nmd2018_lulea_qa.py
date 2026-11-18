@@ -27,8 +27,10 @@ from pyproj import Transformer
 # used by "python -m unittest scripts/test_*.py" from the repository root.
 if __package__:
     from .biomass_plausibility_rules import empty_metrics, update_metrics, review_points
+    from .biomass_stratified_sampler import Sampler, STRATA, SEED, PER_STRATUM
 else:
     from biomass_plausibility_rules import empty_metrics, update_metrics, review_points
+    from biomass_stratified_sampler import Sampler, STRATA, SEED, PER_STRATUM
 
 ROOT = Path(__file__).resolve().parents[1]
 NMD_URL = "https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip"
@@ -117,6 +119,7 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
     spatial_tiles = []
     scenarios = {key: scenario_counter() for key in SCENARIOS}
     plausibility = empty_metrics()
+    sampler = Sampler()
     review_queue = {k: [] for k in ("water", "building", "road", "high")}
     with rasterio.Env(**ENV), rasterio.open("/vsicurl/" + sgd2_url) as bio, rasterio.open(nmd_path) as land:
         if not bio.crs or not land.crs:
@@ -233,6 +236,7 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
                         water_core |= stable
                     core_masks = {"water": water_core, **class_cores}
                     update_metrics(plausibility, valid, b.data, a, core_masks)
+                    sampler.update(valid, b.data, a, water_core, bio.window_transform(tile))
                     points = review_points(valid, b.data, a, core_masks,
                                            bio.window_transform(tile), max_points=24)
                     for point in points:
@@ -248,6 +252,12 @@ def evaluate(nmd_path: Path, boundary, sgd2_url: str):
     return {"metadata": extent, "valid_sgd2_pixels": valid_sgd2, "valid_joint_pixels": matched_nmd,
             "native_cell_area_ha": area_ha, "nmd_class_counts_on_joint_pixels": dict(sorted(seen.items())),
             "categories": stats, "spatial_tiles": spatial_tiles,
+            "stratified_validation_sample": {
+                "seed":SEED,"per_stratum_target":PER_STRATUM,"strata":list(STRATA),
+                "populations":sampler.pop,"rows":sampler.output(),
+                "scope":"Only native joint-valid SGD2/NMD cells within working boundary",
+                "method":"Mutually exclusive priority strata, seeded random k-minimum sample per stratum, without replacement",
+                "independent_validation_performed":False},
             "plausibility_review": {"metrics":plausibility, "review_points":review_queue,
                 "interpretation":"Flags only: NMD and raw values are not independent confirmation of errors.",
                 "rulebook":"docs/data/BIOMASS_PLAUSIBILITY_VALIDATION.md",
