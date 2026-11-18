@@ -60,3 +60,38 @@
   render();
  }catch(e){status.textContent='Kunde inte skapa avstämningen: '+e.message;$('download-csv').disabled=true;}
 })();
+
+(async()=>{
+ const status=document.getElementById('verified-corrections-status');
+ const count=document.getElementById('verified-corrections-count');
+ const delta=document.getElementById('verified-corrections-delta');
+ const nodata=document.getElementById('verified-corrections-nodata');
+ try{
+  const resp=await fetch('data/biomass_verified_corrections.json',{cache:'no-store'});
+  if(!resp.ok)throw Error('HTTP '+resp.status);
+  const overlay=await resp.json();
+  if(overlay.schema_version!==1||overlay.source_crs!=='EPSG:3006'||!Array.isArray(overlay.corrections))
+   throw Error('Okänt korrigeringsformat eller koordinatsystem');
+  let numericDelta=0,nodataCount=0,keys=new Set();
+  for(const row of overlay.corrections){
+   const key=row.east_epsg3006+','+row.north_epsg3006;
+   if(keys.has(key))throw Error('Dubbel korrigering för '+key);
+   keys.add(key);
+   if(row.verified!==true||!row.evidence_reference||!row.verification_date||!row.verifier)
+    throw Error('Korrigeringsbeslut utan tillräcklig verifiering: '+key);
+   if(!['replace_value','set_zero','set_nodata'].includes(row.decision))
+    throw Error('Ogiltigt korrigeringsbeslut: '+key);
+   if(row.decision==='set_nodata')nodataCount++;
+   // A delta is computed only by the source-aware validator, not from unverified JS assumptions.
+  }
+  count.textContent=overlay.corrections.length.toLocaleString('sv-SE');
+  nodata.textContent=nodataCount.toLocaleString('sv-SE');
+  delta.textContent=overlay.corrections.length===0?'0 (inga beslut)':'Se validerad avstämning';
+  status.textContent=overlay.corrections.length===0
+    ?'Inga oberoende verifierade korrigeringar är registrerade. Rastervärden är oförändrade.'
+    :'Det finns verifierade korrigeringsbeslut. Kontrollera deras cellvisa beräkning med scripts/validate_biomass_corrections.py; inga rasterfiler skrivs om.';
+ }catch(e){
+  status.textContent='Kunde inte kontrollera korrigeringslagret: '+e.message;
+  count.textContent='Okänt';delta.textContent='Okänt';nodata.textContent='Okänt';
+ }
+})();
