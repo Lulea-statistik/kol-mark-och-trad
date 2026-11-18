@@ -87,3 +87,9 @@ De **35 platser som användaren själv pekat ut och bedömt** får nu `observati
 **Kartans symboler:** grönt `#16a34a` = individuellt granskad av användaren; rött = utpekad men inte individuellt granskad; lila = hamnhypotes; orange/blått = risk-/slumpurval. Statusfiltret delar upp granskade och övriga objekt. Grön betyder uttryckligen **inte** bekräftad felaktig biomassacell och innebär ingen korrigering eller statistik över verifierade fel. Varje observation behåller sin ursprungliga marktyp och motivering. Historiskt daterat oberoende kontrollunderlag behövs fortsatt inför maskningsbeslut.
 
 De fasta cirkelsymbolerna är 36–44 **skärmpixlar**, inte större geografiska maskytor. Källraster och ursprungliga SGD2-pixelkonturer i EPSG:3006 förblir oförändrade.
+
+## Oberoende uppdatering av gröna granskningsmarkörer (2026-11-18)
+
+Om SGD2:s rasterserver `gis.slu.se` tillfälligt är otillgänglig kan man nu starta GitHub Actions-flödet **Refresh biomass review map annotations** i stället för den fullständiga rasteranalysen. Skriptet `scripts/refresh_biomass_review_annotations.py` läser den redan publicerade GeoJSON-kartan med **tidigare originalgeometriska SGD2-celler** och det aktuella registret med manuella observationer i EPSG:3006. Befintliga manuella attribut uppdateras utan dubbletter; nya punkter får EPSG:4326 efter en uttrycklig pyproj-transformering från EPSG:3006. Det ursprungliga stickprovets alla geometrier, råvärden och tidsstämpel lämnas orörda.
+
+Arbetsflödet kör sedan samma `scripts/test_review_map_export.py` som den fullständiga auditen och publicerar enbart `docs/data/biomass_review_snapshot.geojson`. Metadata flaggar att manuella observationer har uppdaterats **utan rasterhämtning**. Detta är uttryckligen **inte** en ny SGD2/NMD-analys. Ny fullständig analys kräver att källservern åter är tillgänglig. Denna process ändrar inga raster eller bekräftar några biomassafel.

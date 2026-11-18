@@ -1,0 +1,40 @@
+name: Refresh biomass review map annotations
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: biomass-review-map-publication
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install coordinate transformer only
+        run: pip install 'pyproj>=3.6'
+      - name: Refresh 35+ manual observations without remote raster
+        run: python scripts/refresh_biomass_review_annotations.py
+      - name: Validate annotation export and non-destructive metadata
+        run: python scripts/test_review_map_export.py
+      - name: Publish annotation-only map update
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/biomass_review_snapshot.geojson
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh manual biomass review colors without raster reprocessing'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Upload updated map for audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass-review-annotations-only
+          path: docs/data/biomass_review_snapshot.geojson
+          retention-days: 30
