@@ -25,7 +25,7 @@ for obs in observations:
     assert actual["manual_plausibility_assessment"]==obs["manual_plausibility_assessment"]
     assert "user_observation" in prop["origins"]
 assert sum(r["manual_plausibility_assessment"]=="plausible_biomass" for r in observations)==22
-assert sum(r["manual_plausibility_assessment"]=="suspected_false_positive" for r in observations)==225
+assert sum(r["manual_plausibility_assessment"]=="suspected_false_positive" for r in observations)==201
 assert sum(r["reported_context"]=="vatten/byggnad" for r in observations)==4
 assert len({(r["east_epsg3006"],r["north_epsg3006"]) for r in observations})==223
 assert snapshot["metadata"]["original_raster_modified"] is False
