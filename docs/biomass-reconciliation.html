@@ -32,9 +32,22 @@
  <div>Faktisk förändring<strong>0 råvärdesenheter</strong></div>
  <div>Scenario, minskning<strong id="scenario-delta">–</strong></div>
  <div>Scenario, kvar av misstänkta råvärden<strong id="scenario-remainder">–</strong></div>
+ <div>Villkorat scenario i ton C<strong id="scenario-conditional-carbon">–</strong></div>
 </div>
+<p class="audit-muted"><strong>Villkorad omräkning:</strong> Skogsstyrelsens produktbeskrivning anger biomassa i ton torrsubstans/ha och normalt 10 × 10 meters rasterceller. Under antagandet att GeoJSON:s råvärden kommer oförändrade från detta band, att varje cell är 100 m² och att kolandelen är 0,5 ton C per ton torrsubstans, motsvarar varje råvärdesenhet 0,005 ton C per cell. Detta är <strong>inte en verifierad faktiskt genomförd korrigering</strong> och heller inte en kommunal totalskattning. <a href="https://www.skogsstyrelsen.se/e-tjanster-och-kartor/karttjanster/skogliga-grunddata/">Skogsstyrelsens produktbeskrivning</a>.</p>
 <p class="audit-muted">Scenariot ändrar inte originaldata, justerar inte skogskontrollerna och behandlar inte NoData som noll. 100 % betyder att samtliga <em>positiva råvärden hos manuellt misstänkta celler</em> antas bli noll – inte att detta är den korrekta åtgärden. Vid verklig korrigering behövs ett verifierat nytt cellvärde och enhet, och sedan omräkning för hela motsvarande källgrid.</p>
 <button id="download-csv" type="button">Exportera cellvis före–efter-scenario (CSV)</button>
+</section>
+<section>
+<h2>Separat lager med verifierade korrigeringar</h2>
+<p>Här redovisas enbart korrigeringsbeslut med daterad och spårbar referens. Den manuella riskbedömningen är inte i sig ett sådant beslut. Originalrastret ändras inte och oanmälda ändringar av vatten, byggnader eller skog görs inte.</p>
+<p id="verified-corrections-status" role="status">Läser registret med verifierade korrigeringar …</p>
+<div class="audit-summary">
+ <div>Verifierade beslut<strong id="verified-corrections-count">–</strong></div>
+ <div>Netto, numeriska råvärdesändringar<strong id="verified-corrections-delta">–</strong></div>
+ <div>Separata NoData-beslut<strong id="verified-corrections-nodata">–</strong></div>
+</div>
+<p class="audit-muted">En ändring till NoData minskar datatäckningen och behandlas inte som en ändring till noll. Nettoförändring i ton C förblir okänd tills råvärdets enhet, cellarea, rätt tidpunkt och beräkningsgeografi verifierats. Separata korrigeringsbeslut lagras i <a href="data/biomass_verified_corrections.json">biomass_verified_corrections.json</a>. En tom lista betyder att ingen verifierad korrigering ännu finns.</p>
 </section>
 <h2>Geografisk och statistisk reservation</h2>
 <p>Den manuella granskningen är selektiv med betoning på risk- och högvärdesceller. De fyra observationerna märkta <strong>vatten/byggnad</strong> har olösta marktypskonflikter. De kan ingå bland de misstänkta scenariocellerna men får inte användas som fastställd marktypsklass. Urvalet är inte representativt, och scenariots skillnad är inte ett estimat för Luleå kommuns totala kolförråd. Den separata stratifierade slumpdragningen ska utvärderas med egna inklusionssannolikheter.</p>

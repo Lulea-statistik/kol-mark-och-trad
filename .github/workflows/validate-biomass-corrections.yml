@@ -1,0 +1,27 @@
+name: Validate independent biomass correction overlay
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/data/biomass_verified_corrections.json'
+      - 'docs/data/biomass_review_snapshot.geojson'
+      - 'scripts/validate_biomass_corrections.py'
+      - '.github/workflows/validate-biomass-corrections.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate independently verified corrections against original-grid reviewed cells
+        run: python scripts/validate_biomass_corrections.py
+      - name: Upload validation summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass-correction-validation
+          path: docs/data/biomass_correction_summary.json
+          retention-days: 30
