@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Före–efter-avstämning av biomassagranskning – Luleå</title><link rel="stylesheet" href="style.css">
+<style>
+.audit-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:1rem 0}
+.audit-summary>div{padding:1rem;background:#f5f7f8;border-radius:8px}
+.audit-summary strong{display:block;font-size:1.55rem}
+.audit-table{overflow-x:auto}.audit-table table{width:100%;border-collapse:collapse}.audit-table th,.audit-table td{padding:.6rem;border-bottom:1px solid #d4dbe0;text-align:right}.audit-table th:first-child,.audit-table td:first-child{text-align:left}
+.audit-warning{border-left:4px solid #a16207;padding:.75rem 1rem;background:#fdf6e6}
+.audit-scenario{padding:1rem;background:#f5f7f8;border-radius:8px}.audit-scenario input{width:min(100%,420px)}
+.audit-scenario output{font-weight:700}.audit-muted{color:#475569}
+</style></head><body>
+<header><h1>Före–efter-avstämning av biomassa</h1><p>Luleå kommun · SGD2 · manuella granskningsceller</p></header>
+<nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="biomass-review.html">Granska biomassa</a><a href="biomass-reconciliation.html" aria-current="page">Före–efter-avstämning</a><a href="biomass-trend.html">Trend biomassa</a><a href="statistics.html">Diagram och tabeller</a></nav>
+<main>
+<p class="audit-warning"><strong>Ingen rasterkorrigering är gjord.</strong> Faktiskt genomförd förändring genom de manuella annoteringarna är <strong>0</strong>. Tabellen nedan summerar ursprungliga råvärden för individuellt granskade celler; reglaget visar en uttryckligen <strong>hypotetisk</strong> reduktion av misstänkta positiva värden. Resultatet är <strong>inte ton kol</strong> och får inte adderas eller generaliseras till kommunens totalförråd.</p>
+<p id="audit-status" role="status">Läser den publicerade granskningskartan …</p>
+<section class="audit-summary" aria-label="Granskningssammanfattning">
+ <div>Granskade unika celler<strong id="n-reviewed">–</strong></div>
+ <div>Misstänkta avvikelser<strong id="n-suspect">–</strong></div>
+ <div>Rimlig skogsbiomassa<strong id="n-plausible">–</strong></div>
+ <div>Positiva råvärden bland misstänkta<strong id="n-positive">–</strong></div>
+</section>
+<h2>Ursprungliga råvärden för kontrollerade lägen</h2>
+<div class="audit-table"><table><thead><tr><th>Manuell bedömning</th><th>Unika celler</th><th>Positiva värden</th><th>Nollvärden</th><th>Utan numeriskt råvärde</th><th>Summa positiva råvärden</th></tr></thead><tbody id="assessment-rows"></tbody></table></div>
+<p class="audit-muted">Värdena kommer från befintliga provceller i GeoJSON (ursprunglig cell i EPSG:3006). Om observationen saknar ett eget rasterprov redovisas den som okänd, inte som noll. Granskningen ger ingen observerad ny biomassamängd och innehåller ingen oberoende referensklassning. Enheten i biomassakällans råvärden är ännu inte verifierad för omräkning till ton C.</p>
+<section class="audit-scenario">
+<h2>Scenario: reducerade misstänkta biomassavärden</h2>
+<label for="reduction">Hypotetisk reduktion av positiva råvärden på de misstänkta cellerna: <output id="reduction-label" for="reduction">100 %</output></label>
+<p><input id="reduction" type="range" min="0" max="100" value="100" step="5"></p>
+<div class="audit-summary">
+ <div>Faktisk förändring<strong>0 råvärdesenheter</strong></div>
+ <div>Scenario, minskning<strong id="scenario-delta">–</strong></div>
+ <div>Scenario, kvar av misstänkta råvärden<strong id="scenario-remainder">–</strong></div>
+</div>
+<p class="audit-muted">Scenariot ändrar inte originaldata, justerar inte skogskontrollerna och behandlar inte NoData som noll. 100 % betyder att samtliga <em>positiva råvärden hos manuellt misstänkta celler</em> antas bli noll – inte att detta är den korrekta åtgärden. Vid verklig korrigering behövs ett verifierat nytt cellvärde och enhet, och sedan omräkning för hela motsvarande källgrid.</p>
+<button id="download-csv" type="button">Exportera cellvis före–efter-scenario (CSV)</button>
+</section>
+<h2>Geografisk och statistisk reservation</h2>
+<p>Den manuella granskningen är selektiv med betoning på risk- och högvärdesceller. De fyra observationerna märkta <strong>vatten/byggnad</strong> har olösta marktypskonflikter. De kan ingå bland de misstänkta scenariocellerna men får inte användas som fastställd marktypsklass. Urvalet är inte representativt, och scenariots skillnad är inte ett estimat för Luleå kommuns totala kolförråd. Den separata stratifierade slumpdragningen ska utvärderas med egna inklusionssannolikheter.</p>
+<p><a href="biomass-review.html">Tillbaka till granskningskartan</a></p>
+</main><script src="biomass-reconciliation.js"></script></body></html>
