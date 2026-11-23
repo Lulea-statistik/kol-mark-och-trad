@@ -1,0 +1,73 @@
+{
+  "created_utc": "2026-11-23T11:43:24.044627+00:00",
+  "status": "EXPLORATORY_MODEL_NOT_A_VALIDATED_BIOMASS_TIMESERIES",
+  "comparison_crs": "EPSG:3006",
+  "target_cell_m": 25,
+  "common_valid_cells": 2316804,
+  "common_valid_area_ha": 144800.25,
+  "calibration_year": 2010,
+  "calibration_formula": "sum(raw_2010_biomass on joint cells) / sum(raw_2010_total_volume on joint cells)",
+  "calibration_factor_raw_biomass_per_raw_volume": 0.69884366583473,
+  "scenario_description": "The +/-20% bands are arbitrary sensitivity scenarios for 2000/2005, NOT confidence intervals",
+  "comparison_basis": "Five timestamps on six raster layers, same 25 m cells with valid pixels in all products.",
+  "years": [
+    {
+      "year": 2000,
+      "raw_mean_on_common_support": 65.60962886205357,
+      "status": "MODELLED_volume_times_2010_aggregate_ratio",
+      "source": "SLU total wood volume 2000; scaled with joint-area 2010 ratio",
+      "scenario_low_minus_20pct": 52.48770308964286,
+      "scenario_high_plus_20pct": 78.73155463446427
+    },
+    {
+      "year": 2005,
+      "raw_mean_on_common_support": 61.0618877057799,
+      "status": "MODELLED_volume_times_2010_aggregate_ratio",
+      "source": "SLU total wood volume 2005; scaled with joint-area 2010 ratio",
+      "scenario_low_minus_20pct": 48.84951016462392,
+      "scenario_high_plus_20pct": 73.27426524693588
+    },
+    {
+      "year": 2010,
+      "raw_mean_on_common_support": 75.65688245738662,
+      "status": "OBSERVED_raster_raw_mean_not_harmonized_between_products",
+      "source": "Archived SLU/SGD biomass product 2010",
+      "scenario_low_minus_20pct": null,
+      "scenario_high_plus_20pct": null
+    },
+    {
+      "year": 2015,
+      "raw_mean_on_common_support": 65.22185868263243,
+      "status": "OBSERVED_raster_raw_mean_not_harmonized_between_products",
+      "source": "Archived SLU/SGD biomass product 2015",
+      "scenario_low_minus_20pct": null,
+      "scenario_high_plus_20pct": null
+    },
+    {
+      "year": 2018,
+      "raw_mean_on_common_support": 69.76612242300847,
+      "status": "OBSERVED_raster_raw_mean_not_harmonized_between_products",
+      "source": "Archived SLU/SGD biomass product 2018",
+      "scenario_low_minus_20pct": null,
+      "scenario_high_plus_20pct": null
+    }
+  ],
+  "zero_share_by_source": {
+    "vol_2000": 0.00022185735176562195,
+    "vol_2005": 0.012241000965122643,
+    "vol_2010": 0.01741191745179998,
+    "bio_2010": 0.016325938663779932,
+    "bio_2015": 0.041466174954808435,
+    "bio_2018": 0.014837681564776304
+  },
+  "limitations": [
+    "2010 biomass calibrated by same-model 2010 volume and is not independent validation",
+    "Biomass definitions may differ: 2010 includes above/belowground per kNN technical source; 2015 aboveground",
+    "The 2015/2018 values are observed raster raw values, not corrected for product methodological changes",
+    "2000 and 2005 are model estimates, not original biomass observations",
+    "No verified forest mask, species or age/site-index adjustment yet",
+    "Do NOT infer biomass stock changes, growth rates, carbon or CO2 from this exploratory series",
+    "Source epochs are map labels; actual observation times depend on imagery and lidar collection"
+  ],
+  "github_actions_run": "https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45167677271"
+}
