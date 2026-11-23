@@ -1,0 +1,47 @@
+name: Explain biomass differences with detected forest harvests (2010-2018)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/biomass-harvest-overlay.yml'
+      - 'scripts/biomass_harvest_overlay.py'
+permissions:
+  contents: read
+jobs:
+  overlay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install GIS dependencies
+        run: pip install -r requirements.txt
+      - name: Check Python source syntax
+        run: python -m compileall -q scripts/biomass_harvest_overlay.py scripts/verify_biomass_release.py
+      - name: Download archived municipal biomass data
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          gh release download biomass-source-clips-lulea-v1 --dir release-assets --pattern 'lulea_biomass_*'
+      - name: Check all source files and raster metadata
+        run: python scripts/verify_biomass_release.py --directory release-assets --output metadata/biomass_release_validation.json
+      - name: Overlay dated harvested polygons and compare raster values
+        run: |
+          python scripts/biomass_harvest_overlay.py \
+            --directory release-assets \
+            --output metadata/biomass_harvest_overlay_2011_2018.json
+      - name: Save harvest and biomass diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass-harvest-overlay-diagnostics
+          path: |
+            metadata/biomass_release_validation.json
+            metadata/biomass_harvest_overlay_2011_2018.json
+          if-no-files-found: warn
+          retention-days: 90
