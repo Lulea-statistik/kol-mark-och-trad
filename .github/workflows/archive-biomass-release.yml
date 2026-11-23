@@ -1,0 +1,83 @@
+name: Archive Lulea biomass GeoTIFF extracts to GitHub Releases
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: Which source epoch to download, clip and archive
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - "2010"
+          - "2015"
+          - "2018"
+permissions:
+  contents: write
+concurrency:
+  group: biomass-release-archive
+  cancel-in-progress: false
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        year: ["2010", "2015", "2018"]
+    if: ${{ inputs.year == 'all' || inputs.year == matrix.year }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: biomass-source-clips-lulea-v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster processing libraries
+        run: pip install -r requirements.txt
+      - name: Avoid re-fetching an already archived raster
+        id: existing
+        shell: bash
+        run: |
+          asset="lulea_biomass_${{ matrix.year }}_source_crs_clip.tif"
+          if gh release view "$TAG" --json assets --jq '.assets[].name' 2>/dev/null | grep -Fxq "$asset"; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Already archived: $asset; no download or overwrite"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download source-CRS excerpt and produce provenance and checksums
+        if: steps.existing.outputs.exists != 'true'
+        run: |
+          python scripts/cache_biomass_release.py --year "${{ matrix.year }}" --output-dir release-assets
+      - name: Initialize tagged archive release
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target "${{ github.sha }}" \
+              --title "Luleå – source-CRS biomass extracts (2010, 2015, 2018)" \
+              --notes "Non-destructive Luleå boundary-masked GeoTIFF excerpts from documented SLU source rasters. These are DERIVED municipal excerpts in the original raster CRS/resolution, NOT complete original national GeoTIFFs. Each year includes metadata and SHA-256 checksums. Raw physical units and methods remain subject to validation."
+          fi
+      - name: Upload GeoTIFF and provenance to GitHub Release
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          gh release upload "$TAG" \
+            "release-assets/lulea_biomass_${{ matrix.year }}_source_crs_clip.tif" \
+            "release-assets/lulea_biomass_${{ matrix.year }}_provenance.json" \
+            "release-assets/lulea_biomass_${{ matrix.year }}_SHA256SUMS.txt"
+          gh release view "$TAG" --json assets --jq '.assets[].name'
+      - name: Keep a provenance diagnostic artifact when an upload fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-archive-${{ matrix.year }}-diagnostics
+          path: |
+            release-assets/*_provenance.json
+            release-assets/*_SHA256SUMS.txt
+          if-no-files-found: ignore
+          retention-days: 30
