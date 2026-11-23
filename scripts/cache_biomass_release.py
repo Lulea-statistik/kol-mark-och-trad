@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from rasterio import open as open_raster
-from fetch_and_compare_biomass_native import crop_source, EXPECTED
+from fetch_and_compare_biomass_native import crop_source, EXPECTED, matches_expected_crs
 from shapely.geometry import shape
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -59,7 +59,7 @@ def main():
     info=crop_report["sources"][args.year]
     epsg,res=EXPECTED[args.year]
     with open_raster(raster) as src:
-        if src.crs is None or src.crs.to_epsg() not in (epsg,None):
+        if not matches_expected_crs(src.crs, epsg):
             raise ValueError("Output CRS differs from source CRS")
         if abs(abs(src.res[0])-res)>0.05 or abs(abs(src.res[1])-res)>0.05:
             raise ValueError("Output source grid resolution altered")
