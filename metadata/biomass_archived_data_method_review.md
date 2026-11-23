@@ -62,3 +62,30 @@ Resultatet innehåller:
 4. Ingen uppdatering av publicerad biomassatrend eller kolförråd görs förrän analysens metodreservationer hanterats och resultaten granskats.
 
 Den här rapporten beskriver **en planerad och körbar kontroll**, inte att jämförelsen redan har genomförts.
+
+## Första lyckade kontrollkörningen (2026-11-23)
+
+Körning: https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45152316499
+
+**Utfall:** Syntax/regressionstester, hämtning från GitHub Releases, SHA-256-proveniens, lokala GeoTIFF-rasterkontroller, arealjämförelse och publicering av analysartefakten slutfördes utan tekniska fel.
+
+### Observerade råvärden
+
+| År | Medelråvärde på gemensam giltig yta | Medelråvärde på respektive rasters hela giltiga yta | Giltig yta (ha) | Högsta råvärde före extremvärdeskontroll |
+|---|---:|---:|---:|---:|
+| 2010 | 76,887 | 75,551 | 170 055,9 | 295 |
+| 2015 | 64,733 | 45,361 | 292 790,6 | 16 007 |
+| 2018 | 69,329 | 37,790 | 336 948,1 | 1 212 |
+
+Gemensam giltig areal: **153 525,625 ha (2 456 410 celler à 0,0625 ha)**.
+
+De tidigare stora skillnaderna i medelvärden mellan årens fulla giltiga ytor reduceras på gemensam yta. Det är **inte** belägg för verklig biomassaminskning eller -ökning.
+
+Pearsons korrelation (gemensamma celler): 2010–2015 **0,5623**, 2015–2018 **0,8868**, 2010–2018 **0,5079**. Rumsliga skillnader och modellbyten kan orsaka korrelationerna.
+
+**Ny betydande varning om landyta:** Luleå kommuns landyta är omkring **211 000 ha** (källa: [Luleå kommun, fakta om kommunen](https://www.lulea.se/kommun--politik/fakta-och-statistik/fakta-om-lulea-kommun.html); anger 2 110 km²). De giltiga rasterarealerna för 2015 och 2018 **överstiger hela kommunens landyta**. Detta är möjligt om arbetsgeometrin omfattar hav/annan icke-skogsmark och rastervärdet noll är giltigt även där. Det bevisar däremot att `valid_own_area_ha` inte får rubriceras som *skoglig areal*. För fysisk kommunal kolförrådssumma krävs en **verifierad kommunpolygon och separat land-/skogsmarksmask** (med verifierat CRS), utöver den redan genomförda gemensamma rastermaskningen.
+
+**Extremvärden:** 2015-rastret uppvisar högsta råvärde **16 007**, jämfört med 2010 **295** och 2018 **1 212**. Detta kan vara felklassning, artefakter eller skilda värdeskale-/produktkonventioner; inget av alternativen är verifierat. De får **inte** automatiskt exkluderas. En ny screening räknar antal pixlar över råtrösklar 300, 500 och 1 000 och deras andel av total råvärdessumma. Dessa trösklar är endast diagnostik, inte verifierade fysikaliska gränser.
+
+**Tillåtet användningsområde just nu:** tekniskt verifierad arkivintegritet och explorativ jämförelse av råvärden inom gemensam giltig yta. **Inte** verifierade totaler i ton TS, ton C eller CO₂, och **inte** verklig tidsförändring.
+
