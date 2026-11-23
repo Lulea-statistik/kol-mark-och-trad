@@ -34,4 +34,13 @@
 <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/metadata/forest_growth_age_site_index_sources.json">Register över ålder och SIS</a> ·
 <a href="data/modelled_biomass_series_2000_2018.json">Ladda ned modellresultat i JSON</a></p>
 </section>
-</main><script src="modelled-biomass-2000.js"></script></body></html>
+<section>
+<h2>Alternativ modell: åldersbaserad omräkning 2000 och 2005</h2>
+<p>Som kvalitetskontroll jämför vi en åldersanpassad volym–biomassafaktor med den enklare globala faktorn <strong>på exakt samma geografiska celler</strong>. Åldersmodellen använder respektive historiskt åldersraster, och faktorerna är skattade ur 2010 års samband mellan beståndsålder, virkesvolym och biomassa. Glesa åldersklasser jämnas mot den globala faktorn. <strong>Det är inte en verifierad tillväxtmodell.</strong></p>
+<p id="ageModelStatus" role="status">Laddar åldersbaserad modell …</p>
+<div class="chart-wrap" style="height:330px"><canvas id="ageModelChart" aria-label="Alternativa åldersbaserade och globala modellskattningar av historisk biomassa"></canvas></div>
+<div class="table-scroll"><table><thead><tr><th>År</th><th>Åldersanpassat medelråvärde</th><th>Global faktor på samma yta</th><th>Skillnad</th></tr></thead><tbody id="ageModelRows"></tbody></table></div>
+<p id="ageModelSupport" class="hint"></p>
+<p><a href="data/age_adjusted_biomass_2000_2005.json">Ladda ned den åldersbaserade analysen (JSON)</a>. De två analyserna på denna sida har <strong>olika geografisk gemensam täckning</strong>; jämför därför inte deras medelvärden som om de gällde samma cellpopulation.</p>
+</section>
+</main><script src="modelled-biomass-2000.js"></script><script src="age-adjusted-biomass.js"></script></body></html>

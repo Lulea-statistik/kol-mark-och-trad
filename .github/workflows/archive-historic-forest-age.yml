@@ -1,0 +1,77 @@
+name: Archive historical Lulea forest age 2000 and 2005
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: Which source epoch to archive
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - "2000"
+          - "2005"
+permissions:
+  contents: write
+concurrency:
+  group: historic-forest-age-lulea-v1
+  cancel-in-progress: false
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        year: ${{ fromJSON(inputs.year == 'all' && '["2000","2005"]' || format('["{0}"]',inputs.year)) }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: forest-age-lulea-2000-2005-v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install native raster tools
+        run: pip install -r requirements.txt
+      - name: Check script syntax
+        run: python -m compileall -q scripts/archive_historic_forest_age.py
+      - name: Check if source clip exists
+        id: cached
+        shell: bash
+        run: |
+          if gh release view "$TAG" --json assets --jq '.assets[].name' 2>/dev/null | grep -Fxq "lulea_forest_age_${{ matrix.year }}_source_crs_clip.tif"; then
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download original AGE GeoTIFF window and make source CRS clip
+        if: steps.cached.outputs.skip != 'true'
+        run: python scripts/archive_historic_forest_age.py --year "${{ matrix.year }}" --output-dir release-age
+      - name: Create source-provenance release if absent
+        if: steps.cached.outputs.skip != 'true'
+        shell: bash
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target "${{ github.sha }}" \
+              --title "Luleå historical forest age 2000 and 2005 – clipped source raster" \
+              --notes "Boundary-masked DERIVED source CRS rasters (EPSG:3021, 25m), not SLU original full rasters; these are model estimated ages and must not be treated as growth measurements."
+          fi
+      - name: Publish annual AGE clip plus SHA256 and provenance
+        if: steps.cached.outputs.skip != 'true'
+        run: |
+          gh release upload "$TAG" \
+            "release-age/lulea_forest_age_${{ matrix.year }}_source_crs_clip.tif" \
+            "release-age/lulea_forest_age_${{ matrix.year }}_provenance.json" \
+            "release-age/lulea_forest_age_${{ matrix.year }}_SHA256SUMS.txt"
+      - name: Save metadata on error
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historic-age-${{ matrix.year }}-metadata
+          path: |
+            release-age/*_provenance.json
+            release-age/*_SHA256SUMS.txt
+          if-no-files-found: ignore
