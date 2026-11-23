@@ -1,0 +1,30 @@
+name: Inspect 2005 Norrbotten segment ZIP biomass attributes
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/inspect_knn_2005_segment_zip.py'
+      - '.github/workflows/inspect-knn-2005-segment.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate script
+        run: python -m compileall -q scripts/inspect_knn_2005_segment_zip.py
+      - name: Inspect remote ZIP central directory and DBF schema using HTTP ranges
+        run: python scripts/inspect_knn_2005_segment_zip.py --output metadata/knn_2005_norrbotten_segment_inventory.json
+      - name: Upload verified ZIP inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knn-2005-segment-norrbotten-attribute-inventory
+          path: metadata/knn_2005_norrbotten_segment_inventory.json
+          if-no-files-found: warn
+          retention-days: 90
