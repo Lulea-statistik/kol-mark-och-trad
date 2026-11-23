@@ -45,10 +45,13 @@ def matches_expected_crs(source_crs, expected_epsg):
         if source_crs.to_epsg() == expected_epsg:
             return True
         wkt = source_crs.to_wkt()
-        if PyprojCRS.from_user_input(wkt).equals(
-            PyprojCRS.from_epsg(expected_epsg), ignore_axis_order=True
-        ):
-            return True
+        try:
+            if PyprojCRS.from_user_input(wkt).equals(
+                PyprojCRS.from_epsg(expected_epsg), ignore_axis_order=True
+            ):
+                return True
+        except (ValueError, TypeError, RuntimeError):
+            pass  # Older WKT1 may not parse as equivalent to the current EPSG definition
         # Last AUTHORITY/ID, immediately before the final CRS bracket,
         # identifies the outer PROJCS rather than a nested datum/ellipsoid.
         match = re.search(
