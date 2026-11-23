@@ -98,6 +98,12 @@ def run(args):
     counts_own={k:0 for k in YEARS}
     sums_own={k:0.0 for k in YEARS}
     source_info={}
+    common_zero={k:0 for k in YEARS}
+    common_positive={k:0 for k in YEARS}
+    common_sums={k:0.0 for k in YEARS}
+    common_squares={k:0.0 for k in YEARS}
+    common_products={("2010","2015"):0.0,("2015","2018"):0.0,("2010","2018"):0.0}
+    common_more={("2010","2015"):0,("2015","2018"):0,("2010","2018"):0}
     with ExitStack() as stack:
         vrts={}
         for year in selected:
@@ -146,10 +152,35 @@ def run(args):
                 common=valid["2010"]&valid["2015"]&valid["2018"]
                 for year in YEARS:
                     counts_common[year]+=int(common.sum())
-                    sums_common[year]+=float(np.sum(values[year][common],dtype="float64"))*ha
+                    subset=values[year][common]
+                    sums_common[year]+=float(np.sum(subset,dtype="float64"))*ha
+                    common_zero[year]+=int(np.count_nonzero(subset==0))
+                    common_positive[year]+=int(np.count_nonzero(subset>0))
+                    common_sums[year]+=float(subset.sum(dtype="float64"))
+                    common_squares[year]+=float(np.dot(subset,subset))
+                for pair in common_products:
+                    a,b=pair
+                    x=values[a][common]
+                    y=values[b][common]
+                    common_products[pair]+=float(np.dot(x,y))
+                    common_more[pair]+=int(np.count_nonzero(x>y))
     common_n=counts_common["2010"]
     if not common_n:
         raise ValueError("No common valid original-raster grid cells")
+    pair_quality={}
+    for pair in common_products:
+        a,b=pair
+        numerator=common_n*common_products[pair]-common_sums[a]*common_sums[b]
+        var_a=common_n*common_squares[a]-common_sums[a]**2
+        var_b=common_n*common_squares[b]-common_sums[b]**2
+        corr=numerator/math.sqrt(var_a*var_b) if var_a>0 and var_b>0 else None
+        pair_quality[f"{a}_{b}"]={
+            "common_pixels":common_n,
+            "pearson_r_raw":corr,
+            "share_pixels_a_greater_b":common_more[pair]/common_n,
+            "raw_mean_difference_a_minus_b":(common_sums[a]-common_sums[b])/common_n,
+            "notes":"Descriptive differences between distinct raster products, NOT confirmed biological change"
+        }
     mass_label="tonnes_dry_biomass_conditional_on_confirmed_units" if args.units_confirmed else "raw_density_times_hectares_UNVERIFIED_units"
     result={
       "schema_version":1,"calculated_utc":datetime.now(timezone.utc).isoformat(),
@@ -163,9 +194,16 @@ def run(args):
       "per_year":{
         y:{"mean_density_common_raw":sums_common[y]/(common_n*ha),
            "integrated_common":sums_common[y],
+           "mean_density_own_raw":sums_own[y]/(counts_own[y]*ha) if counts_own[y] else None,
            "valid_own_area_ha":counts_own[y]*ha,
            "integrated_own_coverage":sums_own[y],
            "valid_own_cells":counts_own[y]} for y in YEARS},
+      "common_support_diagnostics":{
+          "zero_share_by_year":{y:common_zero[y]/common_n for y in YEARS},
+          "positive_share_by_year":{y:common_positive[y]/common_n for y in YEARS},
+          "pairwise_raw":pair_quality,
+          "caution":"No independent forest/nonforest classification; zeros do not prove unchanged forest"
+      },
       "integral_unit":mass_label,
       "unit_evidence":args.unit_evidence if args.units_confirmed else None,
       "component_evidence":args.component_evidence if args.units_confirmed else None,
