@@ -55,7 +55,13 @@ def matches_expected_crs(source_crs, expected_epsg):
         # Last AUTHORITY/ID, immediately before the final CRS bracket,
         # identifies the outer PROJCS rather than a nested datum/ellipsoid.
         match = re.search(
-            r'(?:AUTHORITY|ID)\s*\[\s*"EPSG"\s*,\s*"?([0-9]+)"?\s*\]\s*\]\s*
+            r'(?:AUTHORITY|ID)\s*\[\s*"EPSG"\s*,\s*"?([0-9]+)"?\s*\]\s*\]\s*$',
+            wkt, re.IGNORECASE,
+        )
+        return bool(match and int(match.group(1)) == expected_epsg)
+    except (ValueError, TypeError, RuntimeError):
+        return False
+
 def crop_source(url, year, boundary, destination, report):
     # Passing /vsicurl explicitly can avoid GDAL attempts at full-file downloads.
     # A genuine range-enabled GeoTIFF is required for practical remote window reads.

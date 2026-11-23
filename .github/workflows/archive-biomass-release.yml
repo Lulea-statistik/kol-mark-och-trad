@@ -37,6 +37,8 @@ jobs:
           python-version: "3.12"
       - name: Install raster processing libraries
         run: pip install -r requirements.txt
+      - name: Check Python syntax before downloading data
+        run: python -m compileall -q scripts/cache_biomass_release.py scripts/fetch_and_compare_biomass_native.py scripts/compare_biomass_native_area.py scripts/test_biomass_crs_authority.py
       - name: Regression test source CRS recognition
         run: python scripts/test_biomass_crs_authority.py
       - name: Avoid re-fetching an already archived raster

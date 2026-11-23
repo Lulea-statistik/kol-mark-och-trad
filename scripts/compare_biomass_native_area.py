@@ -54,7 +54,13 @@ def matches_expected_crs(source_crs, expected_epsg):
         # Last AUTHORITY/ID, immediately before the final CRS bracket,
         # identifies the outer PROJCS rather than a nested datum/ellipsoid.
         match = re.search(
-            r'(?:AUTHORITY|ID)\s*\[\s*"EPSG"\s*,\s*"?([0-9]+)"?\s*\]\s*\]\s*
+            r'(?:AUTHORITY|ID)\s*\[\s*"EPSG"\s*,\s*"?([0-9]+)"?\s*\]\s*\]\s*$',
+            wkt, re.IGNORECASE,
+        )
+        return bool(match and int(match.group(1)) == expected_epsg)
+    except (ValueError, TypeError, RuntimeError):
+        return False
+
 def run(args):
     boundary_doc=json.loads(args.boundary.read_text(encoding="utf-8"))
     if boundary_doc.get("type") != "FeatureCollection":
