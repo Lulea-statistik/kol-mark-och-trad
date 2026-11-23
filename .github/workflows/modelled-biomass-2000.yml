@@ -5,6 +5,10 @@ on:
     paths:
       - 'scripts/modelled_biomass_series_2000.py'
       - 'docs/modelled-biomass-2000.js'
+      - 'scripts/archive_forest_age_2010.py'
+      - 'scripts/probe_growth_raster_metadata.py'
+      - '.github/workflows/archive-forest-age-2010.yml'
+      - '.github/workflows/probe-growth-raster-metadata.yml'
       - 'docs/data/modelled_biomass_series_2000_2018.json'
       - '.github/workflows/modelled-biomass-2000.yml'
 permissions:
@@ -24,7 +28,7 @@ jobs:
       - name: Install analysis dependencies
         run: pip install -r requirements.txt
       - name: Check script compilation
-        run: python -m compileall -q scripts/modelled_biomass_series_2000.py scripts/analyze_historic_volume.py scripts/verify_biomass_release.py
+        run: python -m compileall -q scripts/modelled_biomass_series_2000.py scripts/analyze_historic_volume.py scripts/verify_biomass_release.py scripts/archive_forest_age_2010.py scripts/probe_growth_raster_metadata.py
       - name: Validate published JS and JSON syntax
         run: |
           node --check docs/modelled-biomass-2000.js
