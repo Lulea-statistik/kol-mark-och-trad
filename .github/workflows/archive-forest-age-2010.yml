@@ -1,0 +1,62 @@
+name: Archive Lulea 2010 estimated forest age raster
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: lulea-forest-age-2010-archive
+  cancel-in-progress: false
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: forest-age-lulea-2010-v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install geodata packages
+        run: pip install -r requirements.txt
+      - name: Check syntax
+        run: python -m compileall -q scripts/archive_forest_age_2010.py scripts/fetch_and_compare_biomass_native.py
+      - name: Check existing age release asset
+        id: exists
+        shell: bash
+        run: |
+          if gh release view "$TAG" --json assets --jq '.assets[].name' 2>/dev/null | grep -Fxq 'lulea_forest_age_2010_source_crs_clip.tif'; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download source-age window and validate archive
+        if: steps.exists.outputs.exists != 'true'
+        run: python scripts/archive_forest_age_2010.py --output-dir age-release-assets
+      - name: Create release
+        if: steps.exists.outputs.exists != 'true'
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target "${{ github.sha }}" \
+              --title "Luleå SLU Skogskarta 2010 estimated forest age" \
+              --notes "Boundary-masked municipal source CRS excerpt (EPSG:3021, 25m). Derived, not whole original. Estimated age at source epoch; cannot backcast directly through harvest."
+          fi
+      - name: Upload source-CRS age raster and provenance
+        if: steps.exists.outputs.exists != 'true'
+        run: |
+          gh release upload "$TAG" \
+            age-release-assets/lulea_forest_age_2010_source_crs_clip.tif \
+            age-release-assets/lulea_forest_age_2010_provenance.json \
+            age-release-assets/lulea_forest_age_2010_SHA256SUMS.txt
+      - name: Save metadata if any stage failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: age-2010-archive-diagnostics
+          path: |
+            age-release-assets/*_provenance.json
+            age-release-assets/*_SHA256SUMS.txt
+          if-no-files-found: ignore
+          retention-days: 30

@@ -1,0 +1,59 @@
+name: Model provisional Lulea biomass series from 2000
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/modelled_biomass_series_2000.py'
+      - 'docs/modelled-biomass-2000.js'
+      - 'scripts/archive_forest_age_2010.py'
+      - 'scripts/probe_growth_raster_metadata.py'
+      - '.github/workflows/archive-forest-age-2010.yml'
+      - '.github/workflows/probe-growth-raster-metadata.yml'
+      - 'docs/data/modelled_biomass_series_2000_2018.json'
+      - '.github/workflows/modelled-biomass-2000.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install analysis dependencies
+        run: pip install -r requirements.txt
+      - name: Check script compilation
+        run: python -m compileall -q scripts/modelled_biomass_series_2000.py scripts/analyze_historic_volume.py scripts/verify_biomass_release.py scripts/archive_forest_age_2010.py scripts/probe_growth_raster_metadata.py
+      - name: Validate published JS and JSON syntax
+        run: |
+          node --check docs/modelled-biomass-2000.js
+          python -m json.tool docs/data/modelled_biomass_series_2000_2018.json > /dev/null
+          python -m json.tool metadata/forest_growth_age_site_index_sources.json > /dev/null
+      - name: Download archived biomass and volume rasters
+        run: |
+          mkdir -p release-volume release-biomass
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+      - name: Verify archived inputs and build series
+        run: |
+          python scripts/modelled_biomass_series_2000.py \
+            --volume-dir release-volume --biomass-dir release-biomass \
+            --output metadata/modelled_biomass_series_2000_2018.json
+      - name: Print provisional series and caveats
+        if: always()
+        run: test ! -f metadata/modelled_biomass_series_2000_2018.json || cat metadata/modelled_biomass_series_2000_2018.json
+      - name: Save reproducible QA and time-series files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exploratory-biomass-2000-2018
+          path: |
+            metadata/biomass_release_validation.json
+            metadata/modelled_biomass_series_2000_2018.json
+          if-no-files-found: warn
+          retention-days: 90

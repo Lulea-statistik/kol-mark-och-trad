@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modellberäknad biomassa 2000–2018 | Luleå</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+</head><body>
+<header><h1>Biomassa 2000–2018 – preliminär modell</h1>
+<p>Luleå kommun · samma geografiska täckning, 25 m EPSG:3006</p></header>
+<nav class="site-nav" aria-label="Sidnavigation">
+<a href="index.html">Karta</a><a href="trend.html">Trend markkol</a>
+<a href="biomass-trend.html">Trend biomassa (äldre analys)</a>
+<a href="modelled-biomass-2000.html" aria-current="page">Biomassa från 2000 – modell</a>
+<a href="statistics.html">Diagram och tabeller</a></nav>
+<main>
+<section>
+<h2>År 2000 och 2005 är skattningar, inte mätningar</h2>
+<p>Denna experimentella serie beräknar 2000 och 2005 års råbiomassavärden från arkiverade volymraster med en omräkningsfaktor kalibrerad på 2010 års <strong>gemensamma rasterceller</strong>. Åren 2010, 2015 och 2018 är faktiska rastervärden från olika produkter. <strong>Serien är inte en kvalitetssäkrad förändring av fysisk biomassa, ton torrsubstans eller kolförråd.</strong></p>
+<p id="modelStatus" role="status">Laddar verifierad modellfil …</p>
+<div class="chart-wrap" style="height:380px"><canvas id="modelChart" aria-label="Preliminär tidsserie biomassa 2000–2018 med olika markering för modellår och rasterår"></canvas></div>
+<p id="support" class="hint"></p>
+</section>
+<section>
+<h2>Tabell över modell och rasterdata</h2>
+<div class="table-scroll"><table><thead><tr><th>År</th><th>Medelvärde (råskala)</th><th>Underlag</th><th>Känslighet −20 till +20 procent</th></tr></thead>
+<tbody id="modelRows"></tbody></table></div>
+<p><strong>Scenariobanden ±20 % är illustrativa antaganden – inte statistiska konfidensintervall.</strong></p>
+</section>
+<section>
+<h2>Metod, källor och viktigaste osäkerheterna</h2>
+<p>Beräkningen görs efter full reprojicering av de sex arkiverade rastren till ett gemensamt 25 m-grid i <strong>EPSG:3006</strong>. Endast celler med giltiga värden i alla raster ingår. Kalibreringsfaktor = summan av 2010 års biomassaråvärden / summan av 2010 års volymråvärden inom dessa celler. Samma faktor används för 2000 och 2005.</p>
+<p>Årgångarna kan skilja sig i definition, fjärranalysmetod och observationstid. Den äldre biomassan kan innehålla andra trädbiomassakomponenter än de senare produkterna. Kalibreringen är inte oberoende: biomassa och virkesvolym 2010 kan vara härledda ur närbesläktade skogsmodeller. Därför kan linjens lutning <strong>inte</strong> tolkas som uppmätt tillväxt, avverkning eller kolinlagring.</p>
+<p>En framtida ålder–ståndortsmodell kan ge mer realistiska cellvisa tillväxtfunktioner efter trädslag och faktiskt skanningsår, men kräver separat validering. Skogsstyrelsens SIS är <strong>ståndortsindex</strong>, inte bonitet direkt i m³sk/ha/år. Ålder 2025 får inte utan avverknings- och återväxthistorik backas till 2000.</p>
+<p><a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/workflows/modelled-biomass-2000.yml">Beräkna om i GitHub Actions</a> ·
+<a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/metadata/forest_growth_age_site_index_sources.json">Register över ålder och SIS</a> ·
+<a href="data/modelled_biomass_series_2000_2018.json">Ladda ned modellresultat i JSON</a></p>
+</section>
+</main><script src="modelled-biomass-2000.js"></script></body></html>
