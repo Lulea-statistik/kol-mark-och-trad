@@ -37,6 +37,8 @@ jobs:
           python-version: "3.12"
       - name: Install raster processing libraries
         run: pip install -r requirements.txt
+      - name: Regression test source CRS recognition
+        run: python scripts/test_biomass_crs_authority.py
       - name: Avoid re-fetching an already archived raster
         id: existing
         shell: bash
