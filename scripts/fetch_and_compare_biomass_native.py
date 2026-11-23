@@ -112,7 +112,8 @@ def crop_source(url, year, boundary, destination, report):
                         valid=geometry_mask([mapping(source_boundary)],out_shape=(hh,ww),
                                             transform=window_transform(local,tf),
                                             invert=True,all_touched=False)
-                        vals=np.asarray(arr.filled(-9999.0),dtype="float32")
+                        # Convert before filling: unsigned source arrays cannot represent -9999.
+                        vals=np.ma.asarray(arr,dtype="float32").filled(-9999.0)
                         vals[~valid]=-9999.0
                         kept+=int(np.count_nonzero(valid & (vals!=-9999.0)))
                         dst.write(vals,1,window=local)
