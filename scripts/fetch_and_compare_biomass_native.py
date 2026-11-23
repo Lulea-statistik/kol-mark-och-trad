@@ -21,7 +21,7 @@ from rasterio.features import geometry_mask
 from rasterio.windows import Window, from_bounds, transform as window_transform
 from shapely.geometry import shape, mapping
 from shapely.ops import transform as shape_transform
-from pyproj import Transformer
+from pyproj import Transformer, CRS as PyprojCRS
 
 ROOT = Path(__file__).resolve().parents[1]
 LAYERS = {"2010":"biomass_2010","2015":"biomass_2015_leaf","2018":"biomass"}
@@ -30,6 +30,14 @@ EXPECTED = {"2010":(3021,25.0),"2015":(3006,12.5),"2018":(3006,10.0)}
 def save_diagnostics(path, report):
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+
+def matches_expected_crs(source_crs, expected_epsg):
+    """Check actual CRS semantics, including legacy WKT with EPSG authority."""
+    try:
+        return bool(PyprojCRS.from_user_input(source_crs.to_wkt()).equals(
+            PyprojCRS.from_epsg(expected_epsg), ignore_axis_order=True))
+    except Exception:
+        return False
 
 def crop_source(url, year, boundary, destination, report):
     # Passing /vsicurl explicitly can avoid GDAL attempts at full-file downloads.
@@ -41,7 +49,7 @@ def crop_source(url, year, boundary, destination, report):
                       GDAL_HTTP_TIMEOUT="35"):
         with rasterio.open("/vsicurl/"+url) as src:
             expected_epsg, expected_res = EXPECTED[year]
-            if not src.crs or src.crs.to_epsg()!=expected_epsg:
+            if not src.crs or not matches_expected_crs(src.crs, expected_epsg):
                 raise ValueError(f"{year}: CRS {src.crs} differs from expected EPSG:{expected_epsg}")
             rx,ry=map(abs,src.res)
             if abs(rx-expected_res)>0.05 or abs(ry-expected_res)>0.05:

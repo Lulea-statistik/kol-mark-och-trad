@@ -24,11 +24,19 @@ from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 from shapely.geometry import mapping, shape
 from shapely.ops import transform as shape_transform
-from pyproj import Transformer
+from pyproj import Transformer, CRS as PyprojCRS
 
 ROOT = Path(__file__).resolve().parents[1]
 YEARS = ("2010", "2015", "2018")
 EXPECTED_RES_M = {"2010":25.0,"2015":12.5,"2018":10.0}
+
+def matches_expected_crs(source_crs, expected_epsg):
+    """Check actual CRS semantics, including legacy WKT with EPSG authority."""
+    try:
+        return bool(PyprojCRS.from_user_input(source_crs.to_wkt()).equals(
+            PyprojCRS.from_epsg(expected_epsg), ignore_axis_order=True))
+    except Exception:
+        return False
 
 def run(args):
     boundary_doc=json.loads(args.boundary.read_text(encoding="utf-8"))
@@ -71,7 +79,7 @@ def run(args):
         vrts={}
         for year in selected:
             src=stack.enter_context(rasterio.open(paths[year]))
-            if src.count<1 or not src.crs or src.crs.to_epsg()!=({"2010":3021,"2015":3006,"2018":3006}[year]):
+            if src.count<1 or not src.crs or not matches_expected_crs(src.crs, {"2010":3021,"2015":3006,"2018":3006}[year]):
                 raise ValueError(f"{year}: unverified source raster band/CRS: {src.crs}")
             rx,ry=map(abs,src.res)
             expected=EXPECTED_RES_M[year]

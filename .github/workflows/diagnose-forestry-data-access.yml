@@ -1,0 +1,28 @@
+name: Diagnose Skogsstyrelsen FTPS and SLU data access
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/test_geodata_connectivity.py'
+      - '.github/workflows/diagnose-forestry-data-access.yml'
+permissions:
+  contents: read
+jobs:
+  connectivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test DNS TCP explicit FTPS TLS and HTTPS source access
+        run: python scripts/test_geodata_connectivity.py
+      - name: Upload connectivity diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forestry-geodata-connectivity
+          path: metadata/skogsstyrelsen_slu_connectivity.json
+          if-no-files-found: warn
+          retention-days: 30
