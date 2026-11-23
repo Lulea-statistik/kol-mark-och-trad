@@ -70,7 +70,7 @@ def crop_source(url, year, boundary, destination, report):
             except rasterio.errors.WindowError:
                 raise ValueError(f"{year}: no intersecting source raster extent")
             w,h=int(window.width),int(window.height)
-            if w*h>100_000_000:
+            if w*h>350_000_000:
                 raise ValueError(f"{year}: clipped source bbox too large ({w*h} pixels)")
             tf=window_transform(window,src.transform)
             profile=src.profile.copy()
