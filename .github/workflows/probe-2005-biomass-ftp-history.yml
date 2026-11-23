@@ -1,0 +1,32 @@
+name: Locate historical 2005 biomass file from FTP inventory
+on:
+  pull_request:
+    paths:
+      - 'scripts/probe_2005_biomass_ftp_history.py'
+      - '.github/workflows/probe-2005-biomass-ftp-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  locate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install rasterio and pyproj
+        run: pip install -r requirements.txt
+      - name: Validate Python syntax
+        run: python -m compileall -q scripts/probe_2005_biomass_ftp_history.py
+      - name: Locate historical biomass file and verify remote TIFF metadata
+        run: python scripts/probe_2005_biomass_ftp_history.py
+      - name: Save 2005 biomass source availability diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-ftp-2005-biomass-lookup
+          path: metadata/slu_2005_biomass_historic_ftp_probe.json
+          if-no-files-found: warn
+          retention-days: 90
