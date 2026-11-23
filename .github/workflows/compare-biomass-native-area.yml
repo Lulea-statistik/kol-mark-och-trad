@@ -1,6 +1,12 @@
 name: Compare archived biomass GeoTIFFs by common area (2010 2015 2018)
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/compare-biomass-native-area.yml'
+      - 'scripts/verify_biomass_release.py'
+      - 'scripts/compare_biomass_native_area.py'
+      - 'metadata/biomass_archived_data_method_review.md'
 permissions:
   contents: read
 jobs:
