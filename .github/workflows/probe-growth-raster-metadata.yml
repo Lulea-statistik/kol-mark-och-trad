@@ -1,6 +1,10 @@
 name: Verify forest age and site index raster metadata (SLU and SG2)
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/probe_growth_raster_metadata.py'
+      - '.github/workflows/probe-growth-raster-metadata.yml'
 permissions:
   contents: read
 jobs:
