@@ -2,30 +2,41 @@
 <html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Biomassatrend – Luleå kommun</title><link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script></head>
-<body><header><h1>Biomassa – jämförelse av tre rastergenerationer</h1><p>Luleå kommun · arkiv 2010 och 2015 samt SGD2</p></header>
+<body><header><h1>Biomassatrend 2000–2018</h1><p>Luleå kommun · skattad biomassa 2000 och 2005 från virkesvolym, följt av rastergenerationerna 2010, 2015 och 2018</p></header>
 <nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="trend.html">Trend markkol</a><a href="biomass-trend.html" aria-current="page">Trend biomassa</a><a href="modelled-biomass-2000.html">Biomassa 2000–2018 (modell)</a><a href="biomass-reconciliation.html">Före–efter-avstämning</a><a href="statistics.html">Diagram och tabeller</a></nav>
 <main>
+<section id="historic-biomass-2000">
+<h2>Biomassa 2000–2018: skattad från volym för 2000 och 2005</h2>
+<p>Denna huvudkurva jämför fem årgångar på <strong>exakt samma geografiska beräkningsyta</strong>. För <strong>2000 och 2005</strong> har virkesvolymen från SLU Skogskarta räknats om till preliminära biomassaråvärden med en faktor som kalibrerats mot <strong>2010 års biomassa och virkesvolym</strong> på samma yta. <strong>2010, 2015 och 2018</strong> kommer från arkiverade biomassaraster. År 2018 är skanningsåret för SGD2:s omdrev 2 i Luleå. <strong>Detta är en explorativ tidsserie – inte metodharmoniserad eller verifierad som ton torr biomassa eller kolförråd.</strong></p>
+<p id="historicBiomassStatus" role="status">Laddar biomassaserien från arkiverade GeoTIFF …</p>
+<div class="chart-wrap" style="height:390px"><canvas id="historicBiomassChart" aria-label="Biomassaserie 2000 till 2018 med tydligt markerade volymskattningar 2000 och 2005"></canvas></div>
+<p id="historicBiomassArea" class="hint"></p>
+<div class="table-scroll"><table><thead><tr><th>År</th><th>Biomassa, medelråvärde</th><th>Datagrund</th><th>Känslighetscenario ±20 %</th></tr></thead><tbody id="historicBiomassTable"></tbody></table></div>
+<p class="hint">* ±20 % är ett illustrativt känslighetsantagande för 2000 och 2005, <strong>inte ett konfidensintervall</strong>. Den ursprungliga biomassafilen från 2005 har inte återfunnits. SLU:s historiska Norrbotten-segment för 2005 saknar biomassaattribut. År 2005 är därför uttryckligen <strong>skattat från virkesvolym</strong>.</p>
+<p><strong>Kompletterande åldersmodell:</strong> <span id="historicAgeNote">Laddar separat åldersbaserad jämförelse …</span></p>
+<p><a href="data/modelled_biomass_series_2000_2018.json">Modellresultat för alla fem åren (JSON)</a> · <a href="data/age_adjusted_biomass_2000_2005.json">Åldersanpassad jämförelse (JSON)</a> · <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45167677271">Verifierad femårig analyskörning</a></p>
+</section>
 <section>
-<h2>Jämförelse på samma geografiska täckning</h2>
-<p>Den första kurvan jämför <strong>medelvärdet av samplade råvärden på exakt samma cellpositioner</strong>, där alla tre raster har giltig data. Detta är bättre för att undersöka nivåskillnader än att summera samplade densiteter, men medelvärdena är ännu <strong>inte säkert jämförbara som fysisk biomassatäthet</strong> mellan produkter.</p>
+<h2>Äldre förhandsanalys: 2010, 2015 och 2018</h2>
+<p>Den äldre kurvan nedan jämför <strong>medelvärdet av samplade råvärden på exakt samma cellpositioner</strong>, där alla tre raster har giltig data. Detta är bättre för att undersöka nivåskillnader än att summera samplade densiteter, men medelvärdena är ännu <strong>inte säkert jämförbara som fysisk biomassatäthet</strong> mellan produkter.</p>
 <p id="biomassTrendStatus" role="status">Laddar samplade rasterdata…</p>
 <div class="chart-wrap" style="height:380px"><canvas id="biomassCommonChart" aria-label="Tre årgångars summerade rasterråvärden på gemensamt täckt område"></canvas></div>
 <p id="commonAreaNote" class="hint"></p>
 </section>
 <section>
-<h2>Större täckning – uppskattade saknade värden</h2>
+<h2>Äldre förhandsanalys: större täckning med skattade saknade celler</h2>
 <p>Den andra kurvan redovisar <strong>medelvärden över hela den yta där SGD2-rastret har giltiga värden</strong> inom kommunens arbetsgräns. Där 2010 eller 2015 saknar data uppskattas biomassaråvärdena med <em>SGD2-pixelvärdet × respektive äldre rasters kvot mot SGD2 i det gemensamma området</em>. Detta är en enkel, modellbaserad <strong>gissning</strong>, inte observationer. Skattningen inkluderar därmed även den saknade norra delen av 2015-kartan där SGD2 har data.</p>
 <div class="chart-wrap" style="height:380px"><canvas id="biomassExtendedChart" aria-label="Tre rasterårgångar på SGD2-täckt område, inklusive skattade saknade pixlar"></canvas></div>
 <p id="extendedAreaNote" class="hint"></p>
 </section>
 <section>
-<h2>Medelvärden på jämförbara kartceller och datatäckning</h2>
+<h2>Datatäckning i äldre EPSG:3857-förhandsanalys</h2>
 <div class="table-scroll"><table><thead><tr><th>Underlag / år</th><th>Gemensam yta – medelråvärde</th><th>SGD2-yta – medelråvärde, inklusive skattning</th><th>Skattade pixlar på SGD2-ytan</th><th>Skattad andel av summan</th></tr></thead><tbody id="biomassTrendTable"></tbody></table></div>
 <p class="hint" id="biomassCoverageNote"></p>
 </section>
 <section>
 <h2>Cellstorlekar och korrekt arealberäkning</h2>
-<p><strong>Ny originalrasterbaserad kontroll:</strong> en separat analysrutin finns i <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/scripts/compare_biomass_native_area.py"><code>scripts/compare_biomass_native_area.py</code></a>. Den kontrollerar käll-CRS (2010 EPSG:3021; 2015 och 2018 EPSG:3006), originalupplösning, NoData och bandskalning, och beräknar en areaviktad jämförelse på en gemensam 25 m-grid i EPSG:3006. Den kan startas med <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/workflows/compare-biomass-native-area.yml">Compare native biomass rasters by area</a> i GitHub Actions. Flödet hämtar först utsnitt inom Luleås arbetsgeometri i varje <em>källrasters eget CRS</em>, och gör därefter den gemensamma arealberäkningen i EPSG:3006. <strong>Det är beroende av att SLU:s fjärrfiler är åtkomliga; ännu finns inget verifierat körresultat.</strong> Tekniskt resultat och eventuella fel sparas i en nedladdningsbar Actions-artefakt. Enheter och biomassakomponenter måste fortfarande verifieras separat innan ton torrsubstans kan rapporteras. <strong>Resultat saknas ännu; befintliga diagram här är fortfarande medelvärden på förhandsgrid, inte arealriktiga totalsummor.</strong></p>
+<p><strong>Ny originalrasterbaserad kontroll:</strong> en separat analysrutin finns i <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/scripts/compare_biomass_native_area.py"><code>scripts/compare_biomass_native_area.py</code></a>. Den kontrollerar käll-CRS (2010 EPSG:3021; 2015 och 2018 EPSG:3006), originalupplösning, NoData och bandskalning, och beräknar en areaviktad jämförelse på en gemensam 25 m-grid i EPSG:3006. Den kan startas med <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/workflows/compare-biomass-native-area.yml">Compare native biomass rasters by area</a> i GitHub Actions. Flödet hämtar först utsnitt inom Luleås arbetsgeometri i varje <em>källrasters eget CRS</em>, och gör därefter den gemensamma arealberäkningen i EPSG:3006. <strong>Beräkningarna har därefter verifierats med arkiverade källrasters gemensamma 25 m-grid i EPSG:3006. Huvudkurvan ovan använder denna verifierade beräkningsprincip.</strong> Tekniskt resultat och eventuella fel sparas i en nedladdningsbar Actions-artefakt. Enheter och biomassakomponenter måste fortfarande verifieras separat innan ton torrsubstans kan rapporteras. <strong>Diagrammen i detta äldre avsnitt visar fortfarande samplade förhandsgrid och ska inte jämföras direkt med huvudkurvan ovan, eftersom avgränsning och urval skiljer sig.</strong></p>
 
 <p><strong>Verifierade källrasterupplösningar:</strong> 2010 = 25 × 25 m (16 celler/ha), 2015 = 12,5 × 12,5 m (64 celler/ha), SGD2/2018 = 10 × 10 m (100 celler/ha). Samtliga har omsamplats med närmaste granne till <strong>samma grova EPSG:3857-kartgrid</strong> för visning. Därför summeras nu <strong>inte</strong> de visade rådensiteterna som om de vore verklig massa. Medelvärdena avser identiska kartpositioner i respektive jämförelse, men är en explorativ beskrivning.</p>
 <p>Om originalrastrens värden efter enhetskontroll verkligen anges i <strong>ton torrsubstans per hektar</strong> är den rätta totalsumman summan av <strong>densitet × cellarea i hektar</strong>, med NoData exkluderat och exakt samma geografiska gräns. För ett ursprungligt fullt raster innebär det areavikterna 0,0625 ha (2010), 0,015625 ha (2015) respektive 0,01 ha (2018) per cell. Om samma pixel räknas om till ett annat upplöst grid måste hela rastergridet och dess giltighetsmask reprojiceras och summeras i ett areariktigt metriskt koordinatsystem, inte genom att enbart multiplicera antalet webbkartpixlar med en antagen 10-meterscell.</p>
@@ -38,4 +49,4 @@
 <p><strong>Beräkningsenhet:</strong> medelvärdet av faktiska eller uttryckligen skattade råvärden per gemensam cellposition på ett nedskalat EPSG:3857-rastergrid; <strong>inte ton torr biomassa, ton C eller arealriktig kommunalsumma</strong>. Pixeldata är omsamplade från olika källraster i verifierade respektive käll-CRS (bland annat EPSG:3021 och EPSG:3006). NoData hålls isär från 0, även i skattningen. Ingen skattning görs utanför SGD2:s datatäckning. En arealriktig och jämförbar kommunserie skulle kräva harmoniserade biomassaprodukter, verifierade enheter och bearbetning av originalraster.</p>
 <p><strong>Källor:</strong> <a href="https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-skogskarta/">SLU Skogskarta</a> · <a href="https://www.skogsstyrelsen.se/e-tjanster-och-kartor/karttjanster/skogliga-grunddata/">Skogsstyrelsen – Skogliga grunddata</a> · <a href="https://geodpags.skogsstyrelsen.se/arcgis/rest/services/Geodataportal/GeodataportalVisaSkogligaGrunddataMetadata/MapServer/0">Skogsstyrelsens skanningsmetadata per 2,5 km-ruta</a>.</p>
 </section></main><footer>Jämförelsen är en explorativ rasteranalys med uttalade osäkerheter, inte officiell kolförrådsstatistik.</footer>
-<script src="biomass-trend.js"></script></body></html>
+<script src="biomass-trend-history.js"></script><script src="biomass-trend.js"></script></body></html>
