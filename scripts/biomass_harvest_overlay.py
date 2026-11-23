@@ -56,15 +56,27 @@ def date_year(value):
     except ValueError: return None
 
 def read_harvest(boundary_3006):
-    query={"where":"Kommunnr = '2580'","returnIdsOnly":"true","f":"json"}
+    # The provider's Kommunnr attribute filter can return null objectIds for
+    # Lulea even when spatially intersecting polygons exist. Use the actual
+    # project boundary bbox in source EPSG:3006 and check each geometry later.
+    xmin,ymin,xmax,ymax=boundary_3006.bounds
+    envelope=json.dumps({"xmin":xmin,"ymin":ymin,"xmax":xmax,"ymax":ymax,
+                         "spatialReference":{"wkid":3006}})
+    query={"where":"1=1","geometry":envelope,
+           "geometryType":"esriGeometryEnvelope","inSR":"3006",
+           "spatialRel":"esriSpatialRelIntersects",
+           "returnIdsOnly":"true","f":"json"}
     response=request(query)
     ids=response.get("objectIds")
     if not isinstance(ids,list):
-        raise RuntimeError("No objectIds returned; cannot establish complete harvesting coverage")
+        raise RuntimeError("No objectIds in geographic query response; service response keys: "+str(sorted(response)))
     ids=sorted(set(ids))
+    if len(ids)>200_000:
+        raise ValueError(f"Unexpected number of candidate features: {len(ids)}")
     polygons={"2011_2015":[],"2016_2018":[]}
     records=defaultdict(int)
     non_geo=0
+    other_municipality=0
     transformer=Transformer.from_crs("EPSG:4326","EPSG:3006",always_xy=True)
     for offset in range(0,len(ids),150):
         group=ids[offset:offset+150]
@@ -75,7 +87,8 @@ def read_harvest(boundary_3006):
             raise ValueError("Expected GeoJSON features from Skogsstyrelsen REST API")
         for feature in features:
             props=feature.get("properties",{})
-            if str(props.get("Kommunnr",""))!="2580":
+            if str(props.get("Kommunnr","")).strip()!="2580":
+                other_municipality+=1
                 continue
             year=date_year(props.get("Avvdatum"))
             if year is None:
@@ -105,6 +118,8 @@ def read_harvest(boundary_3006):
             raise ValueError(f"Pagination count mismatch: requested {len(group)}, returned {len(features)}")
     records["municipality_object_ids_total"]=len(ids)
     records["non_geometric_or_invalid"]=non_geo
+    records["spatial_candidate_ids"]=len(ids)
+    records["other_municipality_attribute"]=other_municipality
     return polygons,dict(records)
 
 def run(args):
@@ -199,7 +214,7 @@ def run(args):
       "harvest_geojson_query_crs":"EPSG:4326 (requested outSR=4326; transformed to EPSG:3006)",
       "working_polygon_crs":"EPSG:4326 (project boundary); transformed to EPSG:3006",
       "comparison_grid_crs":"EPSG:3006","grid_resolution_m":25,
-      "query_filter":"Kommunnr='2580', Avvdatum in 2011-2018; Arendear NOT substituted",
+      "query_filter":"Spatial bbox EPSG:3006, then Kommunnr='2580' and Avvdatum 2011-2018; Arendear NOT substituted",
       "harvest_feature_counts":metadata,
       "strata":diagnostics,
       "limitations":[
