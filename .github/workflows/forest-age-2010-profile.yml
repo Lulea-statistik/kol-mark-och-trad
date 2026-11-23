@@ -1,0 +1,52 @@
+name: Profile 2010 forest age versus biomass and standing volume
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/analyze_forest_age_2010.py'
+      - '.github/workflows/forest-age-2010-profile.yml'
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install raster dependencies
+        run: pip install -r requirements.txt
+      - name: Validate source code
+        run: python -m compileall -q scripts/analyze_forest_age_2010.py
+      - name: Download three source-CRS raster archives
+        run: |
+          mkdir -p release-volume release-biomass release-age
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download forest-age-lulea-2010-v1 --dir release-age --pattern 'lulea_forest_age_2010_*'
+      - name: Verify raster provenance and analyze 2010 age classes
+        run: |
+          python scripts/analyze_forest_age_2010.py \
+            --age-dir release-age --volume-dir release-volume --biomass-dir release-biomass \
+            --output metadata/forest_age_2010_volume_biomass_profile.json
+      - name: Print descriptive table
+        if: always()
+        run: |
+          if test -s metadata/forest_age_2010_volume_biomass_profile.json; then
+            cat metadata/forest_age_2010_volume_biomass_profile.json
+          fi
+      - name: Upload QA and age profile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validated-forest-age-2010-profile
+          path: |
+            metadata/biomass_release_validation.json
+            metadata/forest_age_2010_volume_biomass_profile.json
+          if-no-files-found: warn
+          retention-days: 90
