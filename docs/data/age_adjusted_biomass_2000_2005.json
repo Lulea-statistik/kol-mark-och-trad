@@ -1,0 +1,170 @@
+{
+  "created_utc": "2026-11-23T14:31:06.330645+00:00",
+  "status": "PROVISIONAL_AGE_DEPENDENT_RAW_BIOMASS_MODEL",
+  "reference_epoch": 2010,
+  "common_valid_cells": 2567588,
+  "common_valid_area_ha": 160474.25,
+  "grid_crs": "EPSG:3006",
+  "cell_size_m": 25,
+  "historical_age_archive": {
+    "2000": {
+      "sha256": "b393daffd2e9228fd1ec7d2aac2b5cfa8103347ca4a9557c276ff94cfda7a628",
+      "valid_native_cells": 2361941
+    },
+    "2005": {
+      "sha256": "5ba518267ffe76a77022745ef706cdbae07be82bae375388094ea4d2bec7acb0",
+      "valid_native_cells": 2462693
+    }
+  },
+  "global_2010_ratio_of_sums": 0.7005979613473778,
+  "min_bin_cells_shrinkage_prior": 1000,
+  "age_coefficients": [
+    {
+      "age_lower": 0,
+      "age_upper": 20,
+      "source_pixels": 269646,
+      "raw_ratio": 0.8195601686274617,
+      "shrinkage_weight": 0.9963051365990999,
+      "factor": 0.8191206195216922
+    },
+    {
+      "age_lower": 20,
+      "age_upper": 40,
+      "source_pixels": 423954,
+      "raw_ratio": 0.7747698563977502,
+      "shrinkage_weight": 0.9976468041246818,
+      "factor": 0.7745953154002532
+    },
+    {
+      "age_lower": 40,
+      "age_upper": 60,
+      "source_pixels": 561763,
+      "raw_ratio": 0.735562807564578,
+      "shrinkage_weight": 0.9982230530436436,
+      "factor": 0.7355006768875129
+    },
+    {
+      "age_lower": 60,
+      "age_upper": 80,
+      "source_pixels": 579743,
+      "raw_ratio": 0.7003427902139784,
+      "shrinkage_weight": 0.9982780679233327,
+      "factor": 0.700343229601338
+    },
+    {
+      "age_lower": 80,
+      "age_upper": 100,
+      "source_pixels": 510672,
+      "raw_ratio": 0.6764982940567839,
+      "shrinkage_weight": 0.9980456229772198,
+      "factor": 0.6765453938927933
+    },
+    {
+      "age_lower": 100,
+      "age_upper": 120,
+      "source_pixels": 191781,
+      "raw_ratio": 0.6721213704088509,
+      "shrinkage_weight": 0.9948127668183068,
+      "factor": 0.6722690851262687
+    },
+    {
+      "age_lower": 120,
+      "age_upper": 150,
+      "source_pixels": 28510,
+      "raw_ratio": 0.6775818248363168,
+      "shrinkage_weight": 0.9661131819722129,
+      "factor": 0.6783617684659698
+    },
+    {
+      "age_lower": 150,
+      "age_upper": 200,
+      "source_pixels": 1514,
+      "raw_ratio": 0.6800137979326999,
+      "shrinkage_weight": 0.6022275258552108,
+      "factor": 0.688201611542357
+    },
+    {
+      "age_lower": 200,
+      "age_upper": 300,
+      "source_pixels": 5,
+      "raw_ratio": 0.6894965693161799,
+      "shrinkage_weight": 0.004975124378109453,
+      "factor": 0.7005427305412525
+    },
+    {
+      "age_lower": 300,
+      "age_upper": 500,
+      "source_pixels": 0,
+      "raw_ratio": null,
+      "shrinkage_weight": 0,
+      "factor": 0.7005979613473778
+    },
+    {
+      "age_lower": 500,
+      "age_upper": null,
+      "source_pixels": 0,
+      "raw_ratio": null,
+      "shrinkage_weight": 0,
+      "factor": 0.7005979613473778
+    }
+  ],
+  "historical_results": [
+    {
+      "year": 2000,
+      "data_type": "MODELLED_AGE_DEPENDENT",
+      "age_based_raw_mean": 63.79223632058905,
+      "global_factor_raw_mean": 64.02059768773158,
+      "relative_difference_percent": -0.3566998362876883,
+      "share_cells_by_age_bin": [
+        0.1860699613800968,
+        0.1747573987727003,
+        0.1663915706102381,
+        0.15894411408683948,
+        0.1859083310873863,
+        0.11295192219312444,
+        0.014949049458090629,
+        0.000027652411523967242,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "year": 2005,
+      "data_type": "MODELLED_AGE_DEPENDENT",
+      "age_based_raw_mean": 60.66915751595382,
+      "global_factor_raw_mean": 59.43326646877478,
+      "relative_difference_percent": 2.0794600744826086,
+      "share_cells_by_age_bin": [
+        0.1424309507600129,
+        0.28610041797983166,
+        0.22724751790396278,
+        0.19851432550705175,
+        0.10880211311160513,
+        0.0298155311521942,
+        0.006980870762754772,
+        0.00010827282258680131,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "year": 2010,
+      "data_type": "SOURCE_BIOMASS_RASTER",
+      "age_based_raw_mean": 74.28251721271592,
+      "global_factor_raw_mean": 74.28251721271592,
+      "relative_difference_percent": 0
+    }
+  ],
+  "limitations": [
+    "AGE and TOTALVOL from each year are estimated SLU products, not ground-truth observations",
+    "Age-specific biomass/volume from 2010 is cross-sectional and confounded by species and site quality",
+    "No independently validated observed biomass for 2005 is used",
+    "No cross-year change in real biomass or carbon stock can be inferred yet",
+    "Only cells valid in all source rasters, no official municipal boundary or separate forest-land mask",
+    "Sparse-bin shrinkage is regularization, not a confidence interval",
+    "Source imaging years and biomass component definitions remain subject to verification"
+  ],
+  "github_actions_run": "https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45194712606"
+}
