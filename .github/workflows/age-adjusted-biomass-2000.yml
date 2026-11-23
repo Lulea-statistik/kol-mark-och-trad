@@ -1,6 +1,11 @@
 name: Compare age-dependent and global biomass calibration from 2000
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/model_age_adjusted_biomass.py'
+      - 'scripts/archive_historic_forest_age.py'
+      - '.github/workflows/age-adjusted-biomass-2000.yml'
 permissions:
   contents: read
 jobs:
@@ -25,9 +30,16 @@ jobs:
         run: |
           mkdir -p release-volume release-age-history release-age-2010 release-biomass
           gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
-          gh release download forest-age-lulea-2000-2005-v1 --dir release-age-history --pattern 'lulea_forest_age_*'
           gh release download forest-age-lulea-2010-v1 --dir release-age-2010 --pattern 'lulea_forest_age_*'
           gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+      - name: Build historical age clips for PR review without publishing release
+        if: github.event_name == 'pull_request'
+        run: |
+          python scripts/archive_historic_forest_age.py --year 2000 --output-dir release-age-history
+          python scripts/archive_historic_forest_age.py --year 2005 --output-dir release-age-history
+      - name: Read archived historical age from GitHub Release after merge
+        if: github.event_name != 'pull_request'
+        run: gh release download forest-age-lulea-2000-2005-v1 --dir release-age-history --pattern 'lulea_forest_age_*'
       - name: Validate all archives and calculate age-adjusted biomass
         run: |
           python scripts/model_age_adjusted_biomass.py \
