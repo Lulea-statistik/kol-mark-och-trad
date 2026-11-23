@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "project": "Luleå historisk skoglig biomassa och tillväxt",
+  "created": "2026-11-23",
+  "interpretation": "A source registry, not a declaration that source CRS or cell values have been checked.",
+  "sources": [
+    {
+      "id": "slu_age_2010",
+      "name": "SLU Skogskarta beståndsålder 2010",
+      "url": "https://gis.slu.se/data/slu_forest_map/2010/Data/Raster/Rt90/AGE_XX_P_10.tif",
+      "variable": "beståndsålder",
+      "time_reference": 2010,
+      "expected_crs": "EPSG:3021",
+      "expected_cell_m": 25,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate_for_source_crs_clipping"
+    },
+    {
+      "id": "sgd2_age_pine_2025",
+      "name": "SGD2 grundytevägd medelålder tall 2025",
+      "url": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/alder/SGD2_alder_2025_tall.tif",
+      "variable": "beståndsmedelålder",
+      "time_reference": 2025,
+      "expected_crs": null,
+      "expected_cell_m": null,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate_not_backcastable_without_harvest_history"
+    },
+    {
+      "id": "sgd2_age_spruce_2025",
+      "name": "SGD2 grundytevägd medelålder gran 2025",
+      "url": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/alder/SGD2_alder_2025_gran.tif",
+      "variable": "beståndsmedelålder",
+      "time_reference": 2025,
+      "expected_crs": null,
+      "expected_cell_m": null,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate_not_backcastable_without_harvest_history"
+    },
+    {
+      "id": "sgd2_age_birch_2025",
+      "name": "SGD2 grundytevägd medelålder björk 2025",
+      "url": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/alder/SGD2_alder_2025_bjork.tif",
+      "variable": "beståndsmedelålder",
+      "time_reference": 2025,
+      "expected_crs": null,
+      "expected_cell_m": null,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate"
+    },
+    {
+      "id": "sgd2_age_mixed_2025",
+      "name": "SGD2 grundytevägd medelålder blandskog 2025",
+      "url": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/alder/SGD2_alder_2025_blandskog.tif",
+      "variable": "beståndsmedelålder",
+      "time_reference": 2025,
+      "expected_crs": null,
+      "expected_cell_m": null,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate"
+    },
+    {
+      "id": "sgd2_age_otherdecid_2025",
+      "name": "SGD2 grundytevägd medelålder övrigt löv 2025",
+      "url": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/alder/SGD2_alder_2025_ovrlov.tif",
+      "variable": "beståndsmedelålder",
+      "time_reference": 2025,
+      "expected_crs": null,
+      "expected_cell_m": null,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate"
+    },
+    {
+      "id": "sgd2_sis_pine",
+      "name": "SGD2 ståndortsindex SIS tall",
+      "url": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/sis/SGD2_SIS_tall.tif",
+      "variable": "SIS ståndortsindex tall (ej direkt bonitet)",
+      "time_reference": "source product 2025/2026, confirm metadata",
+      "expected_crs": null,
+      "expected_cell_m": null,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate_requires_site_product_metadata"
+    },
+    {
+      "id": "sgd2_sis_spruce",
+      "name": "SGD2 ståndortsindex SIS gran",
+      "url": "https://gis.slu.se/data/slu_skogliga_grunddata/SGD2/data/sis/SGD2_SIS_gran.tif",
+      "variable": "SIS ståndortsindex gran (ej direkt bonitet)",
+      "time_reference": "source product 2025/2026, confirm metadata",
+      "expected_crs": null,
+      "expected_cell_m": null,
+      "verified_url_in_listing": true,
+      "source_metadata_crs_verified": false,
+      "status": "candidate_requires_site_product_metadata"
+    }
+  ],
+  "growth_model_plan": {
+    "purpose": "Later, estimate potential forest biomass growth separately from observed stocks",
+    "prerequisites": [
+      "archived historical age 2000/2005/2010",
+      "quality-controlled stand species/forest mask",
+      "valid 2025 age and SIS rasters with proven CRS and units",
+      "dated observed harvest polygons",
+      "approved species/site-index-specific growth and biomass functions",
+      "holdout validation against actual independent forest inventory data"
+    ],
+    "notes": [
+      "SIS is height-based site index rather than direct bonitet in m3sk/ha/year",
+      "2025 age cannot be simply reduced by 25 years for cells with harvest or regeneration",
+      "No physiological growth model is calibrated in current PR",
+      "No projection beyond observed/estimated epochs is published"
+    ]
+  }
+}
