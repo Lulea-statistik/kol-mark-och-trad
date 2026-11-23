@@ -1,0 +1,81 @@
+name: Archive Lulea total wood volume GeoTIFF 2000 2005 2010
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: Source vintage to archive
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - "2000"
+          - "2005"
+          - "2010"
+permissions:
+  contents: write
+concurrency:
+  group: lulea-historical-volume-release
+  cancel-in-progress: false
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        year: ${{ fromJSON(inputs.year == 'all' && '["2000","2005","2010"]' || format('["{0}"]',inputs.year)) }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: total-wood-volume-lulea-2000-2010-v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install geo libraries
+        run: pip install -r requirements.txt
+      - name: Validate Python syntax
+        run: python -m compileall -q scripts/archive_historic_volume.py scripts/fetch_and_compare_biomass_native.py
+      - name: Skip any already archived volume file
+        id: cached
+        shell: bash
+        run: |
+          asset="lulea_total_volume_${{ matrix.year }}_source_crs_clip.tif"
+          if gh release view "$TAG" --json assets --jq '.assets[].name' 2>/dev/null | grep -Fxq "$asset"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Fetch and crop total volume in source CRS
+        if: steps.cached.outputs.skip != 'true'
+        run: python scripts/archive_historic_volume.py --year "${{ matrix.year }}" --output-dir release-assets
+      - name: Create release if absent
+        if: steps.cached.outputs.skip != 'true'
+        shell: bash
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target "${{ github.sha }}" \
+              --title "Luleå SLU total volume raster clips (2000, 2005, 2010)" \
+              --notes "Source-CRS boundary-masked derivative GeoTIFFs, not original national rasters. Values represent TOTAL WOOD VOLUME and must NOT be shown as biomass or converted without verified calibration."
+          fi
+      - name: Upload volume raster and provenance
+        if: steps.cached.outputs.skip != 'true'
+        shell: bash
+        run: |
+          gh release upload "$TAG" \
+            "release-assets/lulea_total_volume_${{ matrix.year }}_source_crs_clip.tif" \
+            "release-assets/lulea_total_volume_${{ matrix.year }}_provenance.json" \
+            "release-assets/lulea_total_volume_${{ matrix.year }}_SHA256SUMS.txt"
+      - name: Preserve provenance diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-volume-${{ matrix.year }}-diagnostics
+          path: |
+            release-assets/*_provenance.json
+            release-assets/*_SHA256SUMS.txt
+          if-no-files-found: ignore
+          retention-days: 30
