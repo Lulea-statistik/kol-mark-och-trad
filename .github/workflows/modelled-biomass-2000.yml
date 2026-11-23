@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'scripts/modelled_biomass_series_2000.py'
+      - 'docs/modelled-biomass-2000.js'
+      - 'docs/data/modelled_biomass_series_2000_2018.json'
       - '.github/workflows/modelled-biomass-2000.yml'
 permissions:
   contents: read
@@ -23,6 +25,11 @@ jobs:
         run: pip install -r requirements.txt
       - name: Check script compilation
         run: python -m compileall -q scripts/modelled_biomass_series_2000.py scripts/analyze_historic_volume.py scripts/verify_biomass_release.py
+      - name: Validate published JS and JSON syntax
+        run: |
+          node --check docs/modelled-biomass-2000.js
+          python -m json.tool docs/data/modelled_biomass_series_2000_2018.json > /dev/null
+          python -m json.tool metadata/forest_growth_age_site_index_sources.json > /dev/null
       - name: Download archived biomass and volume rasters
         run: |
           mkdir -p release-volume release-biomass
