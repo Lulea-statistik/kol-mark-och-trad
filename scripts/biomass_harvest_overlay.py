@@ -75,6 +75,8 @@ def read_harvest(boundary_3006):
         raise ValueError(f"Unexpected number of candidate features: {len(ids)}")
     polygons={"2011_2015":[],"2016_2018":[]}
     records=defaultdict(int)
+    records["sample_municipality_codes"]=[]
+    records["sample_dates"]=[]
     non_geo=0
     other_municipality=0
     transformer=Transformer.from_crs("EPSG:4326","EPSG:3006",always_xy=True)
@@ -87,10 +89,19 @@ def read_harvest(boundary_3006):
             raise ValueError("Expected GeoJSON features from Skogsstyrelsen REST API")
         for feature in features:
             props=feature.get("properties",{})
-            if str(props.get("Kommunnr","")).strip()!="2580":
+            # The work boundary, not the provider's optional municipality code,
+            # determines whether a polygon belongs to the analysis area.
+            # Inspect metadata but never discard a geographically overlapping
+            # polygon because Kommunnr uses a different coding convention.
+            municipality=str(props.get("Kommunnr","")).strip()
+            if municipality!="2580":
                 other_municipality+=1
-                continue
+                if len(records.get("sample_municipality_codes",[]))<8 and municipality not in records.get("sample_municipality_codes",[]):
+                    records.setdefault("sample_municipality_codes",[]).append(municipality)
             year=date_year(props.get("Avvdatum"))
+            records["returned_geojson_features"]+=1
+            if len(records["sample_dates"])<8:
+                records["sample_dates"].append({"Avvdatum":str(props.get("Avvdatum"))[:32],"Arendear":str(props.get("Arendear"))[:12],"Kommunnr":municipality})
             if year is None:
                 records["missing_avverkning_date"]+=1
                 continue
@@ -133,7 +144,7 @@ def run(args):
     bound=geom_transform(to_3006.transform,raw)
     harvest,metadata=read_harvest(bound)
     if not harvest["2011_2015"] and not harvest["2016_2018"]:
-        raise ValueError("No dated harvested polygons for 2011-2018; cannot test harvest hypothesis")
+        raise ValueError("No dated harvested polygons for 2011-2018; diagnostic counts: "+json.dumps(metadata,ensure_ascii=False))
     step=25.0
     xmin,ymin,xmax,ymax=bound.bounds
     xmin=math.floor(xmin/step)*step; ymin=math.floor(ymin/step)*step
@@ -214,7 +225,7 @@ def run(args):
       "harvest_geojson_query_crs":"EPSG:4326 (requested outSR=4326; transformed to EPSG:3006)",
       "working_polygon_crs":"EPSG:4326 (project boundary); transformed to EPSG:3006",
       "comparison_grid_crs":"EPSG:3006","grid_resolution_m":25,
-      "query_filter":"Spatial bbox EPSG:3006, then Kommunnr='2580' and Avvdatum 2011-2018; Arendear NOT substituted",
+      "query_filter":"Spatial bbox EPSG:3006, intersect actual Lulea working boundary, then Avvdatum 2011-2018; Kommunnr diagnostic only; Arendear NOT substituted",
       "harvest_feature_counts":metadata,
       "strata":diagnostics,
       "limitations":[
