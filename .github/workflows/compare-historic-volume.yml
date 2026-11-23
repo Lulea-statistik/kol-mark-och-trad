@@ -1,0 +1,61 @@
+name: Verify historic total volume and compare 2010 biomass
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/analyze_historic_volume.py'
+      - '.github/workflows/compare-historic-volume.yml'
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install GIS libraries
+        run: pip install -r requirements.txt
+      - name: Check scripts and source CRS tests
+        run: |
+          python -m compileall -q scripts/analyze_historic_volume.py scripts/verify_biomass_release.py
+          python scripts/test_biomass_crs_authority.py
+      - name: Download archived volume and biomass source-CRS clips
+        shell: bash
+        run: |
+          mkdir -p release-volume release-biomass
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+      - name: Verify biomass archive before analysis
+        run: |
+          python scripts/verify_biomass_release.py \
+            --directory release-biomass \
+            --output metadata/biomass_release_validation.json
+      - name: Verify all volume SHA256 and perform common-support comparison
+        run: |
+          python scripts/analyze_historic_volume.py \
+            --directory release-volume \
+            --biomass-directory release-biomass \
+            --output metadata/volume_history_biomass_2010_comparison.json
+      - name: Display statistics
+        if: always()
+        shell: bash
+        run: |
+          if test -s metadata/volume_history_biomass_2010_comparison.json; then
+            cat metadata/volume_history_biomass_2010_comparison.json
+          fi
+      - name: Archive volume comparison diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validated-volume-history-2010-biomass-analysis
+          path: |
+            metadata/biomass_release_validation.json
+            metadata/volume_history_biomass_2010_comparison.json
+          if-no-files-found: warn
+          retention-days: 90
