@@ -1,4 +1,4 @@
-name: Compare native biomass rasters by area (2010, 2015, 2018)
+name: Compare archived biomass GeoTIFFs by common area (2010 2015 2018)
 on:
   workflow_dispatch:
 permissions:
@@ -6,41 +6,70 @@ permissions:
 jobs:
   compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
-      GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
-      GDAL_HTTP_MAX_RETRY: "2"
-      GDAL_HTTP_TIMEOUT: "35"
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: biomass-source-clips-lulea-v1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install native-raster analysis dependencies
+      - name: Install raster analysis dependencies
         run: pip install -r requirements.txt
-      - name: Clip each source in its own CRS and compare original raster area integrals
+      - name: Verify Python syntax before running analysis
         run: |
-          python scripts/fetch_and_compare_biomass_native.py \
-            --diagnostics metadata/biomass_native_fetch_diagnostics.json \
+          python -m compileall -q scripts/verify_biomass_release.py scripts/compare_biomass_native_area.py scripts/fetch_and_compare_biomass_native.py
+          python scripts/test_biomass_crs_authority.py
+          python scripts/test_biomass_uint16_nodata.py
+      - name: Download the archived municipal source-CRS rasters from GitHub Releases
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          gh release download "$RELEASE_TAG" --dir release-assets --pattern 'lulea_biomass_*'
+          for y in 2010 2015 2018; do
+            for suffix in source_crs_clip.tif provenance.json SHA256SUMS.txt; do
+              test -s "release-assets/lulea_biomass_${y}_${suffix}" || {
+                echo "::error::Missing archived asset for ${y}: ${suffix}"
+                exit 1
+              }
+            done
+          done
+      - name: Verify bytes provenance boundary and native raster geometry
+        run: |
+          python scripts/verify_biomass_release.py \
+            --directory release-assets \
+            --output metadata/biomass_release_validation.json
+      - name: Calculate all-year common-grid areal comparison in EPSG 3006
+        run: |
+          python scripts/compare_biomass_native_area.py \
+            --raster-2010 release-assets/lulea_biomass_2010_source_crs_clip.tif \
+            --raster-2015 release-assets/lulea_biomass_2015_source_crs_clip.tif \
+            --raster-2018 release-assets/lulea_biomass_2018_source_crs_clip.tif \
+            --boundary docs/data/lulea_boundary.geojson \
+            --grid-resolution 25 \
             --output metadata/biomass_native_area_comparison.json
-      - name: Display source access and result diagnostics
+      - name: Display source QA and descriptive comparison
         if: always()
+        shell: bash
         run: |
-          if test -f metadata/biomass_native_fetch_diagnostics.json; then
-            cat metadata/biomass_native_fetch_diagnostics.json
-          else
-            echo "Source fetch did not start or preflight failed."
-          fi
-          if test -f metadata/biomass_native_area_comparison.json; then
-            cat metadata/biomass_native_area_comparison.json
-          fi
-      - name: Upload source diagnostics and raw-unit results
+          for name in biomass_release_validation.json biomass_native_area_comparison.json; do
+            if test -s "metadata/$name"; then
+              echo "::group::$name"
+              cat "metadata/$name"
+              echo "::endgroup::"
+            else
+              echo "No result file for $name"
+            fi
+          done
+      - name: Save validated diagnostics and analysis results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: biomass-native-area-analysis
+          name: biomass-archived-common-area-analysis
           path: |
-            metadata/biomass_native_fetch_diagnostics.json
+            metadata/biomass_release_validation.json
             metadata/biomass_native_area_comparison.json
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 90
