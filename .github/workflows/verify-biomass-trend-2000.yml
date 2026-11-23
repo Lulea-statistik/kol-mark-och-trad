@@ -1,0 +1,57 @@
+name: Verify biomass trend 2000 to 2018 web page
+on:
+  pull_request:
+    paths:
+      - 'docs/biomass-trend.html'
+      - 'docs/biomass-trend-history.js'
+      - 'docs/biomass-trend.js'
+      - 'docs/data/modelled_biomass_series_2000_2018.json'
+      - 'docs/data/age_adjusted_biomass_2000_2005.json'
+      - '.github/workflows/verify-biomass-trend-2000.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check both chart scripts parse
+        run: |
+          node --check docs/biomass-trend-history.js
+          node --check docs/biomass-trend.js
+      - name: Check five-year source data and DOM targets
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class IDs(HTMLParser):
+              def __init__(self):
+                  super().__init__();self.ids=[];self.scripts=[]
+              def handle_starttag(self,tag,attrs):
+                  props=dict(attrs)
+                  if 'id' in props:self.ids.append(props['id'])
+                  if tag=='script' and 'src' in props:self.scripts.append(props['src'])
+          doc=IDs();doc.feed(Path('docs/biomass-trend.html').read_text())
+          for target in ('historicBiomassChart','historicBiomassStatus','historicBiomassArea','historicBiomassTable','historicAgeNote','biomassCommonChart','biomassExtendedChart'):
+              assert doc.ids.count(target)==1,(target,doc.ids.count(target))
+          assert 'biomass-trend-history.js' in doc.scripts
+          assert 'biomass-trend.js' in doc.scripts
+          d=json.loads(Path('docs/data/modelled_biomass_series_2000_2018.json').read_text())
+          a=json.loads(Path('docs/data/age_adjusted_biomass_2000_2005.json').read_text())
+          assert d['status']=='EXPLORATORY_MODEL_NOT_A_VALIDATED_BIOMASS_TIMESERIES'
+          assert d['comparison_crs']=='EPSG:3006'
+          assert d['target_cell_m']==25
+          assert [x['year'] for x in d['years']]==[2000,2005,2010,2015,2018]
+          assert all(x['status'].startswith('MODELLED') for x in d['years'][:2])
+          assert all(x['status'].startswith('OBSERVED') for x in d['years'][2:])
+          assert d['common_valid_cells']>0 and d['common_valid_area_ha']>0
+          assert a['status']=='PROVISIONAL_AGE_DEPENDENT_RAW_BIOMASS_MODEL'
+          assert a['grid_crs']=='EPSG:3006'
+          assert [x['year'] for x in a['historical_results']]==[2000,2005,2010]
+          print('PASS: chart scripts, DOM, CRS, common area and model/observation labels')
+          PY
