@@ -64,7 +64,9 @@ def run(args):
         min_v=float("inf")
         max_v=float("-inf")
         sum_v=0.0
-        sample=[]
+        high_thresholds=(300,500,1000)
+        high_counts={str(n):0 for n in high_thresholds}
+        high_sums={str(n):0.0 for n in high_thresholds}
         with rasterio.open(tif) as src:
             if src.count!=1 or not matches_expected_crs(src.crs,epsg):
                 raise ValueError(f"{year}: raster band or CRS mismatch; expected EPSG:{epsg}")
@@ -89,6 +91,10 @@ def run(args):
                 min_v=min(min_v,float(good.min()))
                 max_v=max(max_v,float(good.max()))
                 sum_v+=float(good.sum(dtype="float64"))
+                for threshold in high_thresholds:
+                    subset=good[good>threshold]
+                    high_counts[str(threshold)]+=int(subset.size)
+                    high_sums[str(threshold)]+=float(subset.sum(dtype="float64"))
             if total != meta["valid_pixels_inside_project_boundary"]:
                 raise ValueError(f"{year}: valid pixel count {total} differs from provenance {meta['valid_pixels_inside_project_boundary']}")
         if total==0:
@@ -100,6 +106,11 @@ def run(args):
             "valid_cells":total,"zero_cells":zeros,"positive_cells":nonzero,
             "valid_cell_fraction":total/(meta["crop_size_pixels"][0]*meta["crop_size_pixels"][1]),
             "raw_min":min_v,"raw_max":max_v,"raw_mean":sum_v/total,
+            "tail_screening_thresholds_raw":{key:{
+                "count_above":high_counts[key],
+                "share_valid_cells_above":high_counts[key]/total,
+                "share_raw_value_sum_above":high_sums[key]/sum_v if sum_v>0 else None
+            } for key in high_counts},
             "source_units_confirmed_by_raster_metadata":False
         }
         print(year,"validated:",total,"valid cells, mean raw",round(sum_v/total,3),flush=True)
