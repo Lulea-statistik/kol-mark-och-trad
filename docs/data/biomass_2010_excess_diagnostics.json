@@ -1,0 +1,322 @@
+{
+  "created_utc": "2026-11-24T07:21:55.499839+00:00",
+  "status": "DESCRIPTIVE_2010_EXCESS_DIAGNOSTICS_NOT_HARMONIZED",
+  "analysis_crs": "EPSG:3006",
+  "cell_size_m": 25,
+  "boundary_note": "Lulea project working geometry, not independently official municipal boundary",
+  "paired_biomass_only": {
+    "2010": {
+      "own_n": 2720894,
+      "own_sum": 205565643.84917203,
+      "paired_n": 2456410,
+      "paired_sum": 188867036.32669744,
+      "paired_positive_n": 2417632,
+      "paired_positive_sum": 188867036.32669744,
+      "own_area_ha": 170055.875,
+      "paired_area_ha": 153525.625,
+      "own_mean": 75.5507725950265,
+      "paired_mean": 76.88742364943045,
+      "paired_positive_mean": 78.12067193298957
+    },
+    "2015": {
+      "own_n": 4684649,
+      "own_sum": 212498558.83348796,
+      "paired_n": 2456410,
+      "paired_sum": 159009657.58336216,
+      "paired_positive_n": 2350842,
+      "paired_positive_sum": 159009657.58336216,
+      "own_area_ha": 292790.5625,
+      "paired_area_ha": 153525.625,
+      "own_mean": 45.360614815216245,
+      "paired_mean": 64.73253959370062,
+      "paired_positive_mean": 67.63944900736084
+    },
+    "2018": {
+      "own_n": 5391169,
+      "own_sum": 203731611.04752153,
+      "paired_n": 2456410,
+      "paired_sum": 170300693.5985775,
+      "paired_positive_n": 2409475,
+      "paired_positive_sum": 170300693.5985775,
+      "own_area_ha": 336948.0625,
+      "paired_area_ha": 153525.625,
+      "own_mean": 37.78987656434468,
+      "paired_mean": 69.3290996204125,
+      "paired_positive_mean": 70.67958522025648
+    }
+  },
+  "joint_valid_with_2010_age_volume": {
+    "cells": 2456410,
+    "area_ha": 153525.625,
+    "raw_means": {
+      "2010": 76.88742364943045,
+      "2015": 64.73253959370062,
+      "2018": 69.3290996204125
+    }
+  },
+  "strata_age_as_of_2010": [
+    {
+      "age_from": 0,
+      "age_to": 20,
+      "n": 247413,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 15463.3125,
+      "raw_means": {
+        "2010": 7.2704968840221,
+        "2015": 14.357775595246789,
+        "2018": 20.381235770304524
+      },
+      "mean_2010_minus_2015": -7.08727871122469,
+      "mean_2010_minus_2018": -13.110738886282425,
+      "share_of_total_2010_minus_2015": -0.05872869493513876,
+      "share_of_total_2010_minus_2018": -0.17471223533749036
+    },
+    {
+      "age_from": 20,
+      "age_to": 40,
+      "n": 412163,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 25760.1875,
+      "raw_means": {
+        "2010": 37.96036374435692,
+        "2015": 48.451251891447015,
+        "2018": 57.20037376813241
+      },
+      "mean_2010_minus_2015": -10.490888147090098,
+      "mean_2010_minus_2018": -19.240010023775493,
+      "share_of_total_2010_minus_2015": -0.14482034637197627,
+      "share_of_total_2010_minus_2018": -0.4271180580663765
+    },
+    {
+      "age_from": 40,
+      "age_to": 60,
+      "n": 524372,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 32773.25,
+      "raw_means": {
+        "2010": 59.27303455010857,
+        "2015": 59.0166430829671,
+        "2018": 66.15090761684979
+      },
+      "mean_2010_minus_2015": 0.25639146714146704,
+      "mean_2010_minus_2018": -6.877873066741228,
+      "share_of_total_2010_minus_2015": 0.004502890476878045,
+      "share_of_total_2010_minus_2018": -0.19425279973372753
+    },
+    {
+      "age_from": 60,
+      "age_to": 80,
+      "n": 540928,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 33808,
+      "raw_means": {
+        "2010": 90.42667954953338,
+        "2015": 74.29166296928287,
+        "2018": 79.74352154417883
+      },
+      "mean_2010_minus_2015": 16.135016580250497,
+      "mean_2010_minus_2018": 10.68315800535454,
+      "share_of_total_2010_minus_2015": 0.29231910556347707,
+      "share_of_total_2010_minus_2018": 0.31125243017129167
+    },
+    {
+      "age_from": 80,
+      "age_to": 100,
+      "n": 501126,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 31320.375,
+      "raw_means": {
+        "2010": 120.47946464910981,
+        "2015": 88.37328120404601,
+        "2018": 88.66300237468907
+      },
+      "mean_2010_minus_2015": 32.1061834450638,
+      "mean_2010_minus_2018": 31.816462274420743,
+      "share_of_total_2010_minus_2015": 0.5388699196737913,
+      "share_of_total_2010_minus_2018": 0.8587612922594094
+    },
+    {
+      "age_from": 100,
+      "age_to": 120,
+      "n": 194544,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 12159,
+      "raw_means": {
+        "2010": 131.367377064771,
+        "2015": 88.89699159741782,
+        "2018": 85.99000370493985
+      },
+      "mean_2010_minus_2015": 42.47038546735319,
+      "mean_2010_minus_2018": 45.37737335983116,
+      "share_of_total_2010_minus_2015": 0.2767275299478549,
+      "share_of_total_2010_minus_2018": 0.4754784424799273
+    },
+    {
+      "age_from": 120,
+      "age_to": 150,
+      "n": 33768,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 2110.5,
+      "raw_means": {
+        "2010": 150.56667089727753,
+        "2015": 77.09595869889336,
+        "2018": 75.01504797396224
+      },
+      "mean_2010_minus_2015": 73.47071219838419,
+      "mean_2010_minus_2018": 75.5516229233153,
+      "share_of_total_2010_minus_2015": 0.08309366441181089,
+      "share_of_total_2010_minus_2018": 0.13741140300133053
+    },
+    {
+      "age_from": 150,
+      "age_to": 200,
+      "n": 2092,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 130.75,
+      "raw_means": {
+        "2010": 196.0690030851054,
+        "2015": 81.40487571703844,
+        "2018": 79.13374763761378
+      },
+      "mean_2010_minus_2015": 114.66412736806697,
+      "mean_2010_minus_2018": 116.93525544749163,
+      "share_of_total_2010_minus_2015": 0.00803410629298934,
+      "share_of_total_2010_minus_2018": 0.013175915040372844
+    },
+    {
+      "age_from": 200,
+      "age_to": 500,
+      "n": 4,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 0.25,
+      "raw_means": {
+        "2010": 70.4969835281372,
+        "2015": 56.875,
+        "2018": 53.739999294281006
+      },
+      "mean_2010_minus_2015": 13.621983528137207,
+      "mean_2010_minus_2018": 16.7569842338562,
+      "share_of_total_2010_minus_2015": 0.0000018249403131114298,
+      "share_of_total_2010_minus_2018": 0.0000036101852646459343
+    },
+    {
+      "age_from": 500,
+      "age_to": null,
+      "n": 0,
+      "diff_2010_2015_sum": 0,
+      "diff_2010_2018_sum": 0,
+      "area_ha": 0,
+      "raw_means": {
+        "2010": null,
+        "2015": null,
+        "2018": null
+      },
+      "mean_2010_minus_2015": null,
+      "mean_2010_minus_2018": null,
+      "share_of_total_2010_minus_2015": 0,
+      "share_of_total_2010_minus_2018": 0
+    }
+  ],
+  "strata_volume_as_of_2010": [
+    {
+      "label": "2010 volume = 0",
+      "lo": 0,
+      "hi": 0,
+      "n": 41363,
+      "area_ha": 2585.1875,
+      "raw_means": {
+        "2010": 0.051912582738478916,
+        "2015": 6.047983705284444,
+        "2018": 10.753077499304577
+      },
+      "mean_2010_minus_2015": -5.996071122545965,
+      "mean_2010_minus_2018": -10.701164916566098,
+      "share_of_total_2010_minus_2015": -0.008306673267398949,
+      "share_of_total_2010_minus_2018": -0.023840574900813826
+    },
+    {
+      "label": "2010 volume (0,50)",
+      "lo": 0,
+      "hi": 50,
+      "n": 517987,
+      "area_ha": 32374.1875,
+      "raw_means": {
+        "2010": 19.529845451185096,
+        "2015": 28.177215998358633,
+        "2018": 34.53854315624503
+      },
+      "mean_2010_minus_2015": -8.647370547173537,
+      "mean_2010_minus_2018": -15.00869770505993,
+      "share_of_total_2010_minus_2015": -0.15002072238570593,
+      "share_of_total_2010_minus_2018": -0.41873137924876164
+    },
+    {
+      "label": "2010 volume [50,100)",
+      "lo": 50,
+      "hi": 100,
+      "n": 667787,
+      "area_ha": 41736.6875,
+      "raw_means": {
+        "2010": 54.355982831661485,
+        "2015": 57.35101125061524,
+        "2018": 63.51134283380722
+      },
+      "mean_2010_minus_2015": -2.9950284189537526,
+      "mean_2010_minus_2018": -9.155360002145736,
+      "share_of_total_2010_minus_2015": -0.06698649134610707,
+      "share_of_total_2010_minus_2018": -0.32929643060467145
+    },
+    {
+      "label": "2010 volume [100,200)",
+      "lo": 100,
+      "hi": 200,
+      "n": 912981,
+      "area_ha": 57061.3125,
+      "raw_means": {
+        "2010": 101.80272984787126,
+        "2015": 81.83991360898017,
+        "2018": 85.87652244771827
+      },
+      "mean_2010_minus_2015": 19.962816238891087,
+      "mean_2010_minus_2018": 15.92620740015298,
+      "share_of_total_2010_minus_2015": 0.6104243808297248,
+      "share_of_total_2010_minus_2018": 0.7831550333484255
+    },
+    {
+      "label": "2010 volume >= 200",
+      "lo": 200,
+      "hi": null,
+      "n": 316292,
+      "area_ha": 19768.25,
+      "raw_means": {
+        "2010": 156.52152506028793,
+        "2015": 98.47709500513407,
+        "2018": 98.48404405517681
+      },
+      "mean_2010_minus_2015": 58.04443005515387,
+      "mean_2010_minus_2018": 58.03748100511112,
+      "share_of_total_2010_minus_2015": 0.6148895061694857,
+      "share_of_total_2010_minus_2018": 0.9887133514058235
+    }
+  ],
+  "limitations": [
+    "All three biomass generations are compared cell for cell and their per-source independent coverage is reported",
+    "Age and volume strata refer ONLY to 2010 baseline; not contemporary 2015 or 2018 stand classes",
+    "2010 volume strata are a structural proxy, NOT verified pine/spruce classes",
+    "No forest mask and no dated harvest exclusion in this particular diagnostic",
+    "Strata and raw ratios do not prove equivalent biomass components, calibration method or physical units",
+    "Difference remaining in fixed 2010 strata cannot distinguish real growth, harvest and product method shifts",
+    "2010 biomass and volume are related model sources; not independent verification",
+    "No actual 2015 or 2018 stand-age or species data used. No causal decomposition authorized"
+  ],
+  "actions_run": "https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45347377535"
+}

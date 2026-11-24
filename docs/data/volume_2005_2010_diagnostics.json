@@ -1,0 +1,171 @@
+{
+  "generated_utc": "2026-11-24T07:30:07.384000+00:00",
+  "status": "HISTORICAL_VOLUME_CHANGE_DESCRIPTIVE_NOT_GROWTH",
+  "analysis_crs": "EPSG:3006",
+  "pixel_size_m": 25,
+  "common_valid_cells": 2316804,
+  "common_valid_area_ha": 144800.25,
+  "volume_raw_means": {
+    "2000": 93.88312732817933,
+    "2005": 87.3756044319939,
+    "2010": 108.26009615042966
+  },
+  "volume_raw_change_percent_2000_2005": -6.931514832732,
+  "volume_raw_change_percent_2005_2010": 23.901971098455242,
+  "volume_cells_increase_fraction_2005_2010": 0.746912988755199,
+  "volume_cells_decrease_fraction_2005_2010": 0.2517096828216802,
+  "volume_cells_equal_fraction_2005_2010": 0.0013773284231208165,
+  "age_difference_classes": {
+    "age_2010_at_least_10_less_than_2005": {
+      "n": 290251,
+      "area_ha": 18140.6875,
+      "mean_volume_2005": 109.60760189608239,
+      "mean_volume_2010": 69.01694373509953,
+      "difference_contribution_fraction": -0.2434930746440836
+    },
+    "age_2010_roughly_age_2005_plus_five": {
+      "n": 652232,
+      "area_ha": 40764.5,
+      "mean_volume_2005": 74.59606055818176,
+      "mean_volume_2010": 94.98234944305234,
+      "difference_contribution_fraction": 0.27480654517646824
+    },
+    "other_age_changes": {
+      "n": 1374321,
+      "area_ha": 85895.0625,
+      "mean_volume_2005": 88.74527568343738,
+      "mean_volume_2010": 122.84950831989234,
+      "difference_contribution_fraction": 0.9686865294676164
+    }
+  },
+  "baseline_age_2005_strata": [
+    {
+      "age_2005_lower": 0,
+      "age_2005_upper": 20,
+      "n": 330892,
+      "area_ha": 20680.75,
+      "mean_volume_2005": 10.722630298278927,
+      "mean_volume_2010": 33.19041368313055,
+      "mean_age_2005": 12.985173956166735,
+      "mean_age_2010": 27.573843108278826,
+      "mean_change_2005_2010": 22.46778338485162
+    },
+    {
+      "age_2005_lower": 20,
+      "age_2005_upper": 40,
+      "n": 658480,
+      "area_ha": 41155,
+      "mean_volume_2005": 44.22230615064346,
+      "mean_volume_2010": 78.5947265335575,
+      "mean_age_2005": 29.834335884099566,
+      "mean_age_2010": 46.52426806598808,
+      "mean_change_2005_2010": 34.372420382914044
+    },
+    {
+      "age_2005_lower": 40,
+      "age_2005_upper": 60,
+      "n": 523653,
+      "area_ha": 32728.3125,
+      "mean_volume_2005": 98.5840523042456,
+      "mean_volume_2010": 121.0867723313311,
+      "mean_age_2005": 49.917793136061306,
+      "mean_age_2010": 66.19369484317798,
+      "mean_change_2005_2010": 22.502720027085502
+    },
+    {
+      "age_2005_lower": 60,
+      "age_2005_upper": 80,
+      "n": 459094,
+      "area_ha": 28693.375,
+      "mean_volume_2005": 133.30196639204584,
+      "mean_volume_2010": 146.61478981553466,
+      "mean_age_2005": 69.45353737983892,
+      "mean_age_2010": 78.0128422656484,
+      "mean_change_2005_2010": 13.312823423488823
+    },
+    {
+      "age_2005_lower": 80,
+      "age_2005_upper": 100,
+      "n": 255974,
+      "area_ha": 15998.375,
+      "mean_volume_2005": 158.91910668543997,
+      "mean_volume_2010": 163.09170775053772,
+      "mean_age_2005": 88.3561352534401,
+      "mean_age_2010": 85.87109745895931,
+      "mean_change_2005_2010": 4.172601065097751
+    },
+    {
+      "age_2005_lower": 100,
+      "age_2005_upper": 120,
+      "n": 71193,
+      "area_ha": 4449.5625,
+      "mean_volume_2005": 176.88289837958249,
+      "mean_volume_2010": 171.35076909960424,
+      "mean_age_2005": 107.49255042965379,
+      "mean_age_2010": 88.39790638664876,
+      "mean_change_2005_2010": -5.53212927997825
+    },
+    {
+      "age_2005_lower": 120,
+      "age_2005_upper": 150,
+      "n": 17277,
+      "area_ha": 1079.8125,
+      "mean_volume_2005": 210.42579129181465,
+      "mean_volume_2010": 195.86940352403224,
+      "mean_age_2005": 128.20528342491045,
+      "mean_age_2010": 91.51417499721524,
+      "mean_change_2005_2010": -14.556387767782411
+    },
+    {
+      "age_2005_lower": 150,
+      "age_2005_upper": 200,
+      "n": 241,
+      "area_ha": 15.0625,
+      "mean_volume_2005": 145.79010986391438,
+      "mean_volume_2010": 142.14196400029036,
+      "mean_age_2005": 160.33728578179705,
+      "mean_age_2010": 78.3928238380994,
+      "mean_change_2005_2010": -3.6481458636240234
+    },
+    {
+      "age_2005_lower": 200,
+      "age_2005_upper": 500,
+      "n": 0,
+      "volume_2005_sum": 0,
+      "volume_2010_sum": 0,
+      "sum_age_2005": 0,
+      "sum_age_2010": 0,
+      "area_ha": 0,
+      "mean_volume_2005": null,
+      "mean_volume_2010": null,
+      "mean_age_2005": null,
+      "mean_age_2010": null
+    },
+    {
+      "age_2005_lower": 500,
+      "age_2005_upper": null,
+      "n": 0,
+      "volume_2005_sum": 0,
+      "volume_2010_sum": 0,
+      "sum_age_2005": 0,
+      "sum_age_2010": 0,
+      "area_ha": 0,
+      "mean_volume_2005": null,
+      "mean_volume_2010": null,
+      "mean_age_2005": null,
+      "mean_age_2010": null
+    }
+  ],
+  "biomass_2005_is_derived_from_2010_factor": true,
+  "biomass_peak_2005_to_2010_not_independent": true,
+  "cautions": [
+    "2005 biomass in current website is 2005 total volume times 2010 biomass/volume on a separate common support; its apparent change to 2010 is by construction volume change",
+    "All three volume estimates are separate SLU kNN remote-sensing products; differences are not measured live wood growth",
+    "2005 and 2010 age are modelled maps whose image dates and errors are not synchronized",
+    "Age difference < -10 years flags possible reset (harvest, regeneration, inconsistent age models), NOT proven logging",
+    "Stable-age criterion of -2 to +12 years is a diagnostic tolerance only, not an inferential growth model",
+    "Only common support of 8 available layers, not official Lulea boundary or verified forest-land mask",
+    "No stem species stratification here and no assumption biomass products 2010-2018 use the same components"
+  ],
+  "actions_run": "https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45348414712"
+}
