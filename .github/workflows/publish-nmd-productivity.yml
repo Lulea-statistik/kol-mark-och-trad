@@ -1,0 +1,82 @@
+name: Publish verified NMD productivity map preview
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing GitHub release containing the verified NMD GeoTIFF'
+        required: true
+        type: string
+      asset_name:
+        description: 'Exact TIFF asset filename in the release'
+        required: true
+        type: string
+      source_band:
+        description: '1-based GeoTIFF band (10 for original ten-band image, 1 for extracted single band)'
+        required: true
+        default: '10'
+        type: string
+      nmd_version:
+        description: 'Verified NMD source version, not an assumed 2010 date'
+        required: true
+        type: string
+      source_url:
+        description: 'Original HTTPS data source URL for provenance'
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: publish-nmd-productivity
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_BAND: ${{ inputs.source_band }}
+      NMD_VERSION: ${{ inputs.nmd_version }}
+      SOURCE_URL: ${{ inputs.source_url }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      ASSET_NAME: ${{ inputs.asset_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install raster dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Fetch exact verified NMD release asset
+        run: |
+          test "${ASSET_NAME##*.}" = "tif" || { echo 'Expected GeoTIFF (.tif)'; exit 1; }
+          mkdir -p nmd-input
+          gh release download "$RELEASE_TAG" --pattern "$ASSET_NAME" --dir nmd-input
+          test -s "nmd-input/$ASSET_NAME"
+      - name: Publish NMD only after source validation
+        run: |
+          python scripts/publish_nmd_productivity_preview.py \
+            --source "nmd-input/$ASSET_NAME" \
+            --band "$SOURCE_BAND" \
+            --version "$NMD_VERSION" \
+            --source-url "$SOURCE_URL"
+      - name: Commit PNG, numeric preview and updated layer manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/preview/nmd_productivitet_preview.png docs/data/preview/nmd_productivitet_sampled_values.f32.gz docs/data/preview/preview_layers.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified NMD productivity preview for Lulea"
+            git push
+          fi
+      - name: Preserve publication evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmd-productivity-publication
+          path: |
+            docs/data/preview/nmd_productivitet_preview.png
+            docs/data/preview/preview_layers.json
+          if-no-files-found: warn
