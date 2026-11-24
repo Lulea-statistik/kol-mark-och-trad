@@ -813,6 +813,62 @@
       "area_integral": false,
       "product_definition_source": "https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf",
       "product_definition_status": "Verified as above-ground total biomass in SLU evaluation; comparability with 2010 and SGD2 estimates still unverified"
+    },
+    "nmd_productivity": {
+      "image": "data/preview/nmd_productivitet_preview.png",
+      "numeric_file": "data/preview/nmd_productivitet_sampled_values.f32.gz",
+      "bounds": [
+        [
+          65.06965380799399,
+          21.335719604672796
+        ],
+        [
+          66.28328406772707,
+          23.138342126349396
+        ]
+      ],
+      "raster_grid_width": 1101,
+      "raster_grid_height": 1800,
+      "raster_grid_crs": "EPSG:3857",
+      "raster_grid_bounds_m": [
+        2375081.44210024,
+        9626742.588450905,
+        2575748.4633057658,
+        9954811.75800121
+      ],
+      "raster_grid_nodata": -9999.0,
+      "display_crs": "EPSG:3857",
+      "source_crs": "EPSG:3006",
+      "source": "https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/NMD_Produktivitet_v1_1.zip",
+      "source_sha256": "5d9f89dda0e321586badf7cd8c4b59bc5fb3bf174d07dd84b08cf516852c23fc",
+      "product_family": "Naturvårdsverket / NMD2018 produktivitet",
+      "nmd_version": "NMD2018-produktivitet-v1.1",
+      "source_band": 1,
+      "source_resolution_m": [
+        10.0,
+        10.0
+      ],
+      "source_nodata": null,
+      "color_scale_type": "nmd_productivity_categories",
+      "sample_type": "Categorical nearest-neighbour source pixels on full EPSG:3857 grid; not original source cells",
+      "class_labels": {
+        "0": "Ej skogsmark",
+        "1": "Produktiv skogsmark",
+        "2": "Improduktiv skogsmark"
+      },
+      "class_preview_pixel_counts": {
+        "0": 575618,
+        "1": 262115,
+        "2": 29161
+      },
+      "valid_preview_pixels": 866894,
+      "null_inside_pixels": 156,
+      "municipal_preview_pixels": 867050,
+      "source_year": null,
+      "physical_units_verified": false,
+      "total_tonnes_C": null,
+      "area_integral": false,
+      "published_utc": "2026-11-24T10:43:30.978221+00:00"
     }
   }
 }
