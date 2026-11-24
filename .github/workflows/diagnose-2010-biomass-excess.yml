@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'scripts/diagnose_2010_biomass_excess.py'
+      - 'docs/biomass-2010-excess.js'
+      - 'docs/data/biomass_2010_excess_diagnostics.json'
+      - 'docs/biomass-trend.html'
       - '.github/workflows/diagnose-2010-biomass-excess.yml'
   workflow_dispatch:
 permissions:
@@ -23,6 +26,25 @@ jobs:
         run: pip install -r requirements.txt
       - name: Check analysis script syntax
         run: python -m compileall -q scripts/diagnose_2010_biomass_excess.py
+      - name: Validate diagnostic website and published JSON
+        run: |
+          node --check docs/biomass-2010-excess.js
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from html.parser import HTMLParser
+          d=json.loads(Path('docs/data/biomass_2010_excess_diagnostics.json').read_text())
+          assert d['status']=='DESCRIPTIVE_2010_EXCESS_DIAGNOSTICS_NOT_HARMONIZED'
+          assert d['analysis_crs']=='EPSG:3006' and d['cell_size_m']==25
+          assert d['joint_valid_with_2010_age_volume']['cells']>0
+          for y in ('2010','2015','2018'):
+           assert d['paired_biomass_only'][y]['paired_n']>0
+          doc=Path('docs/biomass-trend.html').read_text()
+          for htmlid in ('biomass2010ExcessStatus','biomass2010AgeChart','biomass2010CoverageTable','biomass2010AgeTable','biomass2010VolumeTable'):
+           assert doc.count('id="'+htmlid+'"')==1,htmlid
+          assert '<script src="biomass-2010-excess.js"></script>' in doc
+          print('PASS: webpage and area/age/volume diagnostic JSON')
+          PY
       - name: Download verified raster archive excerpts
         run: |
           mkdir -p release-biomass release-volume release-age
