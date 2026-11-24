@@ -1,0 +1,30 @@
+name: Verify component scenario source caveat
+on:
+  pull_request:
+    paths:
+      - 'docs/biomass-trend.html'
+      - 'docs/biomass-komponent-scenarier.md'
+      - '.github/workflows/verify-biomass-component-source-warning.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify conflict notice and no correction to source series
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html=Path("docs/biomass-trend.html").read_text(encoding="utf-8")
+          doc=Path("docs/biomass-komponent-scenarier.md").read_text(encoding="utf-8")
+          assert "Viktig källkonflikt om 2010" in html
+          assert "inte verifierat" in html
+          assert "Endast om 2010 års raster verkligen" in html
+          assert "Källstatus för 2010: MOTSTRIDIG/OKLAR" in doc
+          assert "hess.copernicus.org/articles/29/5493/2025" in html
+          assert "2010 års division med (1 + r) inte motiverad" in html
+          assert '<script src="biomass-component-scenario.js"></script>' in html
+          print("PASS: contradictory 2010 product definitions prominently flagged")
+          PY

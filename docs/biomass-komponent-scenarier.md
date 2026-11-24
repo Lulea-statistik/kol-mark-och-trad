@@ -1,15 +1,19 @@
 # Komponentharmonisering av biomassa 2010, 2015 och 2018 – känslighetsscenario
 
-## Verifierade källor och kvarstående uppgift
+## Källor, motstridiga definitioner och kvarstående uppgift
 
-- SCB:s äldre genomgång av SLU Skogskarta 2005/2010 beskriver biomassa som **över + under mark**, se https://www.scb.se/contentassets/0020464162f64348bb47b3d1b9a1c9a7/mi1301_2015a01_br_mi71br1701.pdf.
-- SLU:s utvärdering av `Biomass_leaf` 2015 benämner den **total biomassa ovan jord**, se https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf.
+- SCB:s rapport *Markräkenskaper för ekosystemtjänster* (2017), sid. 45–46, beskriver Skogskartans biomassa som **över + under mark**, men kallar senare i samma avsnitt sitt härledda kol för **ovan jord**, vilket är en **källintern oklarhet**. SCB nämner även kg biomassa/ha, vilket inte bevisar att våra TIFF-klipp är i kg/ha. Källa: https://www.scb.se/contentassets/0020464162f64348bb47b3d1b9a1c9a7/mi1301_2015a01_br_mi71br1701.pdf.
+- En vetenskaplig tillämpning av **SLU Skogskarta 2010** beskriver det använda bio-slu-skiktet som **ovanjordisk trädbiomassa** (t/ha). Detta är ett motargument mot att 2010 års källband säkert inkluderar rötter, men kan avse en viss variant/bearbetning. Källa: https://hess.copernicus.org/articles/29/5493/2025/hess-29-5493-2025-supplement.pdf.
+- Skogsstyrelsens produktbeskrivning av **SLU Skogskarta 2015**, avsnitt Biomassa (sid. 3), anger **stamved, grenar och toppar, utan stubbar och rötter**, i ton TS/ha: https://www.skogsstyrelsen.se/globalassets/sjalvservice/karttjanster/geodatatjanster/produktbeskrivningar/raster-slu-skogskarta---produktbeskrivning.pdf.
+- SLU:s utvärdering av 2015 innehåller en fil med namnet `Biomass_leaf` men är inte i sig tillräcklig produktspecifik dokumentation för alla ingående växtdelar: https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf.
 - Skogsstyrelsens produktbeskrivning för laserbaserade skogliga grunddata anger **stamved + grenar + toppar, utan stubbar och rötter**, se https://www.skogsstyrelsen.se/globalassets/om-oss/regeringsuppdrag/uppdatering-av-skogliga-grundata/skogliga-grunddata---produktbeskrivning.pdf.
 - **Verifiera separat** för just 2010-filens band `BIOMASS_XX_P_10.tif`: exakt biomassakomponent, bandets **lagringsenhet/skala** (SCB beskriver en äldre skogskartvariabel i kg/ha), eventuellt omräknat värde samt giltig skogsmarksmask. Även 2015/2018 behöver enhet och metod kontrolleras, eftersom rastervärdenas jämförbarhet inte har godkänts.
 
+**Källstatus för 2010: MOTSTRIDIG/OKLAR.** Detta måste lösas genom kontakt med SLU eller originalmetadata för exakt `BIOMASS_XX_P_10.tif`. Att använda SCB:s beskrivning som säker grund för korrigering vore förhastat.
+
 ## Formel (syntetisk hypotetisk rot/stubbkvot)
 
-Definiera `r = B_under / B_ovan`. All biomassa för samma definierade växtdelar ges av `B_total = B_ovan * (1 + r)`. Om det **verifieras** att 2010 är total levande biomassa inklusive rötter/stubbar och 2015/2018 avser ovanjordisk trädbiomassa, blir:
+Definiera `r = B_under / B_ovan`. All biomassa för samma definierade växtdelar ges av `B_total = B_ovan * (1 + r)`. **Endast om det verifieras** att det aktuella 2010-bandet är total levande biomassa inklusive rötter/stubbar, och att 2015/2018 avser ovanjordisk biomassa i kompatibla enheter, blir:
 
 - `B_ovan,2010 = B_rå,2010 / (1 + r)`
 - `B_ovan,2015 = B_rå,2015`
@@ -34,7 +38,7 @@ Dessa värden är **råvärdesscenarier utan fastställd gemensam fysisk enhet**
 
 ## Prioriterad fortsatt verifiering
 
-1. Leta fram 2010 års originalbandmetod och enhet (kg/ha eller ton/ha) samt kontrollera arkivets ev. skalning.
+1. Begär en explicit filspecifik definition från SLU av `BIOMASS_XX_P_10.tif`, inklusive kg/ha vs ton/ha, rötter/stubbar, ursprunglig skala, NoData och skogsmarksmask. **Lös källkonflikten innan det hypotetiska scenariot används för justering.**
 2. Kontrollera att 2018 års omdrev 2 verkligen har ovanjordisk biomassadefinition.
 3. Om 2010 total inkluderar rötter, använd oberoende biomassafunktioner, gärna efter 2010 års trädslag och volym, för att uppskatta kvoten `r` med intervall och osäkerhet.
 4. Gör separat korrektionsserie för varje markklass, med originalserien sida vid sida och enhetskontroll innan publicering av fysiska totaler.
