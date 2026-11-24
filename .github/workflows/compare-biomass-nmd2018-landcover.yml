@@ -21,7 +21,7 @@ jobs:
           python-version: '3.12'
       - name: Install geospatial dependencies and syntax check
         run: |
-          python -m pip install -r requirements.txt
+          python -m pip install -r requirements.txt "scipy>=1.11"
           python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py
       - name: Fetch archived original CRS biomass and volume clips
         run: |
@@ -97,7 +97,13 @@ jobs:
           assert sum(x['cells'] for x in d['class_rows'])==d['matched_cells']
           assert sum(x['cells'] for x in d['group_rows'])==d['matched_cells']
           assert all(x['volume_2010_ge100_cells']<=x['cells'] for x in d['class_rows'])
+          forest=d['forest_only_NMD2018_reference']
+          assert forest['cells']==sum(x['cells'] for x in d['class_rows'] if x['class_code'] in list(range(111,118))+list(range(121,128)))
+          water=d['water_distance_NMD2018']
+          assert sum(x['cells'] for x in water)==sum(x['cells'] for x in d['class_rows'] if x['class_code'] in (61,62))
           print('Reference population validated',d['matched_area_ha'])
+          print('Forest-only:',forest)
+          print('Water distance breakdown:',water)
           for x in d['group_rows']:print(x)
           PY
       - name: Archive landcover and biomass results

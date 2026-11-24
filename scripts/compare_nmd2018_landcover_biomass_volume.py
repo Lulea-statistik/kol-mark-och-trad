@@ -20,6 +20,7 @@ from rasterio.transform import Affine
 from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 from pyproj import Transformer
+from scipy.ndimage import distance_transform_edt
 from fetch_and_compare_biomass_native import matches_expected_crs
 from shapely.geometry import shape, mapping
 from shapely.ops import transform as project_geom
@@ -72,6 +73,7 @@ def run(args):
                              "volume_sum":0.0,"ratio_sum":0.0,"ratio_cells":0,
                              "highvol_cells":0,"highvol_biomass_sum":{y:0.0 for y in YEARS}})
     rejected=defaultdict(int)
+    water_bins={name:{'cells':0,'sum':{y:0.0 for y in YEARS},'volume_high_cells':0} for name in ('0-50 m','50-100 m','100-250 m','250+ m')}
     with ExitStack() as stack:
         srcs={}
         for y in YEARS:
@@ -97,6 +99,13 @@ def run(args):
         nmd=stack.enter_context(WarpedVRT(src,crs="EPSG:3006",transform=trans,
             width=width,height=height,resampling=Resampling.nearest,
             src_nodata=src.nodata,nodata=255,dtype="uint8"))
+        # Distance from a water-class centre to the nearest non-water NMD2018 cell,
+        # not distance to an independently verified shoreline. Full-grid resampling
+        # precedes this raster analysis in EPSG:3006.
+        full_nmd=np.ma.asarray(nmd.read(1,masked=True))
+        full_water=np.isin(full_nmd.data,(61,62)) & ~np.ma.getmaskarray(full_nmd)
+        water_distance=distance_transform_edt(full_water)*step
+        del full_nmd,full_water
         for row in range(0,height,256):
             for col in range(0,width,256):
                 w=Window(col,row,min(256,width-col),min(256,height-row))
@@ -128,6 +137,19 @@ def run(args):
                     hv=vgood & (v>=100)
                     d["highvol_cells"]+=int(hv.sum())
                     for y in YEARS:d["highvol_biomass_sum"][y]+=float(bs[y][hv].sum(dtype="float64"))
+                # Diagnose how much apparent 2010 wood biomass sits within water
+                # cells at increasing distances from a non-water NMD cell.
+                water=valid & np.isin(m.data,(61,62))
+                dwindow=water_distance[int(row):int(row+w.height),int(col):int(col+w.width)]
+                for name,lo,hi in (('0-50 m',0,50),('50-100 m',50,100),
+                                   ('100-250 m',100,250),('250+ m',250,float('inf'))):
+                    selected=water & (dwindow>=lo)&(dwindow<hi)
+                    count=int(selected.sum())
+                    if count:
+                        d=water_bins[name]
+                        d['cells']+=count
+                        for y in YEARS:d['sum'][y]+=float(bs[y][selected].sum(dtype='float64'))
+                        d['volume_high_cells']+=int(np.count_nonzero(np.isfinite(v[selected]) & (v[selected]>=100)))
                 unknown=valid & ~known
                 if unknown.any():
                     for code,n in zip(*np.unique(m.data[unknown],return_counts=True)):
@@ -160,10 +182,29 @@ def run(args):
     totaldiff=sum(r["sum_diff_2010_minus_2018"] for r in rows)
     for r in rows:r["share_of_total_2010_minus_2018_raw_difference"]=r["sum_diff_2010_minus_2018"]/totaldiff if totaldiff else None
     for d in groups:d["share_of_total_2010_minus_2018_raw_difference"]=d["raw_sum_diff_2010_minus_2018"]/totaldiff if totaldiff else None
+    forests=[r for r in rows if r["class_code"] in set(range(111,118))|set(range(121,128))]
+    fn=sum(r["cells"] for r in forests)
+    fmeans={y:sum(r["biomass_means_raw"][y]*r["cells"] for r in forests)/fn for y in YEARS}
+    water_rows=[]
+    for label,d in water_bins.items():
+        n=d["cells"]
+        water_rows.append({"distance_to_nmd_nonwater":label,"cells":n,"area_ha":n*.0625,
+          "means_raw":{y:d["sum"][y]/n if n else None for y in YEARS},
+          "volume_2010_ge100_cells":d["volume_high_cells"],
+          "raw_sum_diff_2010_minus_2018":d["sum"]["2010"]-d["sum"]["2018"]})
+    waterclass_count=sum(r["cells"] for r in rows if r["class_code"] in (61,62))
+    if sum(d["cells"] for d in water_rows)!=waterclass_count:
+        raise ValueError("Water distance classes do not reconcile with NMD61+NMD62")
+    forest_result={"definition":"Only NMD2018 classes 111-117 and 121-127, excluding 118,128",
+        "area_ha":fn*.0625,"cells":fn,"means_raw":fmeans,
+        "raw_mean_difference_2010_minus_2018":fmeans["2010"]-fmeans["2018"],
+        "relative_difference_of_raw_mean_percent":100*(fmeans["2010"]/fmeans["2018"]-1) if fmeans["2018"] else None}
     out={"status":"DESCRIPTIVE_NMD2018_FIXED_LANDCOVER_NOT_HISTORICAL","generated_utc":datetime.now(timezone.utc).isoformat(),
       "source_NMD2018":"BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip","source_CRS_NMD":str(src.crs),
       "source_CRS_biomass":{"2010":"EPSG:3021","2015":"EPSG:3006","2018":"EPSG:3006"},
       "source_CRS_volume_2010":"EPSG:3021","analysis_CRS":"EPSG:3006","resolution_m":25,
+      "forest_only_NMD2018_reference":forest_result,
+      "water_distance_NMD2018":water_rows,
       "matched_area_ha":total*.0625,"matched_cells":total,"diagnostic_counts":dict(rejected),
       "class_rows":rows,"group_rows":groups,
       "limitations":["NMD2018 classes are fixed and DO NOT establish land cover in 2010 or 2015",
@@ -171,11 +212,14 @@ def run(args):
         "Biomass products are not harmonized in units or components; only raw values",
         "Categorical 10m NMD is sampled nearest to 25m; edge and small-class sensitivity remains",
         "2010 volume ratio reflects only modeled biomass and volume, not an independent measured conversion",
-        "Only shared valid biomass cells and project working boundary counted"]}
+        "Only shared valid biomass cells and project working boundary counted",
+        "Distance is from water NMD2018 cell centre to a non-water NMD2018 cell centre at 25m grid; not independently verified shoreline; nearest resampling and outside-source edges bias distance"]}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("Matched:",total,"cells",total*.0625,"ha; expected approx 153525.625 ha")
     print("NMD groups:",json.dumps(groups,ensure_ascii=False))
+    print("Forest-only reference:",json.dumps(forest_result,ensure_ascii=False))
+    print("Water distance:",json.dumps(water_rows,ensure_ascii=False))
     print("NMD classes:",json.dumps(rows,ensure_ascii=False))
 if __name__=="__main__":
     p=argparse.ArgumentParser()
