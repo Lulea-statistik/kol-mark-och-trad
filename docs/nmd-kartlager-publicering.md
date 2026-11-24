@@ -1,5 +1,20 @@
 # NMDproduktivitet i kartan - publicering och status
 
+## Direkt hämtning från öppna NMD2018 (nytt)
+
+Naturvårdsverket publicerar **NMD2018 tilläggsskikt produktivitet v1.1**:
+https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/NMD_Produktivitet_v1_1.zip
+
+Produktbeskrivning:
+https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/NMD_Produktbeskrivning_tillaggsskikt_Produktivitet.pdf
+
+Det nya arbetsflödet `Download and publish open NMD2018 productivity for Lulea` använder **ingen Skogsstyrelsen-inloggning**. Det laddar ner Naturvårdsverkets officiella ZIP, extraherar exakt `NMDproduktivitet_ogeneraliserad_v1_1.tif`, verifierar **EPSG:3006**, **10 m**, **ett enda band**, **NoData**, och maskar Luleås arbetsgeometri i **source-CRS före rasterreprojicering**. Därefter används hela EPSG:3857-kartgridet för färg-PNG och klickvärden. Endast dessa små kartderivat committas till GitHub Pages; rikstäckande originalraster ska inte läggas i git-historiken. Workflow sparar SHA-256 för ZIP-filen som körningsartefakt.
+
+Detta NMD2018-raster är **ett separat originalskikt från Naturvårdsverket**, inte bokstavligen Skogsstyrelsens SGD-tjänst band 10. Det har emellertid samma dokumenterade huvudklasser (0 = **ej skogsmark**, 1 = produktiv skogsmark, 2 = improduktiv skogsmark). Tilläggsskiktet bygger delvis på SLU Skogskarta 2000/2005/2010 och är därför **inte helt oberoende av äldre skogskartor**. Använd det som fast markreferens, inte som bevis på en faktisk markövergång 2010–2018.
+
+Vid sammanslagning av workflowfilen till main utlöses den första verkliga inläsningen automatiskt genom `push`. Därefter kan samma workflow köras manuellt från Actions. **Kontrollera körningsresultat innan NMD-lagret beskrivs som publicerat.**
+
+
 **Status: tekniskt stöd är förberett; verkligt NMD-raster har inte publicerats.**
 
 Skogsstyrelsen: https://www.skogsstyrelsen.se/globalassets/sjalvservice/karttjanster/geodatatjanster/teknisk-beskrivning/skogliga-grunddata---teknisk-beskrivning.pdf
