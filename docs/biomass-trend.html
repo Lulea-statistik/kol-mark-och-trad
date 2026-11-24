@@ -21,6 +21,26 @@
 <p class="hint"><strong>Källor:</strong> <a href="https://www.scb.se/contentassets/0020464162f64348bb47b3d1b9a1c9a7/mi1301_2015a01_br_mi71br1701.pdf">SCB – äldre SLU Skogskartans biomassa över/under mark</a> · <a href="https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf">SLU – Biomass_leaf 2015, biomassa ovan jord</a> · <a href="https://www.skogsstyrelsen.se/globalassets/om-oss/regeringsuppdrag/uppdatering-av-skogliga-grundata/skogliga-grunddata---produktbeskrivning.pdf">Skogsstyrelsen – biomassa exklusive stubbar/rötter</a> · <a href="https://hess.copernicus.org/articles/29/5493/2025/hess-29-5493-2025-supplement.pdf">Forskningssupplement – SLU biomassa 2010 beskrivs som ovanjordisk</a> · <a href="data/biomass_2010_excess_diagnostics.json">Råvärden och gemensam EPSG:3006-yta</a>.</p>
 <script src="biomass-component-scenario.js"></script>
 </section>
+<section id="biomass-forest-only-nmd2018">
+<h2>Biomassa i skogsklassade områden – samma celler 2010, 2015 och 2018</h2>
+<p><strong>Ny viktig kontroll:</strong> När analysen begränsas till NMD2018:s 14 skogsklasser (111–117 och 121–127), alltså utan temporärt ej skog, vatten och övriga marktyper, är det viktade medelråvärdet <strong>88,43 år 2010</strong> och <strong>88,18 år 2018</strong>, en differens om endast <strong>+0,29&nbsp;%</strong>. År 2015 ligger lägre, på <strong>81,54</strong>. Jämförelsen gäller exakt <strong>106 593,875 ha</strong> gemensamma celler i <strong>EPSG:3006, 25 m</strong>; den visar inte en verifierad faktisk skoglig biomassatrend.</p>
+<div class="table-scroll"><table><thead><tr><th>Fast urval utifrån NMD2018</th><th>Yta (ha)</th><th>Medelråvärde 2010</th><th>2015</th><th>2018</th><th>Skillnad 2010–2018</th></tr></thead><tbody>
+<tr><th scope="row">Skogsklasser 111–117 och 121–127</th><td>106 593,88</td><td>88,43</td><td>81,54</td><td>88,18</td><td>+0,29 %</td></tr>
+<tr><th scope="row">Alla gemensamt giltiga celler, oavsett klass</th><td>153 525,63</td><td>76,89</td><td>64,73</td><td>69,33</td><td>+10,90 %</td></tr>
+</tbody></table></div>
+<div class="chart-wrap" style="height:330px"><canvas id="forestOnlyNmdBiomassChart" aria-label="Jämförelse av biomassans medelråvärde 2010 2015 och 2018 inom skogsklasser och alla gemensamma celler"></canvas></div>
+<h3>Skogstyp spelar roll – de små nettoskillnaderna döljer större avvikelser</h3>
+<p>Skogsklassernas nästan oförändrade totalmedel betyder <strong>inte</strong> att varje skogstyp är oförändrad. Tabellen nedan visar de fem största skogstyperna utanför våtmark. Klassningen kommer från <strong>NMD2018 även för 2010 och 2015</strong>, och visar därför geografiska grupper, inte observerat historiskt trädslag.</p>
+<div class="table-scroll"><table><thead><tr><th>NMD2018-skogstyp</th><th>Yta (ha)</th><th>2010</th><th>2015</th><th>2018</th><th>2010 minus 2018</th></tr></thead><tbody>
+<tr><th scope="row">Tallskog (111)</th><td>40 436,25</td><td>82,92</td><td>72,22</td><td>74,29</td><td>+8,63</td></tr>
+<tr><th scope="row">Granskog (112)</th><td>15 902,44</td><td>135,66</td><td>107,49</td><td>115,59</td><td>+20,07</td></tr>
+<tr><th scope="row">Barrblandskog (113)</th><td>4 054,63</td><td>117,50</td><td>98,42</td><td>102,32</td><td>+15,18</td></tr>
+<tr><th scope="row">Lövblandad barrskog (114)</th><td>19 966,38</td><td>91,59</td><td>84,48</td><td>97,14</td><td>−5,55</td></tr>
+<tr><th scope="row">Triviallövskog (115)</th><td>19 557,81</td><td>58,01</td><td>75,03</td><td>84,77</td><td>−26,75</td></tr>
+</tbody></table></div>
+<p><strong>Tolkning:</strong> Den stora nettoskillnaden i hela jämförelseytan är starkt koncentrerad till andra NMD2018-markklasser än skog. Inom skog kompenserar högre 2010-värden i barrskog lägre 2010-värden i bland- och lövskog. Att 2010 och 2018 får liknande totalsiffra inom skog räcker därför <strong>inte</strong> för att slå fast att modellernas definitioner eller enheter är harmoniserade. År 2015 ligger dessutom lägre även inom skog.</p>
+<p class="hint"><strong>Analysproveniens:</strong> <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45401741397">Godkänd körning för skogsmark och vattenavstånd (PR #86)</a> · <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45400889281">Godkänd analys för 25 NMD2018-klasser (PR #85)</a>. Värdena är råvärden och inte verifierade ton torrsubstans/ha.</p>
+</section>
 <section id="nmd2018-2010-explanation">
 <h2>Vad förklarar 2010 års höga skattade biomassa? Nya resultat från NMD2018</h2>
 <p><strong>Samlad bedömning:</strong> 2010 års förhöjda biomassaråvärde är inte enbart en effekt av att olika geografiska ytor jämförts. En betydande del av nivådifferensen ligger i områden som <strong>NMD2018 klassar som ej skogsmark</strong>, särskilt där SLU:s <strong>volymmodell för 2010</strong> ändå anger mycket hög virkesvolym. Skillnaden kvarstår emellertid även inom produktiv skogsmark. Vi kan därför ännu inte avgöra hur stor del som beror på faktisk avverkning, ändrad markanvändning, klassningsskillnader eller biomassaprodukternas olika metodik.</p>
@@ -129,4 +149,13 @@
 <p><strong>Beräkningsenhet:</strong> medelvärdet av faktiska eller uttryckligen skattade råvärden per gemensam cellposition på ett nedskalat EPSG:3857-rastergrid; <strong>inte ton torr biomassa, ton C eller arealriktig kommunalsumma</strong>. Pixeldata är omsamplade från olika källraster i verifierade respektive käll-CRS (bland annat EPSG:3021 och EPSG:3006). NoData hålls isär från 0, även i skattningen. Ingen skattning görs utanför SGD2:s datatäckning. En arealriktig och jämförbar kommunserie skulle kräva harmoniserade biomassaprodukter, verifierade enheter och bearbetning av originalraster.</p>
 <p><strong>Källor:</strong> <a href="https://www.slu.se/miljoanalys/statistik-och-miljodata/miljodatakatalogen/slu-skogskarta/">SLU Skogskarta</a> · <a href="https://www.skogsstyrelsen.se/e-tjanster-och-kartor/karttjanster/skogliga-grunddata/">Skogsstyrelsen – Skogliga grunddata</a> · <a href="https://geodpags.skogsstyrelsen.se/arcgis/rest/services/Geodataportal/GeodataportalVisaSkogligaGrunddataMetadata/MapServer/0">Skogsstyrelsens skanningsmetadata per 2,5 km-ruta</a>.</p>
 </section></main><footer>Jämförelsen är en explorativ rasteranalys med uttalade osäkerheter, inte officiell kolförrådsstatistik.</footer>
-<script src="species-stability-2005-2010.js"></script><script src="biomass-volume-2005-2010.js"></script><script src="biomass-2010-excess.js"></script><script src="biomass-trend-history.js"></script><script src="biomass-trend.js"></script></body></html>
+<script src="species-stability-2005-2010.js"></script><script src="biomass-volume-2005-2010.js"></script><script src="biomass-2010-excess.js"></script><script src="biomass-trend-history.js"></script><script src="biomass-trend.js"></script><script>
+(function(){
+const canvas=document.getElementById('forestOnlyNmdBiomassChart');
+if(!canvas||typeof Chart==='undefined')return;
+new Chart(canvas,{type:'line',data:{labels:['2010','2015','2018'],datasets:[
+{label:'Endast NMD2018-skog',data:[88.4332222395676,81.54342240582646,88.17880785030745],borderColor:'#1b7553',backgroundColor:'#1b7553',borderWidth:3,pointRadius:5,tension:0.1},
+{label:'Alla gemensamma celler',data:[76.88742364943045,64.73253959370062,69.3290996204125],borderColor:'#a85d33',backgroundColor:'#a85d33',borderWidth:3,pointRadius:5,tension:0.1}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y.toLocaleString('sv-SE',{minimumFractionDigits:2,maximumFractionDigits:2})+' (råvärde)';}}}},scales:{y:{title:{display:true,text:'Medelråvärde (inte verifierad fysisk enhet)'}}}}});
+})();
+</script></body></html>
