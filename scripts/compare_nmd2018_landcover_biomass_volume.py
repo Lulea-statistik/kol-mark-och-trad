@@ -90,7 +90,7 @@ def run(args):
             width=width,height=height,resampling=Resampling.average,
             src_nodata=src.nodata,nodata=-9999,dtype="float32"))
         src=stack.enter_context(rasterio.open(args.nmd))
-        if src.crs is None or src.crs.to_epsg()!=3006 or src.count!=1 or any(abs(r-10)>.01 for r in src.res):
+        if src.crs is None or src.crs.to_epsg() not in (3006,3021,25833) or src.count!=1 or any(abs(abs(r)-10)>.01 for r in src.res):
             raise ValueError("NMD2018 county raster wrong CRS/band/resolution")
         if src.nodata in LABELS:raise ValueError("NMD NoData clashes with known class codes")
         nmd=stack.enter_context(WarpedVRT(src,crs="EPSG:3006",transform=trans,
@@ -160,7 +160,7 @@ def run(args):
     for r in rows:r["share_of_total_2010_minus_2018_raw_difference"]=r["sum_diff_2010_minus_2018"]/totaldiff if totaldiff else None
     for d in groups:d["share_of_total_2010_minus_2018_raw_difference"]=d["raw_sum_diff_2010_minus_2018"]/totaldiff if totaldiff else None
     out={"status":"DESCRIPTIVE_NMD2018_FIXED_LANDCOVER_NOT_HISTORICAL","generated_utc":datetime.now(timezone.utc).isoformat(),
-      "source_NMD2018":"BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip","source_CRS_NMD":"EPSG:3006",
+      "source_NMD2018":"BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip","source_CRS_NMD":str(src.crs),
       "source_CRS_biomass":{"2010":"EPSG:3021","2015":"EPSG:3006","2018":"EPSG:3006"},
       "source_CRS_volume_2010":"EPSG:3021","analysis_CRS":"EPSG:3006","resolution_m":25,
       "matched_area_ha":total*.0625,"matched_cells":total,"diagnostic_counts":dict(rejected),
@@ -172,7 +172,7 @@ def run(args):
         "2010 volume ratio reflects only modeled biomass and volume, not an independent measured conversion",
         "Only shared valid biomass cells and project working boundary counted"]}
     args.output.parent.mkdir(parents=True,exist_ok=True)
-    args.output.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    args.output.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("Matched:",total,"cells",total*.0625,"ha; expected approx 153525.625 ha")
     print("NMD groups:",json.dumps(groups,ensure_ascii=False))
     print("NMD classes:",json.dumps(rows,ensure_ascii=False))
