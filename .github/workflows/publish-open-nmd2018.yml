@@ -1,0 +1,102 @@
+name: Download and publish open NMD2018 productivity for Lulea
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-open-nmd2018.yml'
+permissions:
+  contents: write
+concurrency:
+  group: publish-nmd-productivity
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install raster processing packages
+        run: python -m pip install -r requirements.txt
+      - name: Download official public NMD2018 archive
+        env:
+          NMD_ZIP_URL: https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/NMD_Produktivitet_v1_1.zip
+        run: |
+          mkdir -p nmd-input
+          curl --fail --location --retry 3 --retry-delay 10 --connect-timeout 45 \
+            --output nmd-input/NMD_Produktivitet_v1_1.zip "$NMD_ZIP_URL"
+          test -s nmd-input/NMD_Produktivitet_v1_1.zip
+          sha256sum nmd-input/NMD_Produktivitet_v1_1.zip | tee nmd-input/download-sha256.txt
+      - name: Extract genuine NMD2018 productivity GeoTIFF and verify metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import rasterio
+          archive=Path('nmd-input/NMD_Produktivitet_v1_1.zip')
+          with ZipFile(archive) as z:
+              matches=[x for x in z.infolist()
+                       if x.filename.lower().endswith('nmdproduktivitet_ogeneraliserad_v1_1.tif')]
+              if len(matches)!=1: raise ValueError('Unexpected NMD2018 archive content: '+str([x.filename for x in z.infolist() if x.filename.lower().endswith('.tif')]))
+              info=matches[0]
+              if info.file_size>20_000_000_000: raise ValueError('Unexpected TIFF size')
+              target=Path('nmd-input/NMDproduktivitet_ogeneraliserad_v1_1.tif')
+              import shutil
+              with z.open(info) as source, target.open('wb') as dest:shutil.copyfileobj(source,dest,8*1024*1024)
+          with rasterio.open(target) as src:
+              if src.crs is None or src.crs.to_epsg()!=3006:raise ValueError('Source CRS not EPSG:3006')
+              if src.count!=1:raise ValueError('Expected single-band NMD2018 productivity raster')
+              if src.nodata is None:raise ValueError('Explicit NoData required')
+              if abs(src.res[0]-10)>1e-4 or abs(src.res[1]-10)>1e-4:raise ValueError('Unexpected native pixel size')
+              print('VERIFIED NMD2018',src.width,src.height,'CRS',src.crs,'NoData',src.nodata)
+          PY
+      - name: Publish actual NMD2018 Lulea raster preview
+        run: |
+          python scripts/publish_nmd_productivity_preview.py \
+            --source nmd-input/NMDproduktivitet_ogeneraliserad_v1_1.tif \
+            --band 1 \
+            --version NMD2018-produktivitet-v1.1 \
+            --source-url https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/NMD_Produktivitet_v1_1.zip
+      - name: Validate output metadata and geography
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('docs/data/preview/preview_layers.json').read_text(encoding='utf-8'))
+          x=d['layers']['nmd_productivity']
+          assert x['raster_grid_crs']=='EPSG:3857'
+          assert x['source_crs']=='EPSG:3006'
+          assert x['nmd_version']=='NMD2018-produktivitet-v1.1'
+          counts=x['class_preview_pixel_counts']
+          assert all(int(counts[str(i)])>=0 for i in (0,1,2))
+          assert int(counts['1'])>0 and int(counts['0'])>0
+          assert sum(counts.values())==x['valid_preview_pixels']
+          assert x['valid_preview_pixels']>10000
+          for p in ('nmd_productivitet_preview.png','nmd_productivitet_sampled_values.f32.gz'):
+              assert Path('docs/data/preview',p).stat().st_size>100
+          print('PASS actual NMD2018 map preview validated',counts)
+          PY
+      - name: Commit actual map preview to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/preview/nmd_productivitet_preview.png docs/data/preview/nmd_productivitet_sampled_values.f32.gz docs/data/preview/preview_layers.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish authentic NMD2018 productivity layer for Lulea"
+            git push
+          fi
+      - name: Upload provenance and QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: actual-nmd2018-publication-qa
+          path: |
+            nmd-input/download-sha256.txt
+            docs/data/preview/preview_layers.json
+          if-no-files-found: warn
+          retention-days: 90
