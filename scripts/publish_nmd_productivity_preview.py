@@ -61,8 +61,10 @@ def run(args):
         for chunk in iter(lambda: fh.read(8 * 1024 * 1024), b""):
             source_hash.update(chunk)
     with rasterio.open(args.source) as src:
-        if src.crs is None or src.nodata is None:
-            raise ValueError("Source raster must explicitly declare CRS and NoData")
+        if src.crs is None:
+            raise ValueError("Source raster must explicitly declare CRS")
+        if src.nodata in (0, 1, 2):
+            raise ValueError("Source NoData conflicts with a valid NMD class code")
         if args.band < 1 or args.band > src.count:
             raise ValueError("Requested NMD band is absent from source")
         if args.band == 10 and src.count < 10:
@@ -74,16 +76,22 @@ def run(args):
             Transformer.from_crs("EPSG:4326", src.crs, always_xy=True).transform, geom)
         cropped, crop_transform = native_mask(
             src, [mapping(geom_native)], crop=True, indexes=args.band,
-            filled=True, nodata=src.nodata)
+            filled=False)
         if cropped.ndim != 2:
             raise ValueError("Expected one native cropped NMD classification band")
+        observed_native = np.unique(cropped.compressed())
+        if observed_native.size == 0 or not np.all(np.isin(observed_native, [0, 1, 2])):
+            raise ValueError("NMD native source contains unknown class values; do not assume NoData")
+        # The output single-band clip uses its OWN explicit NoData code, distinct
+        # from class 0 even if the national GeoTIFF did not declare source NoData.
+        cropped = cropped.filled(255)
         # Entire cropped pixel grid is then genuinely reprojected to the display CRS.
         with tempfile.TemporaryDirectory() as tmp:
             native_path = Path(tmp) / "lulea_nmd_source_crs_clip.tif"
             with rasterio.open(native_path, "w", driver="GTiff",
                     width=cropped.shape[1], height=cropped.shape[0], count=1,
                     dtype=cropped.dtype, transform=crop_transform, crs=src.crs,
-                    nodata=src.nodata, compress="deflate", tiled=True) as dst:
+                    nodata=255, compress="deflate", tiled=True) as dst:
                 dst.write(cropped, 1)
             del cropped
             with rasterio.open(native_path) as native_src:
