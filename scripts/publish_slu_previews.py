@@ -98,7 +98,17 @@ for key in (*required,*optional):
       "total_tonnes_C":None,
       "area_integral":False
     }
-(out/"preview_layers.json").write_text(json.dumps({"kind":"unverified_units_visual_preview","layers":layers},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+# Preserve separately published, validated NMD layer when regular SLU previews refresh.
+# Do not manufacture a layer if its source-backed artifacts are absent.
+existing_manifest=out/"preview_layers.json"
+if existing_manifest.is_file():
+    existing=json.loads(existing_manifest.read_text(encoding="utf-8")).get("layers",{}).get("nmd_productivity")
+    if existing and existing.get("color_scale_type")=="nmd_productivity_categories" and existing.get("source_sha256") and existing.get("nmd_version"):
+        img=out/Path(existing.get("image","")).name
+        numeric=out/Path(existing.get("numeric_file","")).name
+        if img.is_file() and numeric.is_file():
+            layers["nmd_productivity"]=existing
+(out/"preview_layers.json").write_text(json.dumps({"kind":"unverified_units_visual_preview","layers":layers},ensure_ascii=False,indent=2)+chr(10),encoding="utf-8")
 (out/"preview_statistics.json").write_text(json.dumps({
    "data_type":"raw_source_samples_in_reprojected_preview_grid",
    "physical_units_verified":False,
@@ -125,7 +135,7 @@ for key in (*required,*optional):
       "source_resolution_m":v["source_resolution_m"],
       "source_unit_tag":v["source_unit_tag"],
       "sample_type":v["sample_type"],
-   } for k,v in layers.items()}
+   } for k,v in layers.items() if k in doc["files"]}
  },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 print("Created",len(layers),"SLU visual previews with sampled numeric grid and unverified-unit statistics")
 print("Archive status:",{k:doc["files"].get(k,{}).get("status") for k in optional})
