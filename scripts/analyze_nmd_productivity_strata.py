@@ -39,8 +39,6 @@ def classify_and_summarise(args):
             raise ValueError("NMD source CRS and NoData must be explicit")
         if args.nmd_band < 1 or args.nmd_band > nmd.count:
             raise ValueError("NMD band is not present (default requires original 10-band image)")
-        if args.grid_reference.crs is None:
-            raise ValueError("Reference analysis grid needs a CRS")
         grid = stack.enter_context(rasterio.open(args.grid_reference))
         if grid.crs is None or grid.crs.to_epsg() != 3006:
             raise ValueError("Reference analysis grid must use EPSG:3006")
