@@ -1,0 +1,40 @@
+name: Verify biomass component sensitivity scenario
+on:
+  pull_request:
+    paths:
+      - 'docs/biomass-trend.html'
+      - 'docs/biomass-component-scenario.js'
+      - '.github/workflows/validate-biomass-component-scenario.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax and correct wiring
+        run: |
+          node --check docs/biomass-component-scenario.js
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          html=Path('docs/biomass-trend.html').read_text(encoding='utf-8')
+          js=Path('docs/biomass-component-scenario.js').read_text(encoding='utf-8')
+          d=json.loads(Path('docs/data/biomass_2010_excess_diagnostics.json').read_text(encoding='utf-8'))
+          assert d['analysis_crs']=='EPSG:3006' and d['cell_size_m']==25
+          assert d['paired_biomass_only']['2010']['paired_n']==2456410
+          for name in ('rootShootRatio','rootShootRatioValue','componentScenarioRows','componentClassRows','componentScenarioStatus'):
+              assert html.count('id="'+name+'"')==1,name
+              assert name in js
+          assert html.count('<script src="biomass-component-scenario.js"></script>')==1
+          # Test the deliberately conditional assumptions rather than claiming real root estimates.
+          for ratio in (0,.15,.25,.35,.6):
+              for raw in (0.,40.,76.88742364943045):
+                  above=raw/(1+ratio)
+                  assert abs(above*(1+ratio)-raw)<1e-8
+          print('PASS: source population, component algebra and interactive controls')
+          PY
