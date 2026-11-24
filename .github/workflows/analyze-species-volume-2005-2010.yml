@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'scripts/analyze_species_volume_2005_2010.py'
+      - 'docs/biomass-trend.html'
+      - 'docs/species-stability-2005-2010.js'
+      - 'docs/data/species_stability_2005_2010.json'
       - '.github/workflows/analyze-species-volume-2005-2010.yml'
   workflow_dispatch:
 permissions:
@@ -23,6 +26,27 @@ jobs:
         run: pip install -r requirements.txt
       - name: Validate script syntax
         run: python -m compileall -q scripts/analyze_species_volume_2005_2010.py
+      - name: Verify dominance classifier and chart syntax with synthetic cells
+        run: |
+          node --check docs/species-stability-2005-2010.js
+          PYTHONPATH=scripts python - <<'PY'
+          import numpy as np
+          from analyze_species_volume_2005_2010 import cell_dominance,new_stability_bucket,record_stability,finish_stability
+          x=[np.array([75.,10.,40.,1.]),np.array([10.,75.,40.,0.]),np.array([5.,10.,15.,0.]),np.array([0.,5.,5.,0.])]
+          cls,con,pine=cell_dominance(x,np.array([90.,100.,100.,1.]))
+          assert cls.tolist()==[0,1,4,5],cls
+          b=new_stability_bucket('test')
+          record_stability(b,cls,cls,con,con,pine,pine,np.array([True,True,True,True]))
+          out=finish_stability(b)
+          assert out['eligible_cells']==3 and out['same_dominant_class_fraction']==1.0
+          assert out['dominant_pine_stays_pine_fraction']==1.0
+          assert out['dominant_spruce_stays_spruce_fraction']==1.0
+          html=open('docs/biomass-trend.html',encoding='utf-8').read()
+          for id in ('speciesStabilityStatus','speciesStabilityTable','speciesTransitionTable'):
+           assert html.count('id="'+id+'"')==1,id
+          assert 'src="species-stability-2005-2010.js"' in html
+          print('PASS species dominance classifier and HTML wiring')
+          PY
       - name: Download validated sources for baseline 2000 to 2018 common support
         run: |
           mkdir -p release-volume release-biomass release-age-history release-age-2010
