@@ -1,0 +1,44 @@
+name: Diagnose historic 2006 to 2010 harvests against wood volume
+on:
+  pull_request:
+    paths:
+      - 'scripts/diagnose_harvest_2006_2010_volume.py'
+      - '.github/workflows/diagnose-harvest-2006-2010-volume.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster dependencies
+        run: pip install -r requirements.txt
+      - name: Validate Python syntax
+        run: python -m compileall -q scripts/diagnose_harvest_2006_2010_volume.py
+      - name: Download archived raster source excerpts
+        run: |
+          mkdir -p release-volume release-biomass release-age-history release-age-2010
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download forest-age-lulea-2000-2005-v1 --dir release-age-history --pattern 'lulea_forest_age_*'
+          gh release download forest-age-lulea-2010-v1 --dir release-age-2010 --pattern 'lulea_forest_age_2010_*'
+      - name: Query dated mapped harvests and test volume/age on same cells
+        run: python scripts/diagnose_harvest_2006_2010_volume.py
+      - name: Preserve harvest and archive diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harvest-2006-2010-volume-cohort-diagnostics
+          path: |
+            metadata/harvest_2006_2010_volume_diagnostics.json
+            metadata/biomass_2006_2010_harvest_qa.json
+          if-no-files-found: warn
+          retention-days: 90
