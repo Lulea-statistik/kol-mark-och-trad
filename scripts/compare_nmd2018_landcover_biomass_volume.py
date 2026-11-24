@@ -20,6 +20,7 @@ from rasterio.transform import Affine
 from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 from pyproj import Transformer
+from fetch_and_compare_biomass_native import matches_expected_crs
 from shapely.geometry import shape, mapping
 from shapely.ops import transform as project_geom
 
@@ -76,7 +77,7 @@ def run(args):
         for y in YEARS:
             src=stack.enter_context(rasterio.open(getattr(args,"biomass_"+y)))
             expected=3021 if y=="2010" else 3006
-            if src.crs is None or src.crs.to_epsg()!=expected or src.count!=1 or src.nodata is None:
+            if src.crs is None or not matches_expected_crs(src.crs,expected) or src.count!=1 or src.nodata is None:
                 raise ValueError(y+" biomass original CRS/band/NoData invalid")
             if abs(src.res[0]-(25 if y=="2010" else 12.5 if y=="2015" else 10))>.1:
                 raise ValueError("Biomass pixel size mismatched "+y)
@@ -84,13 +85,13 @@ def run(args):
                 width=width,height=height,resampling=Resampling.average,
                 src_nodata=src.nodata,nodata=-9999,dtype="float32"))
         src=stack.enter_context(rasterio.open(args.volume_2010))
-        if src.crs is None or src.crs.to_epsg()!=3021 or src.count!=1 or src.nodata is None:
+        if src.crs is None or not matches_expected_crs(src.crs,3021) or src.count!=1 or src.nodata is None:
             raise ValueError("2010 wood volume source metadata invalid")
         vol=stack.enter_context(WarpedVRT(src,crs="EPSG:3006",transform=trans,
             width=width,height=height,resampling=Resampling.average,
             src_nodata=src.nodata,nodata=-9999,dtype="float32"))
         src=stack.enter_context(rasterio.open(args.nmd))
-        if src.crs is None or src.crs.to_epsg() not in (3006,3021,25833) or src.count!=1 or any(abs(abs(r)-10)>.01 for r in src.res):
+        if src.crs is None or not matches_expected_crs(src.crs,3006) or src.count!=1 or any(abs(abs(r)-10)>.01 for r in src.res):
             raise ValueError("NMD2018 county raster wrong CRS/band/resolution")
         if src.nodata in LABELS:raise ValueError("NMD NoData clashes with known class codes")
         nmd=stack.enter_context(WarpedVRT(src,crs="EPSG:3006",transform=trans,
