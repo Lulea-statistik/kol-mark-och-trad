@@ -1,0 +1,44 @@
+name: Compare 2005 and 2010 historic species volumes on identical cells
+on:
+  pull_request:
+    paths:
+      - 'scripts/analyze_species_volume_2005_2010.py'
+      - '.github/workflows/analyze-species-volume-2005-2010.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install raster processing dependencies
+        run: pip install -r requirements.txt
+      - name: Validate script syntax
+        run: python -m compileall -q scripts/analyze_species_volume_2005_2010.py
+      - name: Download validated sources for baseline 2000 to 2018 common support
+        run: |
+          mkdir -p release-volume release-biomass release-age-history release-age-2010
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download forest-age-lulea-2000-2005-v1 --dir release-age-history --pattern 'lulea_forest_age_*'
+          gh release download forest-age-lulea-2010-v1 --dir release-age-2010 --pattern 'lulea_forest_age_2010_*'
+      - name: Crop historical species sources in EPSG3021 and compare on EPSG3006
+        run: python scripts/analyze_species_volume_2005_2010.py --output metadata/species_volume_2005_2010_diagnostics.json
+      - name: Preserve results and raster QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pine-spruce-species-volume-2005-2010-qa
+          path: |
+            metadata/species_volume_2005_2010_diagnostics.json
+            metadata/species_biomass_archive_qa.json
+          if-no-files-found: warn
+          retention-days: 90
