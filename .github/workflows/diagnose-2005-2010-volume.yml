@@ -1,0 +1,44 @@
+name: Diagnose 2005 to 2010 volume jump and age-map consistency
+on:
+  pull_request:
+    paths:
+      - 'scripts/diagnose_2005_2010_volume_jump.py'
+      - '.github/workflows/diagnose-2005-2010-volume.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install GIS dependencies
+        run: pip install -r requirements.txt
+      - name: Check Python script compiles
+        run: python -m compileall -q scripts/diagnose_2005_2010_volume_jump.py
+      - name: Download archived age, volume and biomass source-CRS clips
+        run: |
+          mkdir -p release-volume release-biomass release-age-2010 release-age-history
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download forest-age-lulea-2010-v1 --dir release-age-2010 --pattern 'lulea_forest_age_2010_*'
+          gh release download forest-age-lulea-2000-2005-v1 --dir release-age-history --pattern 'lulea_forest_age_*'
+      - name: Compare three historic volume rasters against 2005/2010 age
+        run: python scripts/diagnose_2005_2010_volume_jump.py --output metadata/volume_2005_2010_diagnostics.json
+      - name: Preserve diagnostic JSON and archive QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: volume-jump-2005-2010-age-cohort-diagnostics
+          path: |
+            metadata/volume_2005_2010_diagnostics.json
+            metadata/biomass_release_validation_2005_2010.json
+          if-no-files-found: warn
+          retention-days: 90
