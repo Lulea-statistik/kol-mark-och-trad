@@ -51,7 +51,7 @@ jobs:
           with rasterio.open(target) as src:
               if src.crs is None or src.crs.to_epsg()!=3006:raise ValueError('Source CRS not EPSG:3006')
               if src.count!=1:raise ValueError('Expected single-band NMD2018 productivity raster')
-              if src.nodata is None:raise ValueError('Explicit NoData required')
+              if src.nodata in (0,1,2):raise ValueError('NoData conflicts with valid NMD classes')
               if abs(src.res[0]-10)>1e-4 or abs(src.res[1]-10)>1e-4:raise ValueError('Unexpected native pixel size')
               print('VERIFIED NMD2018',src.width,src.height,'CRS',src.crs,'NoData',src.nodata)
           PY
