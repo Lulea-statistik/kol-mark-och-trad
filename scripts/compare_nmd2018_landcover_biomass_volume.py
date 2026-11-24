@@ -75,6 +75,8 @@ def run(args):
     rejected=defaultdict(int)
     resample_compare={k:{"cells":0,"biomass_sum_2010":0.0,"biomass_sum_2018":0.0} for k in ("water_both","water_nearest_only","water_mode_only","nonwater_both")}
     mode_water_all=0
+    shore_bins={side:{band:{'cells':0,'sums':{y:0.0 for y in YEARS},'high_volume_cells':0} for band in ('25-50 m','50-100 m','100-250 m','250+ m')} for side in ('water','forest')}
+    water_near_forest={'within_50m':{'cells':0,'sums':{y:0.0 for y in YEARS}},'farther_than_50m':{'cells':0,'sums':{y:0.0 for y in YEARS}}}
     nearest_water_all=0
     water_bins={name:{'cells':0,'sum':{y:0.0 for y in YEARS},'volume_high_cells':0} for name in ('0-50 m','50-100 m','100-250 m','250+ m')}
     with ExitStack() as stack:
@@ -113,7 +115,13 @@ def run(args):
         full_nmd=np.ma.asarray(nmd.read(1,masked=True))
         full_water=np.isin(full_nmd.data,(61,62)) & ~np.ma.getmaskarray(full_nmd)
         water_distance=distance_transform_edt(full_water)*step
-        del full_nmd,full_water
+        forest_codes=list(range(111,118))+list(range(121,128))
+        full_forest=np.isin(full_nmd.data,forest_codes) & ~np.ma.getmaskarray(full_nmd)
+        # Distances are between centres of the resampled NMD grid cells in EPSG:3006.
+        # Distance to forest for water cells, and to water for forest cells.
+        dist_to_forest=distance_transform_edt(~full_forest)*step
+        dist_to_water=distance_transform_edt(~full_water)*step
+        del full_nmd,full_water,full_forest
         for row in range(0,height,256):
             for col in range(0,width,256):
                 w=Window(col,row,min(256,width-col),min(256,height-row))
@@ -173,6 +181,27 @@ def run(args):
                         d['cells']+=count
                         for y in YEARS:d['sum'][y]+=float(bs[y][selected].sum(dtype='float64'))
                         d['volume_high_cells']+=int(np.count_nonzero(np.isfinite(v[selected]) & (v[selected]>=100)))
+                forest=valid & np.isin(m.data,forest_codes)
+                fd=dist_to_water[int(row):int(row+w.height),int(col):int(col+w.width)]
+                for side,sel,dist in (('water',water,water_distance[int(row):int(row+w.height),int(col):int(col+w.width)]),('forest',forest,fd)):
+                    for band,low,high in (('25-50 m',25,50),('50-100 m',50,100),('100-250 m',100,250),('250+ m',250,float('inf'))):
+                        mask=sel & (dist>=low) & (dist<high)
+                        count=int(mask.sum())
+                        if count:
+                            bucket=shore_bins[side][band]
+                            bucket['cells']+=count
+                            for y in YEARS:bucket['sums'][y]+=float(bs[y][mask].sum(dtype='float64'))
+                            bucket['high_volume_cells']+=int(np.count_nonzero(np.isfinite(v[mask]) & (v[mask]>=100)))
+                # Hypothesis: does the water anomaly preferentially occur next to
+                # forest classes rather than any shoreline land class?
+                forest_distance=dist_to_forest[int(row):int(row+w.height),int(col):int(col+w.width)]
+                for label,mask in (('within_50m', water & (forest_distance<=50)),
+                                   ('farther_than_50m', water & (forest_distance>50))):
+                    count=int(mask.sum())
+                    if count:
+                        bucket=water_near_forest[label]
+                        bucket['cells']+=count
+                        for y in YEARS:bucket['sums'][y]+=float(bs[y][mask].sum(dtype='float64'))
                 unknown=valid & ~known
                 if unknown.any():
                     for code,n in zip(*np.unique(m.data[unknown],return_counts=True)):
@@ -222,6 +251,17 @@ def run(args):
         "area_ha":fn*.0625,"cells":fn,"means_raw":fmeans,
         "raw_mean_difference_2010_minus_2018":fmeans["2010"]-fmeans["2018"],
         "relative_difference_of_raw_mean_percent":100*(fmeans["2010"]/fmeans["2018"]-1) if fmeans["2018"] else None}
+    def describe_bins(data):
+        return {name:{'cells':d['cells'],'area_ha':d['cells']*.0625,
+           'biomass_means_raw':{y:d['sums'][y]/d['cells'] if d['cells'] else None for y in YEARS},
+           **({'volume_2010_ge100_cells':d['high_volume_cells']} if 'high_volume_cells' in d else {})}
+           for name,d in data.items()}
+    riparian={'water_side_distance_to_nonwater':describe_bins(shore_bins['water']),
+      'forest_side_distance_to_water':describe_bins(shore_bins['forest']),
+      'water_distance_to_NMD2018_forest':describe_bins(water_near_forest),
+      'method':'Centre-to-centre Euclidean distance on 25m resampled NMD2018; NOT historical shoreline or forestry leave-strip map'}
+    if sum(x['cells'] for x in shore_bins['water'].values())!=waterclass_count:
+        raise ValueError('Shoreline water bands do not match waterclass count')
     sensitivity={"classification_methods":["nearest","mode"],
       "water_nearest_cells":nearest_water_all,"water_mode_cells":mode_water_all,
       "water_nearest_area_ha":nearest_water_all*.0625,
@@ -240,6 +280,7 @@ def run(args):
       "forest_only_NMD2018_reference":forest_result,
       "water_distance_NMD2018":water_rows,
       "nmd_nearest_vs_mode_sensitivity":sensitivity,
+      "nmd2018_riparian_forest_gradient":riparian,
       "matched_area_ha":total*.0625,"matched_cells":total,"diagnostic_counts":dict(rejected),
       "class_rows":rows,"group_rows":groups,
       "limitations":["NMD2018 classes are fixed and DO NOT establish land cover in 2010 or 2015",
@@ -256,6 +297,7 @@ def run(args):
     print("Forest-only reference:",json.dumps(forest_result,ensure_ascii=False))
     print("Water distance:",json.dumps(water_rows,ensure_ascii=False))
     print("Nearest vs mode:",json.dumps(sensitivity,ensure_ascii=False))
+    print("Riparian forest gradient:",json.dumps(riparian,ensure_ascii=False))
     print("NMD classes:",json.dumps(rows,ensure_ascii=False))
 if __name__=="__main__":
     p=argparse.ArgumentParser()
