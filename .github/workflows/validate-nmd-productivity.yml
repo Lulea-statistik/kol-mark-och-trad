@@ -1,0 +1,39 @@
+name: Validate NMD productivity comparison code
+on:
+  pull_request:
+    paths:
+      - 'scripts/analyze_nmd_productivity_strata.py'
+      - '.github/workflows/validate-nmd-productivity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check Python syntax and CLI
+        run: |
+          python -m py_compile scripts/analyze_nmd_productivity_strata.py
+          python scripts/analyze_nmd_productivity_strata.py --help
+      - name: Verify mandatory classification and mask safeguards
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          code=Path('scripts/analyze_nmd_productivity_strata.py').read_text(encoding='utf-8')
+          required=(
+            'Resampling.nearest if name == "nmd" else Resampling.average',
+            'grid_mask.data == 1',
+            'if grid.nodata is None:',
+            'args.expected_cells',
+            '"1": "produktiv_skogsmark"',
+            '"2": "improduktiv_skogsmark"',
+            'src.crs.to_epsg() != epsg'
+          )
+          for expression in required:
+              assert expression in code, expression
+          print('NMD classification and fixed-mask contract checked')
+          PY
