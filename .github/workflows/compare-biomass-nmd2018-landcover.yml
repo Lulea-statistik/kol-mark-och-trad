@@ -45,6 +45,9 @@ jobs:
           from pathlib import Path
           from zipfile import ZipFile
           import shutil,rasterio
+          import sys
+          sys.path.insert(0,"scripts")
+          from fetch_and_compare_biomass_native import matches_expected_crs
           srcpath=Path("nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip")
           with ZipFile(srcpath) as z:
               candidates=[x for x in z.infolist() if x.filename.lower().endswith('.tif') and 'bas' in x.filename.lower()]
@@ -70,7 +73,7 @@ jobs:
                   raise ValueError(f"Expected 10m source cells, got {raster.res}")
               # A real, complete reprojection to the EPSG:3006 analysis grid is handled
               # by WarpedVRT. Source NMD CRS must be verified, not guessed or overwritten.
-              if raster.crs.to_epsg() not in (3006,3021,25833):
+              if not matches_expected_crs(raster.crs,3006):
                   raise ValueError(f"Unexpected unverified source CRS: {raster.crs}")
               print("Verified NMD source with explicit CRS",raster.crs,raster.res,raster.nodata,flush=True)
           PY
