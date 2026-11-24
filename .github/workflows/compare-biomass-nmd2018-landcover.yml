@@ -119,6 +119,13 @@ jobs:
           assert sum(x['cells'] for x in water_side.values())==water_cells
           assert sum(x['cells'] for x in water_to_forest.values())==water_cells
           assert sum(x['cells'] for x in forest_side.values())==forest['cells']
+          expected_bands=['0-25 m','>25-50 m','>50-75 m','>75-100 m','>100 m']
+          assert list(water_side)==expected_bands, list(water_side)
+          assert list(forest_side)==expected_bands, list(forest_side)
+          assert all(x['cells']>=0 for x in water_side.values())
+          assert all(x['cells']>=0 for x in forest_side.values())
+          for group in (water_side,forest_side):
+              assert all(abs(x['area_ha']-x['cells']*.0625)<1e-8 for x in group.values())
           print('Riparian forest-gradient validated',shore)
           for x in d['group_rows']:print(x)
           PY
