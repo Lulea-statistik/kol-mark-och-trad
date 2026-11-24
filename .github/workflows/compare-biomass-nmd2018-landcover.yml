@@ -1,0 +1,113 @@
+name: Compare biomass and 2010 volume by NMD2018 landcover
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/compare_nmd2018_landcover_biomass_volume.py'
+      - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install geospatial dependencies and syntax check
+        run: |
+          python -m pip install -r requirements.txt
+          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py
+      - name: Fetch archived original CRS biomass and volume clips
+        run: |
+          mkdir -p release-biomass release-volume
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_2010_*'
+          for y in 2010 2015 2018; do test -s "release-biomass/lulea_biomass_${y}_source_crs_clip.tif"; done
+          test -s release-volume/lulea_total_volume_2010_source_crs_clip.tif
+      - name: Verify archived biomass files
+        run: python scripts/verify_biomass_release.py --directory release-biomass --output metadata/landcover_source_validation.json
+      - name: Download NMD2018 original Norrbotten base landcover (BD county)
+        run: |
+          mkdir -p nmd-input
+          curl --fail --location --retry 3 --retry-delay 10 --connect-timeout 45 \
+            --output nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip \
+            https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip
+          sha256sum nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip > metadata/nmd2018_landcover_zip_sha256.txt
+      - name: Extract and validate NMD original raster
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import shutil,rasterio
+          import sys
+          sys.path.insert(0,"scripts")
+          from fetch_and_compare_biomass_native import matches_expected_crs
+          srcpath=Path("nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip")
+          with ZipFile(srcpath) as z:
+              candidates=[x for x in z.infolist() if x.filename.lower().endswith('.tif') and 'bas' in x.filename.lower()]
+              print("GeoTIFF candidates:",[x.filename for x in candidates])
+              if len(candidates)!=1:raise ValueError("Expected exactly one NMD base GeoTIFF")
+              dst=Path("nmd-input/NMD2018bas_BD.tif")
+              with z.open(candidates[0]) as f,dst.open('wb') as out:
+                  shutil.copyfileobj(f,out,8*1024*1024)
+              # Preserve external world/CRS metadata if the supplied TIFF depends on sidecars.
+              for member in z.infolist():
+                  if member.is_dir() or member.filename==candidates[0].filename:continue
+                  basename=Path(member.filename).name
+                  if basename.lower().startswith(Path(candidates[0].filename).stem.lower()+'.') or basename.lower()==Path(candidates[0].filename).with_suffix('.tfw').name.lower():
+                      with z.open(member) as inp,(dst.parent/basename).open('wb') as out:
+                          shutil.copyfileobj(inp,out)
+          with rasterio.open(dst) as raster:
+              print("NMD2018 source metadata",{"crs":str(raster.crs),"epsg":raster.crs.to_epsg() if raster.crs else None,
+                "resolution":raster.res,"bands":raster.count,"nodata":raster.nodata,
+                "transform":str(raster.transform),"bounds":str(raster.bounds)},flush=True)
+              if raster.crs is None:raise ValueError("NMD source has no readable CRS; examine original sidecar files")
+              if raster.count!=1:raise ValueError(f"Expected one NMD band, got {raster.count}")
+              if any(abs(abs(r)-10)>.01 for r in raster.res):
+                  raise ValueError(f"Expected 10m source cells, got {raster.res}")
+              # A real, complete reprojection to the EPSG:3006 analysis grid is handled
+              # by WarpedVRT. Source NMD CRS must be verified, not guessed or overwritten.
+              if not matches_expected_crs(raster.crs,3006):
+                  raise ValueError(f"Unexpected unverified source CRS: {raster.crs}")
+              print("Verified NMD source with explicit CRS",raster.crs,raster.res,raster.nodata,flush=True)
+          PY
+      - name: Compare biomass by all original NMD2018 landcover classes
+        run: |
+          python scripts/compare_nmd2018_landcover_biomass_volume.py \
+            --biomass-2010 release-biomass/lulea_biomass_2010_source_crs_clip.tif \
+            --biomass-2015 release-biomass/lulea_biomass_2015_source_crs_clip.tif \
+            --biomass-2018 release-biomass/lulea_biomass_2018_source_crs_clip.tif \
+            --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
+            --nmd nmd-input/NMD2018bas_BD.tif \
+            --output metadata/nmd2018_landcover_biomass_volume.json
+      - name: Verify reference population and print summary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('metadata/nmd2018_landcover_biomass_volume.json').read_text())
+          assert d['analysis_CRS']=='EPSG:3006' and d['resolution_m']==25
+          assert d['matched_cells']==2456410, d['matched_cells']
+          assert sum(x['cells'] for x in d['class_rows'])==d['matched_cells']
+          assert sum(x['cells'] for x in d['group_rows'])==d['matched_cells']
+          assert all(x['volume_2010_ge100_cells']<=x['cells'] for x in d['class_rows'])
+          print('Reference population validated',d['matched_area_ha'])
+          for x in d['group_rows']:print(x)
+          PY
+      - name: Archive landcover and biomass results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmd2018-landcover-biomass-volume-diagnostics
+          path: |
+            metadata/nmd2018_landcover_biomass_volume.json
+            metadata/landcover_source_validation.json
+            metadata/nmd2018_landcover_zip_sha256.txt
+          if-no-files-found: warn
+          retention-days: 90
