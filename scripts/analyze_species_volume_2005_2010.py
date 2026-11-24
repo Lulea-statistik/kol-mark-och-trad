@@ -30,6 +30,67 @@ from verify_biomass_release import run as verify_biomass
 SPECIES={"pine":"PINEVOL","spruce":"SPRUCEVOL","birch":"BIRCHVOL",
          "deciduous":"DECIDUOUSVOL"}
 AGE_BINS=(0,20,40,60,80,100,120,150,200,500,float("inf"))
+DOMINANT_CLASSES=("pine","spruce","birch","other_deciduous","mixed","unclassified")
+DOMINANT_THRESHOLD=0.60
+MINIMUM_VOLUME_RAW=20.0
+MAX_COMPONENT_CLOSURE_GAP=0.20
+
+def new_stability_bucket(name):
+ return {"name":name,"cells":0,"eligible_both_years":0,
+         "transitions":np.zeros((6,6),dtype="int64"),
+         "conifer_share_2005_sum":0.0,"conifer_share_2010_sum":0.0,
+         "pine_share_2005_sum":0.0,"pine_share_2010_sum":0.0}
+
+def cell_dominance(components,total):
+ """Dominant estimated volume type, not observed tree coverage."""
+ amounts=np.vstack(components).astype("float64")
+ subtotal=amounts.sum(axis=0)
+ legal=(total>=MINIMUM_VOLUME_RAW) & (subtotal>=MINIMUM_VOLUME_RAW)
+ legal &= (np.abs(subtotal-total)<=MAX_COMPONENT_CLOSURE_GAP*np.maximum(total,1.0))
+ safe=np.where(subtotal>0,subtotal,1.0)
+ shares=amounts/safe
+ winner=shares.argmax(axis=0)
+ max_share=shares.max(axis=0)
+ cls=np.where(max_share>=DOMINANT_THRESHOLD,winner,4).astype("uint8")
+ cls[~legal]=5
+ return cls,(amounts[0]+amounts[1])/safe,amounts[0]/safe
+
+def record_stability(bucket,classes05,classes10,con05,con10,pine05,pine10,mask):
+ bucket["cells"]+=int(mask.sum())
+ if not np.any(mask):return
+ c05=classes05[mask];c10=classes10[mask]
+ count=np.bincount(c05.astype("int64")*6+c10.astype("int64"),minlength=36).reshape(6,6)
+ bucket["transitions"]+=count
+ eligible=(c05!=5)&(c10!=5)
+ n=int(eligible.sum())
+ bucket["eligible_both_years"]+=n
+ if not n:return
+ bucket["conifer_share_2005_sum"]+=float(con05[mask][eligible].sum())
+ bucket["conifer_share_2010_sum"]+=float(con10[mask][eligible].sum())
+ bucket["pine_share_2005_sum"]+=float(pine05[mask][eligible].sum())
+ bucket["pine_share_2010_sum"]+=float(pine10[mask][eligible].sum())
+
+def finish_stability(bucket):
+ n=bucket["eligible_both_years"]
+ matrix=bucket["transitions"]
+ assert int(matrix.sum())==bucket["cells"]
+ known=matrix[:5,:5]
+ denominator=int(known.sum())
+ assert denominator==n
+ return {"population":bucket["name"],"cells":bucket["cells"],
+  "area_ha":bucket["cells"]*.0625,
+  "eligible_cells":n,"eligible_area_ha":n*.0625,
+  "eligible_share":n/bucket["cells"] if bucket["cells"] else None,
+  "species_labels":list(DOMINANT_CLASSES),
+  "transition_counts":matrix.tolist(),
+  "same_dominant_class_fraction":float(np.trace(known)/denominator) if denominator else None,
+  "dominant_pine_stays_pine_fraction":float(known[0,0]/known[0].sum()) if known[0].sum()>0 else None,
+  "dominant_spruce_stays_spruce_fraction":float(known[1,1]/known[1].sum()) if known[1].sum()>0 else None,
+  "mean_conifer_volume_share_2005":bucket["conifer_share_2005_sum"]/n if n else None,
+  "mean_conifer_volume_share_2010":bucket["conifer_share_2010_sum"]/n if n else None,
+  "mean_pine_volume_share_2005":bucket["pine_share_2005_sum"]/n if n else None,
+  "mean_pine_volume_share_2010":bucket["pine_share_2010_sum"]/n if n else None}
+
 def sha(path):
  h=hashlib.sha256()
  with path.open("rb") as f:
@@ -87,6 +148,15 @@ def run(a):
                   for i in range(len(AGE_BINS)-1)]} for species in SPECIES}
  main_n=0;all_species_n=0;all_species_sums={k:0. for k in ("total05","total10","pine05","pine10","spruce05","spruce10","birch05","birch10","decid05","decid10")}
  birch_le_decid=0
+ stability={
+  "all_2005_ages":new_stability_bucket("all_2005_ages"),
+  "age_2005_0_20":new_stability_bucket("age_2005_0_20"),
+  "age_2005_20_40":new_stability_bucket("age_2005_20_40"),
+  "age_2005_40_60":new_stability_bucket("age_2005_40_60"),
+  "age_2005_60_plus":new_stability_bucket("age_2005_60_plus"),
+  "age_2005_20_plus":new_stability_bucket("age_2005_20_plus"),
+  "age_2005_20_plus_no_large_age_reset":new_stability_bucket("age_2005_20_plus_no_large_age_reset"),
+  "age_2005_20_plus_age_consistent":new_stability_bucket("age_2005_20_plus_age_consistent")}
  with ExitStack() as stack:
   vrt={}
   for name,(path,epsg) in paths.items():
@@ -142,6 +212,26 @@ def run(a):
           ("birch","birch"),("deciduous","decid")):
        all_species_sums[f"{label}{year[-2:]}"]+=float(arrays[f"{species}_{year}"][all_mask].sum())
      birch_le_decid+=int(np.count_nonzero(arrays["birch_2005"][all_mask]<=arrays["deciduous_2005"][all_mask]))
+     # Single 25 m pixels and identical source support, not independently observed species.
+     vals05=[arrays[f"{species}_2005"][all_mask] for species in SPECIES]
+     vals10=[arrays[f"{species}_2010"][all_mask] for species in SPECIES]
+     total05=arrays["volume_2005"][all_mask]
+     total10=arrays["volume_2010"][all_mask]
+     c05,con05,p05=cell_dominance(vals05,total05)
+     c10,con10,p10=cell_dominance(vals10,total10)
+     age05=arrays["age_2005"][all_mask]
+     age10=arrays["age_2010"][all_mask]
+     cases=[
+      ("all_2005_ages",np.ones(m,dtype=bool)),
+      ("age_2005_0_20",age05<20),
+      ("age_2005_20_40",(age05>=20)&(age05<40)),
+      ("age_2005_40_60",(age05>=40)&(age05<60)),
+      ("age_2005_60_plus",age05>=60),
+      ("age_2005_20_plus",age05>=20),
+      ("age_2005_20_plus_no_large_age_reset",(age05>=20)&(age10>=age05-10)),
+      ("age_2005_20_plus_age_consistent",(age05>=20)&(age10>=age05-2)&(age10<=age05+12))]
+     for name,selected in cases:
+      record_stability(stability[name],c05,c10,con05,con10,p05,p10,selected)
  if main_n!=2316804:raise ValueError(f"Expected 2316804 baseline cells, got {main_n}")
  summaries={}
  for species,s in stats.items():
@@ -172,11 +262,23 @@ def run(a):
   "mean_on_full_species_overlap":{k:(v/all_species_n if all_species_n else None)
        for k,v in all_species_sums.items()},
   "share_cells_birch_2005_le_deciduous_2005":birch_le_decid/all_species_n if all_species_n else None,
+  "dominance_stability_method":{
+   "criterion":"max of pine, spruce, birch, other_deciduous >= 60 pct of four-component volume sum",
+   "minimum_total_and_four_species_sum_raw":MINIMUM_VOLUME_RAW,
+   "maximum_abs_difference_four_species_sum_and_total_share":MAX_COMPONENT_CLOSURE_GAP,
+   "basis":"2005 vs 2010 estimated volume composition on identical 25m cells, not observed stem proportions",
+   "unknown_class_included_in_matrix":True,
+   "age_consistency_tolerance":"2010 age estimate between 2005 age minus 2 and plus 12",
+   "age_reset_exclusion":"2010 age must not be >10 years below 2005 estimate (not a verified harvest mask)"},
+  "dominance_stability":{name:finish_stability(bucket) for name,bucket in stability.items()},
   "source_clips":trace["sources"],
   "cautions":[
    "All species raster products are kNN estimates, not independent forest inventory measurements",
    "Source filenames and values do not verify physical volume unit or whether DECIDUOUS includes BIRCH",
-   "Do not sum birch and deciduous: they may overlap in definitions",
+   "Do not sum birch and deciduous as physical volume without confirming component definition",
+   "The four-component sum is used solely for relative species composition and rejected where its gap against total exceeds 20pct",
+   "For older stands, the age-consistency filter is only a sensitivity test and NOT proof of no logging",
+   "Volume-dominant class is a raster estimate, NOT fixed stand identity: logging, thinning, succession and source model differences can all shift it",
    "Stratum age is as estimated in 2005; annual age, harvest and species composition can change",
    "Individual species pair masks may have fewer cells than baseline 144800.25 hectares",
    "No source raster or public biomass timeseries was modified",
