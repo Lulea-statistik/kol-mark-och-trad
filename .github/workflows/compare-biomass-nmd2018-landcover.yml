@@ -104,6 +104,13 @@ jobs:
           print('Reference population validated',d['matched_area_ha'])
           print('Forest-only:',forest)
           print('Water distance breakdown:',water)
+          sensitivity=d['nmd_nearest_vs_mode_sensitivity']
+          groups=sensitivity['overlap_cells_by_water_agreement']
+          assert sum(row['cells'] for row in groups.values())<=d['matched_cells']
+          assert sensitivity['water_nearest_cells']==sum(x['cells'] for x in d['class_rows'] if x['class_code'] in (61,62))
+          assert sensitivity['water_nearest_cells']>=groups['water_both']['cells']+groups['water_nearest_only']['cells']
+          assert sensitivity['water_mode_cells']>=groups['water_both']['cells']+groups['water_mode_only']['cells']
+          print('NMD nearest versus mode sensitivity:',sensitivity)
           for x in d['group_rows']:print(x)
           PY
       - name: Archive landcover and biomass results
