@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'scripts/diagnose_2005_2010_volume_jump.py'
+      - 'docs/biomass-volume-2005-2010.js'
+      - 'docs/data/volume_2005_2010_diagnostics.json'
+      - 'docs/biomass-trend.html'
       - '.github/workflows/diagnose-2005-2010-volume.yml'
   workflow_dispatch:
 permissions:
@@ -23,6 +26,24 @@ jobs:
         run: pip install -r requirements.txt
       - name: Check Python script compiles
         run: python -m compileall -q scripts/diagnose_2005_2010_volume_jump.py
+      - name: Verify chart code and published volume-age diagnostics
+        run: |
+          node --check docs/biomass-volume-2005-2010.js
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          doc=Path('docs/biomass-trend.html').read_text()
+          for tag in ('volume2005ChangeStatus','volume2005AgeChart','volume2005AgeTable'):
+           assert doc.count('id="'+tag+'"')==1,tag
+          assert 'src="biomass-volume-2005-2010.js"' in doc
+          d=json.loads(Path('docs/data/volume_2005_2010_diagnostics.json').read_text())
+          assert d['analysis_crs']=='EPSG:3006' and d['pixel_size_m']==25
+          assert d['status']=='HISTORICAL_VOLUME_CHANGE_DESCRIPTIVE_NOT_GROWTH'
+          assert d['common_valid_cells']==2316804 and d['common_valid_area_ha']==144800.25
+          assert all(d['volume_raw_means'][str(y)]>0 for y in (2000,2005,2010))
+          assert sum(r['n'] for r in d['baseline_age_2005_strata'])==d['common_valid_cells']
+          print('PASS: actual volume data, age groups, linkable webpage')
+          PY
       - name: Download archived age, volume and biomass source-CRS clips
         run: |
           mkdir -p release-volume release-biomass release-age-2010 release-age-history
