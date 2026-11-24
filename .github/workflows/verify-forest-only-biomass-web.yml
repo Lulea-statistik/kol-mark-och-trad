@@ -1,0 +1,35 @@
+name: Verify published forest-only biomass comparison
+on:
+  pull_request:
+    paths:
+      - 'docs/biomass-trend.html'
+      - '.github/workflows/verify-forest-only-biomass-web.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check source totals, species and chart consistency
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path("docs/biomass-trend.html").read_text(encoding="utf-8")
+          section=html.split('<section id="biomass-forest-only-nmd2018">',1)[1].split("</section>",1)[0]
+          assert section.count('id="forestOnlyNmdBiomassChart"') == 1
+          for val in ("106 593,875", "153 525,63", "88,43", "81,54", "88,18", "+0,29 %"):
+              assert val in section,val
+          for code in ("111","112","113","114","115"):
+              assert "("+code+")" in section,code
+          assert "2018 även för 2010 och 2015" in section
+          assert "inte" in section
+          assert "45401741397" in section
+          for val in ("88.4332222395676","81.54342240582646","88.17880785030745"):
+              assert val in html,val
+          assert html.count("<script") == html.count("</script>"), "Unbalanced script tags"
+          assert abs((88.4332222395676/88.17880785030745 - 1)*100-.288521012545373)<1e-8
+          print("PASS published values, source links, legend, chart and comparison restrictions")
+          PY
