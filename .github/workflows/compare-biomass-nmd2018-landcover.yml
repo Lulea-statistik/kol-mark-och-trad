@@ -135,6 +135,16 @@ jobs:
           assert groups['nearest_water_with_pure_water']['cells']+groups['nearest_water_with_mixed_water']['cells']<=water_cells
           assert groups['pure_water_four_land_neighbour']['cells']+groups['pure_water_diagonal_only_land_neighbour']['cells']<=pure
           assert all(row['area_ha']==row['cells']*.0625 for row in groups.values())
+          clusters=d['pure_water_no_eight_land_neighbour_clusters']
+          assert clusters['total_cells']==groups['pure_water_no_eight_land_neighbour']['cells']
+          assert clusters['largest_component_cells']<=clusters['total_cells']
+          assert clusters['components']>=1
+          assert sum(x['cells'] for x in clusters['top_components'])<=clusters['total_cells']
+          for x in clusters['top_components']:
+              assert len(x['bounds_epsg3006'])==4
+              assert x['bounds_epsg3006'][0]<x['centroid_easting_epsg3006']<x['bounds_epsg3006'][2]
+              assert x['bounds_epsg3006'][1]<x['centroid_northing_epsg3006']<x['bounds_epsg3006'][3]
+          print('Pure-water isolated geographic clusters:',clusters)
           print('Native source water cover, four and eight neighbours:',source)
           print('Riparian forest-gradient validated',shore)
           for x in d['group_rows']:print(x)
