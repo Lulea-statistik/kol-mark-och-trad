@@ -29,7 +29,7 @@ jobs:
           assert "45401741397" in section
           for val in ("88.4332222395676","81.54342240582646","88.17880785030745"):
               assert val in html,val
-          assert html.count("<script>")==html.count("</script>")
+          assert len(re.findall(r"<script(?:\\s[^>]*)?>",html))==html.count("</script>"), "Unbalanced script tags"
           assert abs((88.4332222395676/88.17880785030745 - 1)*100-.288521012545373)<1e-8
           print("PASS published values, source links, legend, chart and comparison restrictions")
           PY
