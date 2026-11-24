@@ -53,10 +53,26 @@ jobs:
               dst=Path("nmd-input/NMD2018bas_BD.tif")
               with z.open(candidates[0]) as f,dst.open('wb') as out:
                   shutil.copyfileobj(f,out,8*1024*1024)
+              # Preserve external world/CRS metadata if the supplied TIFF depends on sidecars.
+              for member in z.infolist():
+                  if member.is_dir() or member.filename==candidates[0].filename:continue
+                  basename=Path(member.filename).name
+                  if basename.lower().startswith(Path(candidates[0].filename).stem.lower()+'.') or basename.lower()==Path(candidates[0].filename).with_suffix('.tfw').name.lower():
+                      with z.open(member) as inp,(dst.parent/basename).open('wb') as out:
+                          shutil.copyfileobj(inp,out)
           with rasterio.open(dst) as raster:
-              assert raster.crs is not None and raster.crs.to_epsg()==3006
-              assert raster.count==1 and all(abs(abs(r)-10)<.01 for r in raster.res)
-              print("Verified original NMD2018 base",raster.crs,raster.res,raster.nodata)
+              print("NMD2018 source metadata",{"crs":str(raster.crs),"epsg":raster.crs.to_epsg() if raster.crs else None,
+                "resolution":raster.res,"bands":raster.count,"nodata":raster.nodata,
+                "transform":str(raster.transform),"bounds":str(raster.bounds)},flush=True)
+              if raster.crs is None:raise ValueError("NMD source has no readable CRS; examine original sidecar files")
+              if raster.count!=1:raise ValueError(f"Expected one NMD band, got {raster.count}")
+              if any(abs(abs(r)-10)>.01 for r in raster.res):
+                  raise ValueError(f"Expected 10m source cells, got {raster.res}")
+              # A real, complete reprojection to the EPSG:3006 analysis grid is handled
+              # by WarpedVRT. Source NMD CRS must be verified, not guessed or overwritten.
+              if raster.crs.to_epsg() not in (3006,3021,25833):
+                  raise ValueError(f"Unexpected unverified source CRS: {raster.crs}")
+              print("Verified NMD source with explicit CRS",raster.crs,raster.res,raster.nodata,flush=True)
           PY
       - name: Compare biomass by all original NMD2018 landcover classes
         run: |
