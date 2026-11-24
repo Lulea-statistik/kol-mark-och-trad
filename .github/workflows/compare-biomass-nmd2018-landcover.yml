@@ -111,6 +111,15 @@ jobs:
           assert sensitivity['water_nearest_cells']>=groups['water_both']['cells']+groups['water_nearest_only']['cells']
           assert sensitivity['water_mode_cells']>=groups['water_both']['cells']+groups['water_mode_only']['cells']
           print('NMD nearest versus mode sensitivity:',sensitivity)
+          shore=d['nmd2018_riparian_forest_gradient']
+          water_side=shore['water_side_distance_to_nonwater']
+          forest_side=shore['forest_side_distance_to_water']
+          water_to_forest=shore['water_distance_to_NMD2018_forest']
+          water_cells=sum(x['cells'] for x in d['class_rows'] if x['class_code'] in (61,62))
+          assert sum(x['cells'] for x in water_side.values())==water_cells
+          assert sum(x['cells'] for x in water_to_forest.values())==water_cells
+          assert sum(x['cells'] for x in forest_side.values())==forest['cells']
+          print('Riparian forest-gradient validated',shore)
           for x in d['group_rows']:print(x)
           PY
       - name: Archive landcover and biomass results
