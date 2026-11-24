@@ -73,6 +73,9 @@ def run(args):
                              "volume_sum":0.0,"ratio_sum":0.0,"ratio_cells":0,
                              "highvol_cells":0,"highvol_biomass_sum":{y:0.0 for y in YEARS}})
     rejected=defaultdict(int)
+    resample_compare={k:{"cells":0,"biomass_sum_2010":0.0,"biomass_sum_2018":0.0} for k in ("water_both","water_nearest_only","water_mode_only","nonwater_both")}
+    mode_water_all=0
+    nearest_water_all=0
     water_bins={name:{'cells':0,'sum':{y:0.0 for y in YEARS},'volume_high_cells':0} for name in ('0-50 m','50-100 m','100-250 m','250+ m')}
     with ExitStack() as stack:
         srcs={}
@@ -99,6 +102,11 @@ def run(args):
         nmd=stack.enter_context(WarpedVRT(src,crs="EPSG:3006",transform=trans,
             width=width,height=height,resampling=Resampling.nearest,
             src_nodata=src.nodata,nodata=255,dtype="uint8"))
+        # Mode gives the dominant source class in each target pixel, while nearest
+        # picks one source sample. Both are categorical warps of original 10m NMD.
+        nmd_mode=stack.enter_context(WarpedVRT(src,crs="EPSG:3006",transform=trans,
+            width=width,height=height,resampling=Resampling.mode,
+            src_nodata=src.nodata,nodata=255,dtype="uint8"))
         # Distance from a water-class centre to the nearest non-water NMD2018 cell,
         # not distance to an independently verified shoreline. Full-grid resampling
         # precedes this raster analysis in EPSG:3006.
@@ -115,11 +123,26 @@ def run(args):
                 bs={y:np.ma.asarray(srcs[y].read(1,window=w,masked=True),dtype="float64").filled(np.nan) for y in YEARS}
                 v=np.ma.asarray(vol.read(1,window=w,masked=True),dtype="float64").filled(np.nan)
                 m=nmd.read(1,window=w,masked=True)
+                mm=nmd_mode.read(1,window=w,masked=True)
                 good=inside.copy()
                 for arr in bs.values():good &= np.isfinite(arr)&(arr>=0)
                 rejected["joint_biomass_cells"]+=int(good.sum())
                 valid=good & (~np.ma.getmaskarray(m)) & (m.data!=255)
                 rejected["missing_NMD"]+=int((good&~valid).sum())
+                mode_valid=good & ~np.ma.getmaskarray(mm) & (mm.data!=255)
+                overlap=valid & mode_valid
+                nw=np.isin(m.data,(61,62))
+                mw=np.isin(mm.data,(61,62))
+                nearest_water_all+=int((valid & nw).sum())
+                mode_water_all+=int((mode_valid & mw).sum())
+                for name,sel in (("water_both",overlap & nw & mw),
+                  ("water_nearest_only",overlap & nw & ~mw),
+                  ("water_mode_only",overlap & ~nw & mw),
+                  ("nonwater_both",overlap & ~nw & ~mw)):
+                    d=resample_compare[name];n=int(sel.sum());d["cells"]+=n
+                    if n:
+                        d["biomass_sum_2010"]+=float(bs["2010"][sel].sum(dtype="float64"))
+                        d["biomass_sum_2018"]+=float(bs["2018"][sel].sum(dtype="float64"))
                 known=np.zeros_like(good)
                 for code in LABELS:
                     sel=valid & (m.data==code)
@@ -199,12 +222,24 @@ def run(args):
         "area_ha":fn*.0625,"cells":fn,"means_raw":fmeans,
         "raw_mean_difference_2010_minus_2018":fmeans["2010"]-fmeans["2018"],
         "relative_difference_of_raw_mean_percent":100*(fmeans["2010"]/fmeans["2018"]-1) if fmeans["2018"] else None}
+    sensitivity={"classification_methods":["nearest","mode"],
+      "water_nearest_cells":nearest_water_all,"water_mode_cells":mode_water_all,
+      "water_nearest_area_ha":nearest_water_all*.0625,
+      "water_mode_area_ha":mode_water_all*.0625,
+      "overlap_cells_by_water_agreement":{
+        key:{"cells":d["cells"],"area_ha":d["cells"]*.0625,
+          "biomass_means_raw":{"2010":d["biomass_sum_2010"]/d["cells"] if d["cells"] else None,
+             "2018":d["biomass_sum_2018"]/d["cells"] if d["cells"] else None}}
+        for key,d in resample_compare.items()},
+      "interpretation":"Sensitivity of class assignment, not a correction of native 2010 forest biomass or coastline"}
+    if sum(d["cells"] for d in resample_compare.values())>total:raise ValueError("Invalid nearest/mode overlap counts")
     out={"status":"DESCRIPTIVE_NMD2018_FIXED_LANDCOVER_NOT_HISTORICAL","generated_utc":datetime.now(timezone.utc).isoformat(),
       "source_NMD2018":"BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip","source_CRS_NMD":str(src.crs),
       "source_CRS_biomass":{"2010":"EPSG:3021","2015":"EPSG:3006","2018":"EPSG:3006"},
       "source_CRS_volume_2010":"EPSG:3021","analysis_CRS":"EPSG:3006","resolution_m":25,
       "forest_only_NMD2018_reference":forest_result,
       "water_distance_NMD2018":water_rows,
+      "nmd_nearest_vs_mode_sensitivity":sensitivity,
       "matched_area_ha":total*.0625,"matched_cells":total,"diagnostic_counts":dict(rejected),
       "class_rows":rows,"group_rows":groups,
       "limitations":["NMD2018 classes are fixed and DO NOT establish land cover in 2010 or 2015",
@@ -220,6 +255,7 @@ def run(args):
     print("NMD groups:",json.dumps(groups,ensure_ascii=False))
     print("Forest-only reference:",json.dumps(forest_result,ensure_ascii=False))
     print("Water distance:",json.dumps(water_rows,ensure_ascii=False))
+    print("Nearest vs mode:",json.dumps(sensitivity,ensure_ascii=False))
     print("NMD classes:",json.dumps(rows,ensure_ascii=False))
 if __name__=="__main__":
     p=argparse.ArgumentParser()
