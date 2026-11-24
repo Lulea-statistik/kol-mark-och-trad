@@ -44,6 +44,8 @@ def classify_and_summarise(args):
             raise ValueError("Reference analysis grid must use EPSG:3006")
         if abs(grid.transform.a - 25) > 1e-8 or abs(grid.transform.e + 25) > 1e-8 or abs(grid.transform.b) > 1e-8 or abs(grid.transform.d) > 1e-8:
             raise ValueError("Expected aligned 25m square analysis cells")
+        if grid.nodata is None:
+            raise ValueError("Reference mask must declare NoData; 0 must mean excluded")
         vrts = {}
         for name, src in sources.items():
             vrts[name] = stack.enter_context(WarpedVRT(
@@ -60,11 +62,14 @@ def classify_and_summarise(args):
             for col in range(0, grid.width, 256):
                 window = Window(col, row, min(256, grid.width-col), min(256, grid.height-row))
                 grid_mask = grid.read(1, window=window, masked=True)
-                if not np.any(~np.ma.getmaskarray(grid_mask)):
+                # A valid raster pixel is not necessarily an INCLUDED comparison cell.
+                # The published common-cell mask uses 1 for included cells and 0/NoData outside.
+                included = (~np.ma.getmaskarray(grid_mask)) & (grid_mask.data == 1)
+                if not np.any(included):
                     continue
                 values = {y: vrts[y].read(1, window=window, masked=True)
                           for y in expected_epsg}
-                valid = ~np.ma.getmaskarray(grid_mask)
+                valid = included.copy()
                 for a in values.values():
                     valid &= ~np.ma.getmaskarray(a)
                     valid &= np.isfinite(a.data) & (a.data >= 0)
@@ -82,6 +87,8 @@ def classify_and_summarise(args):
                 unclassified += n - sum(int((valid & (nm.data == int(k))).sum()) for k in classes)
         if not all_cells:
             raise ValueError("No jointly valid analysis cells - check clips, grid and source alignment")
+        if args.expected_cells is not None and all_cells != args.expected_cells:
+            raise ValueError(f"Expected {args.expected_cells} jointly valid cells but got {all_cells}; check grid and coverage")
     report = {"status": "DESCRIPTIVE_NMD_STRATIFICATION_NOT_HARMONIZED",
               "generated_utc": datetime.now(timezone.utc).isoformat(),
               "source_paths": {k: str(v) for k, v in rasters.items()},
@@ -125,5 +132,6 @@ if __name__ == "__main__":
     parser.add_argument("--nmd-band", type=int, default=10, help="1-based TIFF band number; not zero-based ArcGIS BandIds")
     parser.add_argument("--nmd-year", required=True, help="Verified NMD classification version/year")
     parser.add_argument("--grid-reference", type=Path, required=True, help="Validated EPSG:3006 25m 3-year common-cell mask raster")
+    parser.add_argument("--expected-cells", type=int, default=None, help="Optional QA check of exact common-cell count after NMD overlay")
     parser.add_argument("--output", type=Path, default=Path("nmd_productivity_diagnostics.json"))
     classify_and_summarise(parser.parse_args())
