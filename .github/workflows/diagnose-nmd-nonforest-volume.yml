@@ -1,0 +1,109 @@
+name: Diagnose NMD nonforest biomass anomaly with 2010 volume
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/diagnose_nmd2018_nonforest_volume.py'
+      - '.github/workflows/diagnose-nmd-nonforest-volume.yml'
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      NMD_ZIP_URL: https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/NMD_Produktivitet_v1_1.zip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install required geospatial packages
+        run: python -m pip install -r requirements.txt
+      - name: Check analysis syntax
+        run: python -m py_compile scripts/diagnose_nmd2018_nonforest_volume.py
+      - name: Fetch archived, source-CRS cropped biomass rasters
+        run: |
+          mkdir -p release-biomass
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          for y in 2010 2015 2018; do
+            test -s "release-biomass/lulea_biomass_${y}_source_crs_clip.tif"
+          done
+      - name: Fetch source-CRS archived 2010 wood volume
+        run: |
+          mkdir -p release-volume
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_2010_*'
+          test -s release-volume/lulea_total_volume_2010_source_crs_clip.tif
+      - name: Validate original biomass archive before comparing
+        run: |
+          python scripts/verify_biomass_release.py \
+            --directory release-biomass \
+            --output metadata/nmd2018_biomass_release_validation.json
+      - name: Download official open NMD2018 productivity source
+        run: |
+          mkdir -p nmd-input
+          curl --fail --location --retry 3 --retry-delay 10 --connect-timeout 45 \
+            --output nmd-input/NMD_Produktivitet_v1_1.zip "$NMD_ZIP_URL"
+          sha256sum nmd-input/NMD_Produktivitet_v1_1.zip | tee metadata/nmd2018_productivity_source_zip_sha256.txt
+      - name: Extract and verify original NMD GeoTIFF
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import rasterio, shutil
+          archive=Path("nmd-input/NMD_Produktivitet_v1_1.zip")
+          with ZipFile(archive) as z:
+              tif=[x for x in z.infolist()
+                   if x.filename.lower().endswith("nmdproduktivitet_ogeneraliserad_v1_1.tif")]
+              if len(tif)!=1:raise ValueError("Expected one NMD2018 productivity 10m TIFF")
+              with z.open(tif[0]) as src, Path("nmd-input/NMDproduktivitet_ogeneraliserad_v1_1.tif").open("wb") as dest:
+                  shutil.copyfileobj(src,dest,8*1024*1024)
+          with rasterio.open("nmd-input/NMDproduktivitet_ogeneraliserad_v1_1.tif") as src:
+              assert src.crs and src.crs.to_epsg()==3006
+              assert src.count==1
+              assert all(abs(abs(r)-10)<.01 for r in src.res)
+              assert src.nodata not in (0,1,2)
+              print("Verified NMD source",src.crs,src.res,src.nodata)
+          PY
+      - name: Calculate classwise biomass and area on the original common grid
+        run: |
+          python scripts/diagnose_nmd2018_nonforest_volume.py \
+            --raster-2010 release-biomass/lulea_biomass_2010_source_crs_clip.tif \
+            --raster-2015 release-biomass/lulea_biomass_2015_source_crs_clip.tif \
+            --raster-2018 release-biomass/lulea_biomass_2018_source_crs_clip.tif \
+            --nmd nmd-input/NMDproduktivitet_ogeneraliserad_v1_1.tif \
+            --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
+            --output metadata/nmd2018_nonforest_volume_diagnostic.json
+      - name: Verify analysis population and print class results
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("metadata/nmd2018_nonforest_volume_diagnostic.json").read_text())
+          assert d["analysis_crs"]=="EPSG:3006" and d["analysis_resolution_m"]==25
+          assert d["classification_sum_check"] is True
+          assert d["classified_common_cells"]>10000
+          assert d["main_population_class"]==1
+          assert len(d["volume_2010_bin_by_nmd"])==15
+          assert all(sum(x["cells"] for x in d["volume_2010_bin_by_nmd"] if x["class"]==cls)+d["volume_missing_by_nmd_class"][str(cls)]==next(y["cells"] for y in d["classes"] if y["class"]==cls) for cls in (0,1,2))
+          assert sum(x["cells"] for x in d["classes"])==d["classified_common_cells"]
+          assert d["paired_biomass_cells_before_nmd"]==d["classified_common_cells"]+d["nmd_nodata_common_cells"]+d["nmd_unknown_class_common_cells"]
+          for x in d["classes"]:
+              assert x["area_ha"]==x["cells"]*.0625
+              if x["cells"]:
+                  assert all(x["raw_biomass_means"][y] is not None for y in ("2010","2015","2018"))
+          print(json.dumps({k:d[k] for k in ("paired_biomass_cells_before_nmd","classified_common_area_ha","nmd_nodata_common_cells","classes")},ensure_ascii=False,indent=2))
+          PY
+      - name: Preserve numerical results and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmd2018-nonforest-volume-diagnostic
+          path: |
+            metadata/nmd2018_nonforest_volume_diagnostic.json
+            metadata/nmd2018_biomass_release_validation.json
+            metadata/nmd2018_productivity_source_zip_sha256.txt
+          if-no-files-found: warn
+          retention-days: 90
