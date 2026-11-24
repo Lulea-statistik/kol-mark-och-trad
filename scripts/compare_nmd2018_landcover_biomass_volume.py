@@ -20,7 +20,7 @@ from rasterio.transform import Affine
 from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 from pyproj import Transformer
-from scipy.ndimage import distance_transform_edt, binary_dilation
+from scipy.ndimage import distance_transform_edt, binary_dilation, label as connected_components
 from rasterio.warp import reproject
 from rasterio.windows import bounds as window_bounds
 from fetch_and_compare_biomass_native import matches_expected_crs
@@ -115,7 +115,10 @@ def run(args):
        for name in ("pure_water_four_land_neighbour","pure_water_diagonal_only_land_neighbour",
           "pure_water_no_eight_land_neighbour","mixed_land_water",
           "nearest_water_with_pure_water","nearest_water_with_mixed_water")}
-    pure_water_nearest_count=0
+    no_land_eight_selected=np.zeros((height,width),dtype=bool)
+    no_land_eight_b2010=np.full((height,width),np.nan,dtype='float32')
+    no_land_eight_b2018=np.full((height,width),np.nan,dtype='float32')
+    no_land_eight_v2010=np.full((height,width),np.nan,dtype='float32')
     resample_compare={k:{"cells":0,"biomass_sum_2010":0.0,"biomass_sum_2018":0.0} for k in ("water_both","water_nearest_only","water_mode_only","nonwater_both")}
     mode_water_all=0
     shore_bins={side:{band:{'cells':0,'sums':{y:0.0 for y in YEARS},'high_volume_cells':0} for band in ('0-25 m','>25-50 m','>50-75 m','>75-100 m','>100 m')} for side in ('water','forest')}
@@ -234,6 +237,16 @@ def run(args):
                         d=neighbour_stats[name];d["cells"]+=n
                         for y in YEARS:d["sum"][y]+=float(bs[y][sel].sum(dtype="float64"))
                         d["volume_ge100_cells"]+=int((np.isfinite(v[sel]) & (v[sel]>=100)).sum())
+                # Preserve only the exact high-interest, jointly valid cells
+                # for cluster/footprint analysis after the raster window loop.
+                far=good & pure_groups['pure_water_no_eight_land_neighbour'][int(row):int(row+w.height),int(col):int(col+w.width)]
+                if far.any():
+                    sl=(slice(int(row),int(row+w.height)),slice(int(col),int(col+w.width)))
+                    no_land_eight_selected[sl]=far
+                    for grid,srcdata in ((no_land_eight_b2010,bs['2010']),
+                                         (no_land_eight_b2018,bs['2018']),
+                                         (no_land_eight_v2010,v)):
+                        view=grid[sl];view[far]=srcdata[far]
                 known=np.zeros_like(good)
                 for code in LABELS:
                     sel=valid & (m.data==code)
@@ -347,6 +360,39 @@ def run(args):
       'method':'Five disjoint Euclidean centre-to-centre distance bands <=25, >25-50, >50-75, >75-100, >100 metres on 25m EPSG:3006 grid; 25m cell offsets include diagonal distances; NOT literal raster-ring steps, historical shoreline or forestry leave-strip map'}
     if sum(x['cells'] for x in shore_bins['water'].values())!=waterclass_count:
         raise ValueError('Shoreline water bands do not match waterclass count')
+    # Eight-neighbour connected components of exact jointly-valid water cells,
+    # no coordinate location inferred from NMD alone or from a raster bbox.
+    component_labels,component_count=connected_components(no_land_eight_selected,
+      structure=np.ones((3,3),dtype=np.uint8))
+    component_rows=[]
+    for cid in range(1,component_count+1):
+        yy,xx=np.where(component_labels==cid)
+        count=int(len(xx))
+        if not count:continue
+        east=x0+(xx.astype('float64')+.5)*step
+        north=y1-(yy.astype('float64')+.5)*step
+        vals2010=no_land_eight_b2010[yy,xx]
+        vals2018=no_land_eight_b2018[yy,xx]
+        volvals=no_land_eight_v2010[yy,xx]
+        component_rows.append({'component_id':cid,'cells':count,'area_ha':count*.0625,
+          'centroid_easting_epsg3006':float(east.mean()),
+          'centroid_northing_epsg3006':float(north.mean()),
+          'bounds_epsg3006':[float(east.min()-step/2),float(north.min()-step/2),
+                            float(east.max()+step/2),float(north.max()+step/2)],
+          'mean_biomass_raw_2010':float(np.nanmean(vals2010)),
+          'mean_biomass_raw_2018':float(np.nanmean(vals2018)),
+          'mean_volume_raw_2010':float(np.nanmean(volvals))})
+    component_rows.sort(key=lambda x:(-x['cells'],-x['mean_biomass_raw_2010']))
+    if int(no_land_eight_selected.sum())!=neighbour_stats['pure_water_no_eight_land_neighbour']['cells']:
+        raise ValueError('Cluster source population differs from 8-neighbour diagnostic')
+    if sum(x['cells'] for x in component_rows)!=int(no_land_eight_selected.sum()):
+        raise ValueError('8-connected clusters do not reconcile with selected cells')
+    clustering={'method':'8-connected groups of strictly pure-water cells without adjacent land, selected on jointly valid biomass; coordinates and bounds in EPSG:3006',
+      'components':len(component_rows),
+      'largest_component_cells':component_rows[0]['cells'] if component_rows else 0,
+      'total_cells':int(no_land_eight_selected.sum()),
+      'top_components':component_rows[:30],
+      'all_components_are_reported':len(component_rows)<=30}
     pure_total=sum(neighbour_stats[k]["cells"] for k in pure_groups)
     water_neighbours={
       "definition":"Native NMD2018 10m source: 25m cells with >=99.9 percent water-class coverage and >=99.9 percent valid source coverage; adjacency to any cell with verified non-water fraction >=0.1 percent",
@@ -377,6 +423,7 @@ def run(args):
       "nmd_nearest_vs_mode_sensitivity":sensitivity,
       "nmd2018_riparian_forest_gradient":riparian,
       "original_10m_water_fraction_and_4_8_neighbours":water_neighbours,
+      "pure_water_no_eight_land_neighbour_clusters":clustering,
       "matched_area_ha":total*.0625,"matched_cells":total,"diagnostic_counts":dict(rejected),
       "class_rows":rows,"group_rows":groups,
       "limitations":["NMD2018 classes are fixed and DO NOT establish land cover in 2010 or 2015",
@@ -395,6 +442,7 @@ def run(args):
     print("Nearest vs mode:",json.dumps(sensitivity,ensure_ascii=False))
     print("Riparian forest gradient:",json.dumps(riparian,ensure_ascii=False))
     print("Native 10m pure-water and 4/8 neighbours:",json.dumps(water_neighbours,ensure_ascii=False))
+    print("Pure-water isolated clusters:",json.dumps(clustering,ensure_ascii=False))
     print("NMD classes:",json.dumps(rows,ensure_ascii=False))
 if __name__=="__main__":
     p=argparse.ArgumentParser()
