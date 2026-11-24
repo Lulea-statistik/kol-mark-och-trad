@@ -1,0 +1,32 @@
+name: Discover SLU historic pine spruce and deciduous raster volumes
+on:
+  pull_request:
+    paths:
+      - 'scripts/discover_species_volume_2005_2010.py'
+      - '.github/workflows/discover-species-volume-2005-2010.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster metadata tools
+        run: pip install -r requirements.txt
+      - name: Validate script syntax
+        run: python -m compileall -q scripts/discover_species_volume_2005_2010.py
+      - name: Read actual SLU listings and verify native GeoTIFF metadata
+        run: python scripts/discover_species_volume_2005_2010.py
+      - name: Archive species candidate inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: species-volume-source-inventory-2005-2010
+          path: metadata/species_volume_source_2005_2010.json
+          if-no-files-found: warn
+          retention-days: 90
