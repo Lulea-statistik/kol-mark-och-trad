@@ -20,12 +20,50 @@ from rasterio.transform import Affine
 from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 from pyproj import Transformer
-from scipy.ndimage import distance_transform_edt
+from scipy.ndimage import distance_transform_edt, binary_dilation
+from rasterio.warp import reproject
+from rasterio.windows import bounds as window_bounds
 from fetch_and_compare_biomass_native import matches_expected_crs
 from shapely.geometry import shape, mapping
 from shapely.ops import transform as project_geom
 
 YEARS=("2010","2015","2018")
+def original_nmd_water_fraction(source, target_transform, target_width, target_height, tile=256):
+    """Fraction of *original* 10m NMD classified as water per actual 25m pixel.
+
+    Reprojects binary class and source-validity coverages independently with
+    area average; it never interpolates categorical NMD code values.
+    Does not claim to infer real shore geometry inside a 10m source cell.
+    """
+    water_fraction=np.zeros((target_height,target_width),dtype="float32")
+    coverage_fraction=np.zeros_like(water_fraction)
+    for rr in range(0,target_height,tile):
+        for cc in range(0,target_width,tile):
+            tw=Window(cc,rr,min(tile,target_width-cc),min(tile,target_height-rr))
+            bound=window_bounds(tw,target_transform)
+            # Source and analysis CRS both have previously been verified as EPSG:3006.
+            swf=source.window(*bound)
+            xoff=math.floor(swf.col_off)-2
+            yoff=math.floor(swf.row_off)-2
+            xmax=math.ceil(swf.col_off+swf.width)+2
+            ymax=math.ceil(swf.row_off+swf.height)+2
+            sw=Window(xoff,yoff,xmax-xoff,ymax-yoff)
+            native=source.read(1,window=sw,boundless=True,fill_value=source.nodata)
+            native_valid=(native!=source.nodata).astype("float32")
+            native_water=np.isin(native,(61,62)).astype("float32")
+            dw_transform=rasterio.windows.transform(tw,target_transform)
+            sw_transform=rasterio.windows.transform(sw,source.transform)
+            area_shape=(int(tw.height),int(tw.width))
+            water_out=np.zeros(area_shape,dtype="float32")
+            valid_out=np.zeros(area_shape,dtype="float32")
+            for origin,target in ((native_water,water_out),(native_valid,valid_out)):
+                reproject(source=origin,destination=target,src_transform=sw_transform,
+                    src_crs=source.crs,dst_transform=dw_transform,dst_crs="EPSG:3006",
+                    resampling=Resampling.average,init_dest_nodata=True)
+            water_fraction[rr:rr+area_shape[0],cc:cc+area_shape[1]]=water_out
+            coverage_fraction[rr:rr+area_shape[0],cc:cc+area_shape[1]]=valid_out
+    return water_fraction,coverage_fraction
+
 # Official NMD2018 v1.1 base code list: the complete fine forest codes,
 # temporary nonforest, wetlands, cropland, open, developed and water.
 LABELS={
@@ -73,6 +111,11 @@ def run(args):
                              "volume_sum":0.0,"ratio_sum":0.0,"ratio_cells":0,
                              "highvol_cells":0,"highvol_biomass_sum":{y:0.0 for y in YEARS}})
     rejected=defaultdict(int)
+    neighbour_stats={name:{"cells":0,"sum":{y:0.0 for y in YEARS},"volume_ge100_cells":0}
+       for name in ("pure_water_four_land_neighbour","pure_water_diagonal_only_land_neighbour",
+          "pure_water_no_eight_land_neighbour","mixed_land_water",
+          "nearest_water_with_pure_water","nearest_water_with_mixed_water")}
+    pure_water_nearest_count=0
     resample_compare={k:{"cells":0,"biomass_sum_2010":0.0,"biomass_sum_2018":0.0} for k in ("water_both","water_nearest_only","water_mode_only","nonwater_both")}
     mode_water_all=0
     shore_bins={side:{band:{'cells':0,'sums':{y:0.0 for y in YEARS},'high_volume_cells':0} for band in ('0-25 m','>25-50 m','>50-75 m','>75-100 m','>100 m')} for side in ('water','forest')}
@@ -109,6 +152,20 @@ def run(args):
         nmd_mode=stack.enter_context(WarpedVRT(src,crs="EPSG:3006",transform=trans,
             width=width,height=height,resampling=Resampling.mode,
             src_nodata=src.nodata,nodata=255,dtype="uint8"))
+        # Native NMD 10m source -> full 25m water-area fraction; this is an
+        # independent native-resolution mask check (not nearest/mode reclassification).
+        nmd_fraction,nmd_source_coverage=original_nmd_water_fraction(src,trans,width,height)
+        pure=(nmd_fraction>=0.999) & (nmd_source_coverage>=0.999)
+        land_present=(nmd_fraction<0.999) & (nmd_source_coverage>=0.999)
+        direct=binary_dilation(land_present,structure=np.array([[0,1,0],[1,1,1],[0,1,0]],dtype=bool)) & pure
+        eight=binary_dilation(land_present,structure=np.ones((3,3),dtype=bool)) & pure
+        pure_groups={
+          "pure_water_four_land_neighbour":direct,
+          "pure_water_diagonal_only_land_neighbour":eight & ~direct,
+          "pure_water_no_eight_land_neighbour":pure & ~eight
+        }
+        # All groups operate on common valid biomass cells; outside this
+        # population they must not be interpreted as a full water inventory.
         # Distance from a water-class centre to the nearest non-water NMD2018 cell,
         # not distance to an independently verified shoreline. Full-grid resampling
         # precedes this raster analysis in EPSG:3006.
@@ -151,6 +208,32 @@ def run(args):
                     if n:
                         d["biomass_sum_2010"]+=float(bs["2010"][sel].sum(dtype="float64"))
                         d["biomass_sum_2018"]+=float(bs["2018"][sel].sum(dtype="float64"))
+                fraction=nmd_fraction[int(row):int(row+w.height),int(col):int(col+w.width)]
+                cover=nmd_source_coverage[int(row):int(row+w.height),int(col):int(col+w.width)]
+                # Pure water cells are selected from native 10m classes, not
+                # by a single resampled NMD cell-centre value.
+                for name,pure_group in pure_groups.items():
+                    sel=good & pure_group[int(row):int(row+w.height),int(col):int(col+w.width)]
+                    n=int(sel.sum())
+                    if n:
+                        d=neighbour_stats[name];d["cells"]+=n
+                        for y in YEARS:d["sum"][y]+=float(bs[y][sel].sum(dtype="float64"))
+                        d["volume_ge100_cells"]+=int((np.isfinite(v[sel]) & (v[sel]>=100)).sum())
+                mixed=good & (cover>=0.999) & (fraction>0.001) & (fraction<0.999)
+                nearwater=valid & nw
+                # Store both diagnostic populations explicitly rather than
+                # silently equating 10m area cover with 25m nearest class.
+                special={
+                  "mixed_land_water":mixed,
+                  "nearest_water_with_pure_water":nearwater & (fraction>=0.999)&(cover>=0.999),
+                  "nearest_water_with_mixed_water":nearwater & mixed
+                }
+                for name,sel in special.items():
+                    n=int(sel.sum())
+                    if n:
+                        d=neighbour_stats[name];d["cells"]+=n
+                        for y in YEARS:d["sum"][y]+=float(bs[y][sel].sum(dtype="float64"))
+                        d["volume_ge100_cells"]+=int((np.isfinite(v[sel]) & (v[sel]>=100)).sum())
                 known=np.zeros_like(good)
                 for code in LABELS:
                     sel=valid & (m.data==code)
@@ -264,6 +347,16 @@ def run(args):
       'method':'Five disjoint Euclidean centre-to-centre distance bands <=25, >25-50, >50-75, >75-100, >100 metres on 25m EPSG:3006 grid; 25m cell offsets include diagonal distances; NOT literal raster-ring steps, historical shoreline or forestry leave-strip map'}
     if sum(x['cells'] for x in shore_bins['water'].values())!=waterclass_count:
         raise ValueError('Shoreline water bands do not match waterclass count')
+    pure_total=sum(neighbour_stats[k]["cells"] for k in pure_groups)
+    water_neighbours={
+      "definition":"Native NMD2018 10m source: 25m cells with >=99.9 percent water-class coverage and >=99.9 percent valid source coverage; adjacency to any cell with verified non-water fraction >=0.1 percent",
+      "pure_water_25m_cells_common_biomass":pure_total,
+      "groups":{name:{"cells":d["cells"],"area_ha":d["cells"]*.0625,
+         "means_raw":{y:d["sum"][y]/d["cells"] if d["cells"] else None for y in YEARS},
+         "volume_2010_ge100_cells":d["volume_ge100_cells"]} for name,d in neighbour_stats.items()},
+      "geometry_caveat":"Native 10m categorical water fraction approximates polygon cover, 25m adjacency four sides vs diagonal only on EPSG:3006 grid. It does not demonstrate actual water in 2010, original 2010 biomass mask or original shoreline geometry"
+    }
+    assert pure_total>=0
     sensitivity={"classification_methods":["nearest","mode"],
       "water_nearest_cells":nearest_water_all,"water_mode_cells":mode_water_all,
       "water_nearest_area_ha":nearest_water_all*.0625,
@@ -283,6 +376,7 @@ def run(args):
       "water_distance_NMD2018":water_rows,
       "nmd_nearest_vs_mode_sensitivity":sensitivity,
       "nmd2018_riparian_forest_gradient":riparian,
+      "original_10m_water_fraction_and_4_8_neighbours":water_neighbours,
       "matched_area_ha":total*.0625,"matched_cells":total,"diagnostic_counts":dict(rejected),
       "class_rows":rows,"group_rows":groups,
       "limitations":["NMD2018 classes are fixed and DO NOT establish land cover in 2010 or 2015",
@@ -300,6 +394,7 @@ def run(args):
     print("Water distance:",json.dumps(water_rows,ensure_ascii=False))
     print("Nearest vs mode:",json.dumps(sensitivity,ensure_ascii=False))
     print("Riparian forest gradient:",json.dumps(riparian,ensure_ascii=False))
+    print("Native 10m pure-water and 4/8 neighbours:",json.dumps(water_neighbours,ensure_ascii=False))
     print("NMD classes:",json.dumps(rows,ensure_ascii=False))
 if __name__=="__main__":
     p=argparse.ArgumentParser()

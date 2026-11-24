@@ -126,6 +126,16 @@ jobs:
           assert all(x['cells']>=0 for x in forest_side.values())
           for group in (water_side,forest_side):
               assert all(abs(x['area_ha']-x['cells']*.0625)<1e-8 for x in group.values())
+          source=d['original_10m_water_fraction_and_4_8_neighbours']
+          groups=source['groups']
+          pure=sum(groups[k]['cells'] for k in ('pure_water_four_land_neighbour',
+              'pure_water_diagonal_only_land_neighbour','pure_water_no_eight_land_neighbour'))
+          assert pure==source['pure_water_25m_cells_common_biomass']
+          assert groups['nearest_water_with_pure_water']['cells']<=pure
+          assert groups['nearest_water_with_pure_water']['cells']+groups['nearest_water_with_mixed_water']['cells']<=water_cells
+          assert groups['pure_water_four_land_neighbour']['cells']+groups['pure_water_diagonal_only_land_neighbour']['cells']<=pure
+          assert all(row['area_ha']==row['cells']*.0625 for row in groups.values())
+          print('Native source water cover, four and eight neighbours:',source)
           print('Riparian forest-gradient validated',shore)
           for x in d['group_rows']:print(x)
           PY
