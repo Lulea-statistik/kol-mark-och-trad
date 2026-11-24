@@ -1,0 +1,49 @@
+name: Verify NMD2018 water-cluster review map
+on:
+  pull_request:
+    paths:
+      - 'docs/water-cluster-review.html'
+      - 'docs/water-cluster-review.js'
+      - 'docs/data/nmd2018-water-clusters-review-epsg3006.json'
+      - '.github/workflows/verify-water-cluster-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check frontend
+        run: node --check docs/water-cluster-review.js
+      - name: Verify geographic reference and map navigation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('docs/data/nmd2018-water-clusters-review-epsg3006.json').read_text())
+          assert d['crs']=='EPSG:3006'
+          assert d['total_clusters']==63 and d['total_cells']==115
+          assert d['published_clusters']==30 and len(d['clusters'])==30
+          assert sum(c['cells'] for c in d['clusters'])==82
+          assert d['clusters'][0]['cells']==8
+          assert len({c['component_id'] for c in d['clusters']})==30
+          for c in d['clusters']:
+              e,n=c['centroid_easting_epsg3006'],c['centroid_northing_epsg3006']
+              w,s,x,y=c['bounds_epsg3006']
+              assert w<e<x and s<n<y
+              assert 700000<e<1000000 and 7200000<n<7500000
+              assert c['cells']>0 and c['area_ha']==c['cells']*.0625
+          html=Path('docs/water-cluster-review.html').read_text()
+          js=Path('docs/water-cluster-review.js').read_text()
+          for x in ('id="waterMap"','id="selectedInfo"','id="export"','id="save"','water-cluster-review.js','proj4'):
+              assert x in html,x
+          for x in ('EPSG:3006','localStorage','csvCell','toLatLng','fitBounds'):
+              assert x in js,x
+          for page in ('index.html','biomass-trend.html','biomass-review.html'):
+              assert 'water-cluster-review.html' in Path('docs',page).read_text()
+          print('Valid georeferenced source, 82/115 published cells, interactive review and navigation')
+          PY

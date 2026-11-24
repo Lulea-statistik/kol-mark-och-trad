@@ -1,0 +1,490 @@
+{
+  "source": "PR #92 CI run 45420364033",
+  "crs": "EPSG:3006",
+  "note": "30 largest among 63 eight-connected clusters; NMD2018 water classification is not historical 2010 water",
+  "total_clusters": 63,
+  "total_cells": 115,
+  "published_clusters": 30,
+  "clusters": [
+    {
+      "component_id": 11,
+      "cells": 8,
+      "area_ha": 0.5,
+      "centroid_easting_epsg3006": 835775,
+      "centroid_northing_epsg3006": 7321600,
+      "bounds_epsg3006": [
+        835725,
+        7321575,
+        835825,
+        7321625
+      ],
+      "mean_biomass_raw_2010": 170.9093475341797,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 266.99993896484375
+    },
+    {
+      "component_id": 32,
+      "cells": 8,
+      "area_ha": 0.5,
+      "centroid_easting_epsg3006": 833631.25,
+      "centroid_northing_epsg3006": 7294825,
+      "bounds_epsg3006": [
+        833575,
+        7294775,
+        833675,
+        7294875
+      ],
+      "mean_biomass_raw_2010": 159.19921875,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 219.85699462890625
+    },
+    {
+      "component_id": 26,
+      "cells": 7,
+      "area_ha": 0.4375,
+      "centroid_easting_epsg3006": 850487.5,
+      "centroid_northing_epsg3006": 7302037.5,
+      "bounds_epsg3006": [
+        850400,
+        7302025,
+        850575,
+        7302050
+      ],
+      "mean_biomass_raw_2010": 160.36984252929688,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 222.08412170410156
+    },
+    {
+      "component_id": 9,
+      "cells": 4,
+      "area_ha": 0.25,
+      "centroid_easting_epsg3006": 836550,
+      "centroid_northing_epsg3006": 7326950,
+      "bounds_epsg3006": [
+        836525,
+        7326925,
+        836575,
+        7326975
+      ],
+      "mean_biomass_raw_2010": 174.65621948242188,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 275.00775146484375
+    },
+    {
+      "component_id": 28,
+      "cells": 4,
+      "area_ha": 0.25,
+      "centroid_easting_epsg3006": 801787.5,
+      "centroid_northing_epsg3006": 7300837.5,
+      "bounds_epsg3006": [
+        801750,
+        7300800,
+        801825,
+        7300875
+      ],
+      "mean_biomass_raw_2010": 171,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 268
+    },
+    {
+      "component_id": 45,
+      "cells": 4,
+      "area_ha": 0.25,
+      "centroid_easting_epsg3006": 838587.5,
+      "centroid_northing_epsg3006": 7285350,
+      "bounds_epsg3006": [
+        838550,
+        7285325,
+        838625,
+        7285375
+      ],
+      "mean_biomass_raw_2010": 131.7484130859375,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 195.74713134765625
+    },
+    {
+      "component_id": 3,
+      "cells": 4,
+      "area_ha": 0.25,
+      "centroid_easting_epsg3006": 818456.25,
+      "centroid_northing_epsg3006": 7337068.75,
+      "bounds_epsg3006": [
+        818425,
+        7337025,
+        818475,
+        7337100
+      ],
+      "mean_biomass_raw_2010": 131,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 203
+    },
+    {
+      "component_id": 37,
+      "cells": 3,
+      "area_ha": 0.1875,
+      "centroid_easting_epsg3006": 832254.1666666666,
+      "centroid_northing_epsg3006": 7291254.166666667,
+      "bounds_epsg3006": [
+        832225,
+        7291225,
+        832275,
+        7291275
+      ],
+      "mean_biomass_raw_2010": 218,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 316
+    },
+    {
+      "component_id": 12,
+      "cells": 3,
+      "area_ha": 0.1875,
+      "centroid_easting_epsg3006": 835879.1666666666,
+      "centroid_northing_epsg3006": 7321329.166666667,
+      "bounds_epsg3006": [
+        835850,
+        7321300,
+        835900,
+        7321350
+      ],
+      "mean_biomass_raw_2010": 178,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 284
+    },
+    {
+      "component_id": 46,
+      "cells": 3,
+      "area_ha": 0.1875,
+      "centroid_easting_epsg3006": 807412.5,
+      "centroid_northing_epsg3006": 7283862.5,
+      "bounds_epsg3006": [
+        807375,
+        7283850,
+        807450,
+        7283875
+      ],
+      "mean_biomass_raw_2010": 172,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 269.0576171875
+    },
+    {
+      "component_id": 58,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 833050,
+      "centroid_northing_epsg3006": 7275187.5,
+      "bounds_epsg3006": [
+        833025,
+        7275175,
+        833075,
+        7275200
+      ],
+      "mean_biomass_raw_2010": 216,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 311
+    },
+    {
+      "component_id": 50,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 829037.5,
+      "centroid_northing_epsg3006": 7283250,
+      "bounds_epsg3006": [
+        829025,
+        7283225,
+        829050,
+        7283275
+      ],
+      "mean_biomass_raw_2010": 178,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 285
+    },
+    {
+      "component_id": 31,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 813550,
+      "centroid_northing_epsg3006": 7295662.5,
+      "bounds_epsg3006": [
+        813525,
+        7295650,
+        813575,
+        7295675
+      ],
+      "mean_biomass_raw_2010": 174,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 273
+    },
+    {
+      "component_id": 35,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 819325,
+      "centroid_northing_epsg3006": 7292012.5,
+      "bounds_epsg3006": [
+        819300,
+        7292000,
+        819350,
+        7292025
+      ],
+      "mean_biomass_raw_2010": 171.19395446777344,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 268.3879089355469
+    },
+    {
+      "component_id": 39,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 826012.5,
+      "centroid_northing_epsg3006": 7288925,
+      "bounds_epsg3006": [
+        826000,
+        7288900,
+        826025,
+        7288950
+      ],
+      "mean_biomass_raw_2010": 170.9377899169922,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 267.4349365234375
+    },
+    {
+      "component_id": 43,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 828125,
+      "centroid_northing_epsg3006": 7286037.5,
+      "bounds_epsg3006": [
+        828100,
+        7286025,
+        828150,
+        7286050
+      ],
+      "mean_biomass_raw_2010": 170.66110229492188,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 267.673583984375
+    },
+    {
+      "component_id": 61,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 823487.5,
+      "centroid_northing_epsg3006": 7273275,
+      "bounds_epsg3006": [
+        823475,
+        7273250,
+        823500,
+        7273300
+      ],
+      "mean_biomass_raw_2010": 170,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 266
+    },
+    {
+      "component_id": 16,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 837100,
+      "centroid_northing_epsg3006": 7319537.5,
+      "bounds_epsg3006": [
+        837075,
+        7319525,
+        837125,
+        7319550
+      ],
+      "mean_biomass_raw_2010": 168,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 264
+    },
+    {
+      "component_id": 20,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 842975,
+      "centroid_northing_epsg3006": 7315862.5,
+      "bounds_epsg3006": [
+        842950,
+        7315850,
+        843000,
+        7315875
+      ],
+      "mean_biomass_raw_2010": 160,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 220
+    },
+    {
+      "component_id": 22,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 838825,
+      "centroid_northing_epsg3006": 7307962.5,
+      "bounds_epsg3006": [
+        838800,
+        7307950,
+        838850,
+        7307975
+      ],
+      "mean_biomass_raw_2010": 160,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 220.68829345703125
+    },
+    {
+      "component_id": 27,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 837075,
+      "centroid_northing_epsg3006": 7301437.5,
+      "bounds_epsg3006": [
+        837050,
+        7301425,
+        837100,
+        7301450
+      ],
+      "mean_biomass_raw_2010": 160,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 221
+    },
+    {
+      "component_id": 21,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 846700,
+      "centroid_northing_epsg3006": 7310562.5,
+      "bounds_epsg3006": [
+        846675,
+        7310550,
+        846725,
+        7310575
+      ],
+      "mean_biomass_raw_2010": 159.98748779296875,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 221.96246337890625
+    },
+    {
+      "component_id": 19,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 842850,
+      "centroid_northing_epsg3006": 7315962.5,
+      "bounds_epsg3006": [
+        842825,
+        7315950,
+        842875,
+        7315975
+      ],
+      "mean_biomass_raw_2010": 159.25296020507812,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 219.8794403076172
+    },
+    {
+      "component_id": 5,
+      "cells": 2,
+      "area_ha": 0.125,
+      "centroid_easting_epsg3006": 839475,
+      "centroid_northing_epsg3006": 7330987.5,
+      "bounds_epsg3006": [
+        839450,
+        7330975,
+        839500,
+        7331000
+      ],
+      "mean_biomass_raw_2010": 128,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 204
+    },
+    {
+      "component_id": 57,
+      "cells": 1,
+      "area_ha": 0.0625,
+      "centroid_easting_epsg3006": 832262.5,
+      "centroid_northing_epsg3006": 7275212.5,
+      "bounds_epsg3006": [
+        832250,
+        7275200,
+        832275,
+        7275225
+      ],
+      "mean_biomass_raw_2010": 218,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 316
+    },
+    {
+      "component_id": 55,
+      "cells": 1,
+      "area_ha": 0.0625,
+      "centroid_easting_epsg3006": 832637.5,
+      "centroid_northing_epsg3006": 7275287.5,
+      "bounds_epsg3006": [
+        832625,
+        7275275,
+        832650,
+        7275300
+      ],
+      "mean_biomass_raw_2010": 217.8287353515625,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 315.657470703125
+    },
+    {
+      "component_id": 56,
+      "cells": 1,
+      "area_ha": 0.0625,
+      "centroid_easting_epsg3006": 831862.5,
+      "centroid_northing_epsg3006": 7275212.5,
+      "bounds_epsg3006": [
+        831850,
+        7275200,
+        831875,
+        7275225
+      ],
+      "mean_biomass_raw_2010": 216,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 311
+    },
+    {
+      "component_id": 10,
+      "cells": 1,
+      "area_ha": 0.0625,
+      "centroid_easting_epsg3006": 828062.5,
+      "centroid_northing_epsg3006": 7326162.5,
+      "bounds_epsg3006": [
+        828050,
+        7326150,
+        828075,
+        7326175
+      ],
+      "mean_biomass_raw_2010": 178,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 278
+    },
+    {
+      "component_id": 51,
+      "cells": 1,
+      "area_ha": 0.0625,
+      "centroid_easting_epsg3006": 827262.5,
+      "centroid_northing_epsg3006": 7281612.5,
+      "bounds_epsg3006": [
+        827250,
+        7281600,
+        827275,
+        7281625
+      ],
+      "mean_biomass_raw_2010": 178,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 284
+    },
+    {
+      "component_id": 53,
+      "cells": 1,
+      "area_ha": 0.0625,
+      "centroid_easting_epsg3006": 827387.5,
+      "centroid_northing_epsg3006": 7280762.5,
+      "bounds_epsg3006": [
+        827375,
+        7280750,
+        827400,
+        7280775
+      ],
+      "mean_biomass_raw_2010": 176,
+      "mean_biomass_raw_2018": 0,
+      "mean_volume_raw_2010": 281
+    }
+  ]
+}
