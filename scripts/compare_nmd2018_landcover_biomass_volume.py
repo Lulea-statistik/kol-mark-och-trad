@@ -75,7 +75,7 @@ def run(args):
     rejected=defaultdict(int)
     resample_compare={k:{"cells":0,"biomass_sum_2010":0.0,"biomass_sum_2018":0.0} for k in ("water_both","water_nearest_only","water_mode_only","nonwater_both")}
     mode_water_all=0
-    shore_bins={side:{band:{'cells':0,'sums':{y:0.0 for y in YEARS},'high_volume_cells':0} for band in ('25-50 m','50-100 m','100-250 m','250+ m')} for side in ('water','forest')}
+    shore_bins={side:{band:{'cells':0,'sums':{y:0.0 for y in YEARS},'high_volume_cells':0} for band in ('0-25 m','>25-50 m','>50-75 m','>75-100 m','>100 m')} for side in ('water','forest')}
     water_near_forest={'within_50m':{'cells':0,'sums':{y:0.0 for y in YEARS}},'farther_than_50m':{'cells':0,'sums':{y:0.0 for y in YEARS}}}
     nearest_water_all=0
     water_bins={name:{'cells':0,'sum':{y:0.0 for y in YEARS},'volume_high_cells':0} for name in ('0-50 m','50-100 m','100-250 m','250+ m')}
@@ -184,8 +184,10 @@ def run(args):
                 forest=valid & np.isin(m.data,forest_codes)
                 fd=dist_to_water[int(row):int(row+w.height),int(col):int(col+w.width)]
                 for side,sel,dist in (('water',water,water_distance[int(row):int(row+w.height),int(col):int(col+w.width)]),('forest',forest,fd)):
-                    for band,low,high in (('25-50 m',25,50),('50-100 m',50,100),('100-250 m',100,250),('250+ m',250,float('inf'))):
-                        mask=sel & (dist>=low) & (dist<high)
+                    for band,low,high in (('0-25 m',0,25),('>25-50 m',25,50),('>50-75 m',50,75),('>75-100 m',75,100),('>100 m',100,float('inf'))):
+                        # Distances are Euclidean between 25m cell centres; endpoints
+                        # belong to the lower band: 25, 50, 75, 100 m respectively.
+                        mask=sel & (dist>low if low else dist>=0) & (dist<=high)
                         count=int(mask.sum())
                         if count:
                             bucket=shore_bins[side][band]
@@ -259,7 +261,7 @@ def run(args):
     riparian={'water_side_distance_to_nonwater':describe_bins(shore_bins['water']),
       'forest_side_distance_to_water':describe_bins(shore_bins['forest']),
       'water_distance_to_NMD2018_forest':describe_bins(water_near_forest),
-      'method':'Centre-to-centre Euclidean distance on 25m resampled NMD2018; NOT historical shoreline or forestry leave-strip map'}
+      'method':'Five disjoint Euclidean centre-to-centre distance bands <=25, >25-50, >50-75, >75-100, >100 metres on 25m EPSG:3006 grid; 25m cell offsets include diagonal distances; NOT literal raster-ring steps, historical shoreline or forestry leave-strip map'}
     if sum(x['cells'] for x in shore_bins['water'].values())!=waterclass_count:
         raise ValueError('Shoreline water bands do not match waterclass count')
     sensitivity={"classification_methods":["nearest","mode"],
