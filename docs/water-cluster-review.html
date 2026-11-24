@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Granska vattenkluster – biomassa 2010 | Luleå kommun</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+.review-layout{display:grid;grid-template-columns:minmax(240px,340px) minmax(0,1fr);gap:1rem;align-items:start}
+.review-panel{border:1px solid #d0dae0;border-radius:10px;padding:1rem;background:#fff;max-height:75vh;overflow:auto}
+.review-map{height:72vh;min-height:480px;border:1px solid #cad2d8;border-radius:10px}
+.review-panel label{display:block;font-weight:600;margin-top:.8rem}
+.review-panel select,.review-panel textarea,.review-panel input{display:block;width:100%;box-sizing:border-box;max-width:100%;padding:.45rem;margin-top:.3rem}
+.review-panel button,.review-toolbar button{padding:.5rem .75rem;cursor:pointer;margin:.4rem .25rem .1rem 0}
+.review-panel .small,.review-toolbar .small{font-size:.88rem;color:#43515a}
+.review-panel .metric{border-bottom:1px solid #e2e7eb;padding:.5rem 0}
+.review-status{font-weight:600;color:#246544}
+.review-toolbar{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin:.8rem 0}
+.review-toolbar label{display:flex;align-items:center;gap:.4rem}
+.review-toolbar select{padding:.35rem}
+.review-legend{margin:.6rem 0;font-size:.9rem}
+.review-legend span{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.review-sources{padding:1rem;background:#f4f7f9;border-radius:10px;margin:1rem 0}
+@media(max-width:850px){.review-layout{grid-template-columns:1fr}.review-map{height:62vh;min-height:390px}.review-panel{max-height:none}}
+</style>
+</head>
+<body>
+<header><h1>Granska vattenkluster och biomassa 2010</h1><p>Luleå kommun · geografisk kvalitetskontroll av avvikande rastervärden</p></header>
+<nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="biomass-review.html">Granska biomassa</a><a href="biomass-trend.html">Trend biomassa</a><a href="water-cluster-review.html" aria-current="page">Vattenkluster 2010</a><a href="statistics.html">Diagram och tabeller</a></nav>
+<main>
+<p><strong>Vad visas?</strong> De 30 största av 63 kluster av celler som NMD2018 klassar som minst 99,9 % vatten, där ingen av de åtta angränsande 25-meterscellerna innehåller klassad landyta. Varje cell har giltiga biomassaråvärden 2010, 2015 och 2018. De 30 klustren omfattar <strong>82 av 115 celler</strong>. Punkterna är klustercentroider och rektanglarna omfattar klustrets analysceller – <strong>inte exakta strandlinjer eller enskilda pixelkonturer</strong>.</p>
+<p><strong>Viktigt:</strong> NMD2018 är en senare marktäckekarta. En vattenklassad yta 2018 är inte verifierat vatten 2010. Satellitbildslagret visar inte historiska bilder från 2010. Råvärdena är inte harmoniserade till en verifierad biomassaenhet.</p>
+<div class="review-toolbar">
+<label for="basemap">Bakgrund <select id="basemap"><option value="osm">OpenStreetMap (aktuell)</option><option value="imagery">Flygbild/satellit (aktuell)</option></select></label>
+<label for="filter">Granskningsstatus <select id="filter"><option value="all">Alla 30 kluster</option><option value="unreviewed">Ej granskade</option><option value="uncertain">Osäkra</option><option value="water">Vatten även ca 2010</option><option value="land">Möjlig landyta ca 2010</option></select></label>
+<button id="export" type="button">Exportera granskning som CSV</button>
+<span id="mapStatus" role="status" class="small">Läser geografiska data …</span>
+</div>
+<div class="review-legend"><span style="background:#a22326"></span>Ej granskad <span style="background:#d88a28"></span>Osäker <span style="background:#21779c"></span>Vatten ca 2010 <span style="background:#21815a"></span>Möjlig landyta ca 2010</div>
+<div class="review-layout">
+<aside class="review-panel">
+<h2>Klustergranskning</h2>
+<p class="small">Välj en punkt i kartan. Bedömningarna sparas endast i din webbläsare tills du exporterar CSV-filen.</p>
+<div id="selectedInfo" aria-live="polite">Välj ett kluster.</div>
+<label for="judgement">Bedömning av läget omkring 2010</label>
+<select id="judgement"><option value="unreviewed">Ej granskad</option><option value="uncertain">Osäker</option><option value="water">Vatten även ca 2010 (verifierat i separat historisk källa)</option><option value="land">Möjlig landyta/vegetation ca 2010</option></select>
+<label for="evidenceYear">Årtal för underlag (om känt)</label>
+<input id="evidenceYear" type="text" inputmode="numeric" maxlength="32" placeholder="Exempel: 2009 eller 2008–2012">
+<label for="evidence">Källa och bild-/kart-ID</label>
+<textarea id="evidence" rows="2" placeholder="Ange källa, datum och referens. Utan källa bör bedömningen vara osäker."></textarea>
+<label for="note">Kommentar / möjlig förklaring</label>
+<textarea id="note" rows="3" placeholder="Till exempel tidigare markyta, gränsförskjutning, reglering, annan observation …"></textarea>
+<button id="save" type="button">Spara bedömning</button>
+<div id="saveStatus" class="review-status" aria-live="polite"></div>
+<p class="small">Granskningen är manuell. En anteckning ändrar inte de publicerade rastervärdena.</p>
+</aside>
+<div id="waterMap" class="review-map" role="application" aria-label="Karta över isolerade vattenklassade cellkluster"></div>
+</div>
+<section class="review-sources">
+<h2>Historisk kontroll</h2>
+<p>För att avgöra om området var vatten eller land omkring 2010 behöver du en <em>daterad</em> äldre flygbild eller annan historisk markklassning. <a href="https://www.lantmateriet.se/geolextips" target="_blank" rel="noopener">Lantmäteriets GeoLex</a> visar varifrån och från vilka år historiska flygbilder finns. <a href="https://minkarta.lantmateriet.se/" target="_blank" rel="noopener">Min karta</a> erbjuder aktuella flygbilder samt äldre bildserier omkring 1960 och 1975, men inte ett automatiskt 2010-lager. <a href="https://geotorget.lantmateriet.se/link/ortofoto-historiska-visning" target="_blank" rel="noopener">Historiska ortofoton Visning</a> avser 1949–2005 och kräver tilldelad API-åtkomst; därför laddas tjänsten inte som bakgrund i denna karta.</p>
+<p><strong>Arbetsgång:</strong> välj ett kluster, använd koordinaterna (EPSG:3006) för att hitta rätt läge i historiska flygbildskatalogen, kontrollera dateringen och anteckna käll-ID och bedömning. Exportera sedan CSV för gemensam granskning. En aktuell ortofotobild kan orientera men inte fastställa markanvändningen 2010.</p>
+<p class="small">Källa för punkter och analysvärden: <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45420364033" target="_blank" rel="noopener">PR #92, godkänd analyskörning</a>. Rasterklass NMD2018 10 m (EPSG:3006); analysgrid 25 m (EPSG:3006). Koordinater transformeras med proj4 till WGS84 (EPSG:4326) för Leaflet. Baslager OSM © OpenStreetMap-bidragsgivare; aktuell bild © Esri och angivna dataleverantörer.</p>
+</section>
+</main>
+<footer>Explorativ kvalitetskontroll. Ingen historisk vattenmask har verifierats för SLU Skogskarta 2010.</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
+<script src="water-cluster-review.js"></script>
+</body></html>
