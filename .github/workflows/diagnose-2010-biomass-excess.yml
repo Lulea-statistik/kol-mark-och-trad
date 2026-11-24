@@ -1,0 +1,43 @@
+name: Diagnose elevated 2010 biomass against age volume and coverage
+on:
+  pull_request:
+    paths:
+      - 'scripts/diagnose_2010_biomass_excess.py'
+      - '.github/workflows/diagnose-2010-biomass-excess.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install raster dependencies
+        run: pip install -r requirements.txt
+      - name: Check analysis script syntax
+        run: python -m compileall -q scripts/diagnose_2010_biomass_excess.py
+      - name: Download verified raster archive excerpts
+        run: |
+          mkdir -p release-biomass release-volume release-age
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download forest-age-lulea-2010-v1 --dir release-age --pattern 'lulea_forest_age_2010_*'
+      - name: Diagnose 2010 mean biomass and matched age volume strata
+        run: python scripts/diagnose_2010_biomass_excess.py --output metadata/biomass_2010_excess_diagnostics.json
+      - name: Archive diagnostic result and source archive integrity checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass-2010-excess-coverage-age-volume-diagnostics
+          path: |
+            metadata/biomass_2010_excess_diagnostics.json
+            metadata/diagnostic_biomass_archive_qa.json
+          if-no-files-found: warn
+          retention-days: 90
