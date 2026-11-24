@@ -10,11 +10,13 @@ from datetime import datetime, timezone
 import gzip
 import hashlib
 import json
+import tempfile
 from pathlib import Path
 import numpy as np
 import rasterio
 from rasterio.enums import Resampling
 from rasterio.features import geometry_mask
+from rasterio.mask import mask as native_mask
 from rasterio.transform import from_bounds
 from rasterio.vrt import WarpedVRT
 from shapely.geometry import shape, mapping
@@ -65,10 +67,31 @@ def run(args):
             raise ValueError("Requested NMD band is absent from source")
         if args.band == 10 and src.count < 10:
             raise ValueError("A 10-band source is required to read band 10")
-        with WarpedVRT(src, crs="EPSG:3857", transform=transform, width=width,
-                       height=height, resampling=Resampling.nearest,
-                       src_nodata=src.nodata, nodata=NODATA) as vrt:
-            sampled = vrt.read(args.band, masked=True)
+        if not src.crs.is_projected:
+            raise ValueError("Expected projected source raster for native 10m crop")
+        # Crop and mask against the boundary IN THE SOURCE CRS before warping.
+        geom_native = geom_transform(
+            Transformer.from_crs("EPSG:4326", src.crs, always_xy=True).transform, geom)
+        cropped, crop_transform = native_mask(
+            src, [mapping(geom_native)], crop=True, indexes=args.band,
+            filled=True, nodata=src.nodata)
+        if cropped.ndim != 2:
+            raise ValueError("Expected one native cropped NMD classification band")
+        # Entire cropped pixel grid is then genuinely reprojected to the display CRS.
+        with tempfile.TemporaryDirectory() as tmp:
+            native_path = Path(tmp) / "lulea_nmd_source_crs_clip.tif"
+            with rasterio.open(native_path, "w", driver="GTiff",
+                    width=cropped.shape[1], height=cropped.shape[0], count=1,
+                    dtype=cropped.dtype, transform=crop_transform, crs=src.crs,
+                    nodata=src.nodata, compress="deflate", tiled=True) as dst:
+                dst.write(cropped, 1)
+            del cropped
+            with rasterio.open(native_path) as native_src:
+                with WarpedVRT(native_src, crs="EPSG:3857", transform=transform,
+                               width=width, height=height,
+                               resampling=Resampling.nearest,
+                               src_nodata=native_src.nodata, nodata=NODATA) as vrt:
+                    sampled = vrt.read(1, masked=True)
         valid_source = ~np.ma.getmaskarray(sampled)
         source_values = sampled.data.astype("float32")
         valid = inside & valid_source & np.isfinite(source_values)
@@ -107,13 +130,13 @@ def run(args):
             "raster_grid_nodata": NODATA,
             "display_crs": "EPSG:3857", "source_crs": src.crs.to_string(),
             "source": args.source_url, "source_sha256": source_hash.hexdigest(),
-            "product_family": "Skogsstyrelsen Skogliga grunddata / NMDproduktivitet",
+            "product_family": ("Naturvårdsverket / NMD2018 produktivitet" if "naturvardsverket.se" in args.source_url else "Skogsstyrelsen Skogliga grunddata / NMDproduktivitet"),
             "nmd_version": args.version, "source_band": args.band,
             "source_resolution_m": [abs(src.transform.a), abs(src.transform.e)],
             "source_nodata": src.nodata,
             "color_scale_type": "nmd_productivity_categories",
             "sample_type": "Categorical nearest-neighbour source pixels on full EPSG:3857 grid; not original source cells",
-            "class_labels": {"0": "Övrig mark", "1": "Produktiv skogsmark",
+            "class_labels": {"0": "Ej skogsmark", "1": "Produktiv skogsmark",
                              "2": "Improduktiv skogsmark"},
             "class_preview_pixel_counts": counts,
             "valid_preview_pixels": int(valid.sum()),
