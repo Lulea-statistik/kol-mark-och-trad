@@ -1,0 +1,120 @@
+name: Analyze biomass by 2010 species and age with 2011-2018 harvest strata
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/compare_biomass_species_age_harvest_2010_2018.py'
+      - '.github/workflows/compare-biomass-species-age-harvest.yml'
+permissions:
+  contents: read
+jobs:
+  species-harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies and source syntax
+        run: |
+          python -m pip install -r requirements.txt
+          python -m py_compile scripts/compare_biomass_species_age_harvest_2010_2018.py
+      - name: Verify 2010 species dominance with synthetic volume cells
+        run: |
+          PYTHONPATH=scripts python - <<'PY'
+          import numpy as np
+          from compare_biomass_species_age_harvest_2010_2018 import classify,new,add,finish
+          pine=np.array([80.,10.,15.,5.,0.])
+          spruce=np.array([10.,80.,15.,5.,0.])
+          decid=np.array([10.,10.,70.,10.,0.])
+          vol=np.array([100.,100.,100.,20.,0.])
+          classes=classify(pine,spruce,decid,vol)
+          assert classes.tolist()==[0,1,2,3,4],classes
+          vals={**{'bio_'+y:np.array([100.,80.,60.]) for y in ('2010','2015','2018')},
+                'vol':np.array([100.,100.,100.]), 'age':np.array([20.,50.,80.])}
+          a=new()
+          add(a,np.array([True,False,True]),vals)
+          v=finish(a)
+          assert v['cells']==2 and v['ha']==.125
+          assert abs(v['ton_TS_by_year']['2010']-10)<1e-12
+          assert v['verified_real_biomass_growth_percent'] is None
+          print('Synthetic species classifier and cell-area weighting passed')
+          PY
+      - name: Fetch original historical rasters and archived provenance
+        run: |
+          mkdir -p release-biomass release-volume release-age nmd-input
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_*'
+          gh release download forest-age-lulea-2010-v1 --dir release-age --pattern 'lulea_forest_age_2010_*'
+          for year in 2010 2015 2018; do test -s "release-biomass/lulea_biomass_${year}_source_crs_clip.tif"; done
+          test -s release-volume/lulea_total_volume_2010_source_crs_clip.tif
+          test -s release-age/lulea_forest_age_2010_source_crs_clip.tif
+      - name: Fetch original NMD2018 Norrbotten forest layer
+        run: |
+          curl --fail --location --retry 3 --retry-delay 10 --connect-timeout 45 \
+            --output nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip \
+            https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import shutil,sys,rasterio
+          sys.path.insert(0,"scripts")
+          from fetch_and_compare_biomass_native import matches_expected_crs
+          p=Path("nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip")
+          with ZipFile(p) as z:
+              raster=[i for i in z.infolist() if i.filename.lower().endswith(".tif") and "bas" in i.filename.lower()]
+              assert len(raster)==1
+              target=Path("nmd-input/NMD2018bas_BD.tif")
+              with z.open(raster[0]) as a,target.open("wb") as b:shutil.copyfileobj(a,b)
+              for item in z.infolist():
+                  if item.is_dir() or item.filename==raster[0].filename:continue
+                  fn=Path(item.filename).name
+                  if fn.lower().startswith(Path(raster[0].filename).stem.lower()+"."):
+                      with z.open(item) as a,(target.parent/fn).open("wb") as b:shutil.copyfileobj(a,b)
+          with rasterio.open(target) as src:
+              assert matches_expected_crs(src.crs,3006)
+              assert src.count==1 and all(abs(abs(x)-10)<.05 for x in src.res)
+          print("NMD2018 real source CRS and 10m grid checked")
+          PY
+      - name: Compare species-age biomass for recorded and non-recorded harvest
+        run: |
+          python scripts/compare_biomass_species_age_harvest_2010_2018.py \
+            --output metadata/biomass_species_age_harvest_2010_2018.json
+      - name: Validate disjoint harvest and species strata
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          d=json.loads(Path("metadata/biomass_species_age_harvest_2010_2018.json").read_text())
+          assert d['analysis_crs']=='EPSG:3006' and d['cell_size_m']==25
+          assert d['all_full_source_common_cells']>0
+          assert set(d['strata'])=={'nmd2018_forest','all_common_2010_volume_ge50'}
+          for scope,groups in d['masks'].items():
+              assert groups['no_recorded_harvest']['cells']>0
+              for flag,top in groups.items():
+                  children=d['strata'][scope][flag]
+                  n=sum(x['all_ages']['cells'] for x in children.values())
+                  assert n==top['cells'],(scope,flag,n,top['cells'])
+                  for y in ('2010','2015','2018'):
+                      subtotal=sum(x['all_ages']['ton_TS_by_year'][y] for x in children.values())
+                      assert math.isclose(subtotal,top['ton_TS_by_year'][y],rel_tol=1e-8,abs_tol=.01)
+                  for label,x in children.items():
+                      assert x['all_ages']['verified_real_biomass_growth_percent'] is None
+                      assert x['all_ages']['cells']>=sum(v['cells'] for v in x['age_bins'].values())
+          print('All strata and tTS sums reconcile across fixed masks')
+          for scope,groups in d['masks'].items():print(scope,groups)
+          PY
+      - name: Save descriptive results and integrity checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass-2010-species-age-harvest-2018-comparison
+          path: |
+            metadata/biomass_species_age_harvest_2010_2018.json
+            metadata/species_biomass_archive_qa.json
+          if-no-files-found: warn
+          retention-days: 90
