@@ -79,7 +79,7 @@ jobs:
           PY
       - name: Cross exact NMD118 128 shared biomass cells with dated harvest polygons
         run: |
-          python scripts/diagnose_nmd_nonforest_harvest.py \
+          python scripts/diagnose_nmd118_128_dated_harvest.py \
             --directory release-biomass \
             --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
             --nmd nmd-input/NMD2018bas_BD.tif \
@@ -89,7 +89,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          x=json.loads(Path('metadata/nmd2018_nonforest_highvolume_harvest.json').read_text())
+          x=json.loads(Path('metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json').read_text())
           assert x["comparison_grid_crs"]=="EPSG:3006" and x["grid_resolution_m"]==25
           assert x["focus_cells"]==469240
           assert x["high_volume_2010_ge100_cells"]==119269
@@ -106,7 +106,7 @@ jobs:
         with:
           name: nmd118-128-temporary-nonforest-dated-harvest-crosscheck
           path: |
-            metadata/nmd2018_nonforest_highvolume_harvest.json
+            metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json
             metadata/nmd_nonforest_harvest_source_qa.json
             metadata/nmd118_128_nmd_source_sha256.txt
           if-no-files-found: warn
