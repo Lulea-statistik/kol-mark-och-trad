@@ -1,0 +1,55 @@
+name: Verify three-delivery SMD2000 anomaly consensus (synthetic only)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/summarize_smd2000_water_anomaly_consensus_private.py'
+      - '.github/workflows/verify-smd2000-water-consensus.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test aggregate accounting on synthetic 3-delivery inputs
+        run: |
+          python -m py_compile scripts/summarize_smd2000_water_anomaly_consensus_private.py
+          python - <<'PY'
+          import csv,sys,tempfile,pathlib
+          sys.path.insert(0,'scripts')
+          from summarize_smd2000_water_anomaly_consensus_private import run
+          with tempfile.TemporaryDirectory() as td:
+            p=pathlib.Path(td)/'fictional.csv'
+            with p.open('w',encoding='utf-8',newline='') as f:
+              wr=csv.writer(f,delimiter=';')
+              wr.writerow(['variant','row3021','col3021','neighbour','centre_class','pixel_area_water_fraction','pixel_area_coverage'])
+              for v in ('jan2012','april2012','lulea'):
+                for n in range(3):
+                  cls='vatten' if n==0 else 'skog' if n==1 else 'övrigt'
+                  if n==2 and v=='lulea':cls='skog'
+                  wr.writerow([v,10+n,100+n,3 if n==0 else 1,cls,1 if n==0 else 0,1])
+            d=run(p)
+            assert d['source_cells']==3
+            assert d['unanimous_total']==2
+            assert d['unanimous_class_across_three_deliveries']['vatten']==1
+            assert d['isolated_8_neighbour_nmd2018_water_cells']==1
+            assert d['historical_water_class_in_all_deliveries_among_isolated']==1
+            assert d['any_delivery_disagreement_cells']==1
+            assert d['pairwise_disagreement_cells']['jan2012__april2012']==0
+            assert d['pairwise_disagreement_cells']['jan2012__lulea']==1
+          print('Synthetic three-delivery consensus and partition test passed')
+          PY
+      - name: Assert spatial inputs not included in tracked fixtures
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('scripts/summarize_smd2000_water_anomaly_consensus_private.py').read_text()
+          assert 'easting3006' not in s and 'northing3006' not in s
+          assert 'row3021' in s and 'col3021' in s
+          assert 'if a.output.resolve().is_relative_to(root)' in s
+          print('No licensed input, coordinates or SMD geometry added to CI')
+          PY
