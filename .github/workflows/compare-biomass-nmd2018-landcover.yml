@@ -266,22 +266,23 @@ jobs:
           python scripts/audit_biomass_units_and_mass_gate.py \
             --input metadata/biomass2010_harmonized_comparison.json \
             --output metadata/biomass_unit_mass_gate.json
-      - name: Validate 2010 remains unconverted until source verification
+      - name: Validate source-confirmed 2010 tonnes and protect model comparability
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           d=json.loads(Path("metadata/biomass_unit_mass_gate.json").read_text())
-          assert d["status"]=="PHYSICAL_MASS_GATE_2010_BLOCKED"
+          assert d["status"]=="PHYSICAL_MASS_2010_CONVERSION_SOURCE_CONFIRMED_TEMPORAL_COMPARABILITY_NOT_VERIFIED"
           a=d["candidate_mass_by_common_mask"]
           assert len(a)==3
           for name,part in a.items():
               values=part["per_year"]
-              assert values["2010"]["tonnes_dry_matter"] is None
-              assert not values["2010"]["hypothetical_is_reportable_total"]
+              assert values["2010"]["tonnes_dry_matter"]>0
+              assert values["2010"]["same_component_and_model_as_other_years_verified"] is False
+              assert values["2010"]["physical_conversion_status"].startswith("SOURCE_PRODUCER_CONFIRMED_2010_UNIT")
               assert values["2015"]["tonnes_dry_matter"]>0
               assert values["2018"]["tonnes_dry_matter"]>0
-          print("2010 physical-tonnage guardrail verified")
+          print("2010 source-confirmed tonnes calculated; cross-model comparability remains UNVERIFIED")
           PY
       - name: Archive landcover and biomass results
         if: always()
