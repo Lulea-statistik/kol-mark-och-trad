@@ -1,0 +1,113 @@
+name: Analyse NMD2018 temporary nonforest 118 128 against dated harvests
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/diagnose_nmd118_128_dated_harvest.py'
+      - '.github/workflows/diagnose-nmd118-128-harvest.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install geospatial requirements
+        run: python -m pip install -r requirements.txt
+      - name: Syntax check
+        run: python -m py_compile scripts/diagnose_nmd118_128_dated_harvest.py
+      - name: Download source-CRS biomass and volume from verified releases
+        run: |
+          mkdir -p release-biomass release-volume
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_2010_*'
+          for yr in 2010 2015 2018; do test -s "release-biomass/lulea_biomass_${yr}_source_crs_clip.tif"; done
+          test -s release-volume/lulea_total_volume_2010_source_crs_clip.tif
+      - name: Validate archived biomass provenance
+        run: python scripts/verify_biomass_release.py --directory release-biomass --output metadata/nmd_nonforest_harvest_source_qa.json
+      - name: Download verified original NMD2018 base map
+        run: |
+          mkdir -p nmd-input
+          curl --fail --location --retry 3 --retry-delay 10 --connect-timeout 45 \
+            --output nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip \
+            https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip
+          sha256sum nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip > metadata/nmd118_128_nmd_source_sha256.txt
+      - name: Extract and validate NMD original raster
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import shutil,rasterio
+          import sys
+          sys.path.insert(0,"scripts")
+          from fetch_and_compare_biomass_native import matches_expected_crs
+          srcpath=Path("nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip")
+          with ZipFile(srcpath) as z:
+              candidates=[x for x in z.infolist() if x.filename.lower().endswith('.tif') and 'bas' in x.filename.lower()]
+              print("GeoTIFF candidates:",[x.filename for x in candidates])
+              if len(candidates)!=1:raise ValueError("Expected exactly one NMD base GeoTIFF")
+              dst=Path("nmd-input/NMD2018bas_BD.tif")
+              with z.open(candidates[0]) as f,dst.open('wb') as out:
+                  shutil.copyfileobj(f,out,8*1024*1024)
+              # Preserve external world/CRS metadata if the supplied TIFF depends on sidecars.
+              for member in z.infolist():
+                  if member.is_dir() or member.filename==candidates[0].filename:continue
+                  basename=Path(member.filename).name
+                  if basename.lower().startswith(Path(candidates[0].filename).stem.lower()+'.') or basename.lower()==Path(candidates[0].filename).with_suffix('.tfw').name.lower():
+                      with z.open(member) as inp,(dst.parent/basename).open('wb') as out:
+                          shutil.copyfileobj(inp,out)
+          with rasterio.open(dst) as raster:
+              print("NMD2018 source metadata",{"crs":str(raster.crs),"epsg":raster.crs.to_epsg() if raster.crs else None,
+                "resolution":raster.res,"bands":raster.count,"nodata":raster.nodata,
+                "transform":str(raster.transform),"bounds":str(raster.bounds)},flush=True)
+              if raster.crs is None:raise ValueError("NMD source has no readable CRS; examine original sidecar files")
+              if raster.count!=1:raise ValueError(f"Expected one NMD band, got {raster.count}")
+              if any(abs(abs(r)-10)>.01 for r in raster.res):
+                  raise ValueError(f"Expected 10m source cells, got {raster.res}")
+              # A real, complete reprojection to the EPSG:3006 analysis grid is handled
+              # by WarpedVRT. Source NMD CRS must be verified, not guessed or overwritten.
+              if not matches_expected_crs(raster.crs,3006):
+                  raise ValueError(f"Unexpected unverified source CRS: {raster.crs}")
+              print("Verified NMD source with explicit CRS",raster.crs,raster.res,raster.nodata,flush=True)
+          PY
+      - name: Cross exact NMD118 128 shared biomass cells with dated harvest polygons
+        run: |
+          python scripts/diagnose_nmd118_128_dated_harvest.py \
+            --directory release-biomass \
+            --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
+            --nmd nmd-input/NMD2018bas_BD.tif \
+            --output metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json
+      - name: Validate focus area and dated harvest partition
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json').read_text())
+          assert x["comparison_grid_crs"]=="EPSG:3006" and x["grid_resolution_m"]==25
+          assert x["focus_cells"]==469240
+          assert x["high_volume_2010_ge100_cells"]==119269
+          assert sum(r["cells"] for r in x["high_volume_harvest_periods"].values())==119269
+          assert sum(r["cells"] for r in x["low_volume_harvest_periods"].values())==x["low_volume_2010_lt100_cells"]
+          assert abs(x["raw_delta_2010_2018"]-10430209.959174048)<1.
+          assert sum(v["cells"] for v in x["focus_harvest_periods"].values())==x["focus_cells"]
+          assert 0<=x["focus_share_harvest_2011_2018"]<=1
+          print(json.dumps({k:x[k] for k in ("focus_area_ha","focus_harvest_periods","focus_share_harvest_2011_2018")},ensure_ascii=False,indent=2))
+          PY
+      - name: Preserve harvested/non-harvested comparison and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmd118-128-temporary-nonforest-dated-harvest-crosscheck
+          path: |
+            metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json
+            metadata/nmd_nonforest_harvest_source_qa.json
+            metadata/nmd118_128_nmd_source_sha256.txt
+          if-no-files-found: warn
+          retention-days: 90
