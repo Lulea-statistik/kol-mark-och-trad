@@ -81,9 +81,11 @@ jobs:
           assert d["analysis_crs"]=="EPSG:3006" and d["grid_resolution_m"]==25
           assert d["all_common"]["cells"]==2456410
           assert d["original_2018_NMD_forest_mask"]["cells"]==1705502
-          assert d["physical_biomass_tonnes_2010"] is None
+          assert d["year_to_year_physical_comparability_verified"] is False
           for t,x in d["2010_modeled_volume_proxy_thresholds"].items():
               assert x["all"]["cells"]==x["forest_2018"]["cells"]+x["not_forest_2018"]["cells"]
+              assert x["all"]["verified_cross_year_physical_change_percent"] is None
+              assert math.isclose(x["all"]["modelled_tonnes_dry_matter_by_year"]["2010"],x["all"]["raw_sum"]["2010"]*.0625,rel_tol=1e-12)
               for y in ("2010","2015","2018"):
                   assert math.isclose(x["all"]["raw_sum"][y],
                       x["forest_2018"]["raw_sum"][y]+x["not_forest_2018"]["raw_sum"][y],rel_tol=1e-8)
