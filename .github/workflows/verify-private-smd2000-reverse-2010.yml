@@ -1,0 +1,65 @@
+name: Verify private SMD2000 reverse 2010 biomass crosscheck code
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/compare_smd2000_reverse_2010_mask_private.py'
+      - '.github/workflows/verify-private-smd2000-reverse-2010.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install public-only dependencies
+        run: python -m pip install -r requirements.txt fiona
+      - name: Check syntax and synthetic mutually-exclusive group accounting
+        run: |
+          python -m py_compile scripts/compare_smd2000_reverse_2010_mask_private.py
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          import numpy as np
+          from compare_smd2000_reverse_2010_mask_private import (
+              smd_group,nmd_group,new,add,finish,check_sum,GROUPS,NMD_GROUPS)
+          assert [smd_group(k) for k in (40,55,54,81,12,0)]==[
+              "forest","young","clearcut","water","other","unclassified"]
+          assert [nmd_group(k) for k in (111,118,61,51)]==[
+              "forest_2018","temporary_nonforest_2018","water_2018","other_2018"]
+          vals={"2010":np.array([100.,200.,30.,0.]),
+                "2015":np.array([90.,80.,40.,0.]),
+                "2018":np.array([85.,10.,50.,0.])}
+          codes=(40,55,81,12)
+          whole=new()
+          add(whole,np.ones(4,dtype=bool),vals)
+          bins={}
+          for code in codes:
+              label=smd_group(code);bins[label]=new()
+          for i,code in enumerate(codes):
+              mask=np.array([j==i for j in range(4)])
+              add(bins[smd_group(code)],mask,vals)
+          check_sum(finish(whole),{k:finish(x) for k,x in bins.items()})
+          assert finish(whole)["cells"]==4
+          assert finish(whole)["sum_raw"]["2010"]==330
+          assert finish(whole)["sum_raw"]["2018"]==145
+          print("Pure synthetic accounting and code import passed")
+          PY
+      - name: Reject public or runner SMD inputs and outputs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path("scripts/compare_smd2000_reverse_2010_mask_private.py").read_text()
+          assert "PRIVATE_SMD2000_SENSITIVITY_NOT_VERIFIED_2010_FOREST" in src
+          assert 'if args.output.resolve().is_relative_to(Path.cwd().resolve())' in src
+          assert 'publishable_without_license_review":False' in src
+          assert 'if full["cells"]!=2456410' in src
+          assert 'matches_expected_crs(src.crs,epsg)' in src
+          assert 'resampling=Resampling.average' in src
+          assert 'resampling=Resampling.nearest' in src
+          print("Private-only output and full source CRS warping guards present")
+          PY
