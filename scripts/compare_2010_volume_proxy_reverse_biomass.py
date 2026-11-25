@@ -41,6 +41,9 @@ def finish(d):
     n=d["cells"]
     return {"cells":n,"area_ha":n*.0625,"raw_sum":d["sums"],
         "mean_raw":{y:(d["sums"][y]/n if n else None) for y in YEARS},
+        "modelled_tonnes_dry_matter_by_year":{y:d["sums"][y]*.0625 for y in YEARS},
+        "mass_unit_basis":"2010 source-producer confirmed tTS/ha for exact BIOMASS_XX_P_10.tif; 2015/2018 documented tTS/ha; year-to-year compartment/model equivalence NOT verified",
+        "verified_cross_year_physical_change_percent":None,
         "delta_2010_minus_2018_raw":d["sums"]["2010"]-d["sums"]["2018"],
         "percent_2018_change_vs_2010_raw":(100*(d["sums"]["2018"]/d["sums"]["2010"]-1)
              if d["sums"]["2010"] else None),
@@ -137,7 +140,8 @@ def run(args):
       "2010_volume_bands":{name:finish(v) for name,v in volbins.items()},
       "2010_modeled_volume_proxy_thresholds":{
           t:{name:finish(val) for name,val in data.items()} for t,data in thresholds.items()},
-      "physical_biomass_tonnes_2010":None,
+      "physical_biomass_tonnes_2010":"available per exact 25m common mask in modelled_tonnes_dry_matter_by_year; NOT a municipality stock",
+      "year_to_year_physical_comparability_verified":False,
       "limitations":[
        "A 2010 volume threshold is a historical MODEL proxy, not independent NMD2010 forest classification.",
        "The 2010 volume and biomass rasters are correlated modelling outputs and cannot independently validate one another.",
@@ -145,7 +149,7 @@ def run(args):
        "2010 timber volume >=50 or >=100 is an operational mature forest-volume filter, NOT a comprehensive 2010 forest-land map; young/regenerating/low-volume forest can be missed.",
        "2018 NMD classes are used only for cross-tabulation, not to define reverse 2010 selection.",
        "Common valid biomass mask for all years means this analysis is not a municipality-wide 2010 forest stock.",
-       "Neither source units nor biomass components were harmonized across years; all sums are raw values.",
+       "2010 physical unit tTS/ha and above-stump biomass confirmed by SLU on 2026-11-25; 2015 and 2018 also documented tTS/ha but model components and inclusion of leaves may not match.",
        "True biomass loss from forest harvest between 2010 and 2018 is preserved without corrections.",
        "Full raster grid CRS transformation applied before comparisons; missing values never converted to zero."
       ]}

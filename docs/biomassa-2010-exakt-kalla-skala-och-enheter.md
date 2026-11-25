@@ -1,3 +1,23 @@
+## Uppdatering 2026-11-25: direkt källbekräftelse från SLU
+
+**Viktig metoduppdatering:** tidigare i dokumentet redovisade statusen om obekräftad enhet är numera **historisk och ersatt** av följande direktbekräftelse från SLU, återgiven av projektets användare i korrespondens den 25 november 2026.
+
+SLU:s Mats svarade om **exakt** `BIOMASS_XX_P_10.tif`:
+
+> Kartskiktet med biomassa (på `BIOMASS_XX_P_10.tif`) är i tonTS/ha (TS = torrsubstans) och representerar hela träden ovan stubbskär inklusive grenar. För barrträd ingår även barren men det gör inte löven på lövträd.
+
+Metodreferens som uppgavs av SLU: Marklund, L.G. (1988). *Biomassafunktioner för tall, gran och björk i Sverige*. Sveriges lantbruksuniversitet, Institutionen för skogstaxering, Rapport 45, 73 s.
+
+**Fakta för just detta raster:** enhet **ton torrsubstans/ha**, ovan stubbskär, inklusive grenarna och barr hos barrträd, exklusive löv på lövträd, stubbar och rötter. Detta gäller exakt 2010-lagret, inte automatiskt andra år eller lager. XML-sidecars saknade uttrycklig enhet, men är inte längre avgörande eftersom dataleverantören nu specifikt har bekräftat den.
+
+**Omräkning på projektets fullt omprojicerade 25m-grid EPSG:3006:** varje fullt giltig rastercell har planarea **0,0625 ha**, och bidraget i ton TS blir `värde_i_tTS_per_ha * 0.0625`. Summan av de *gemensamt giltiga, uttryckligt definierade* cellerna blir därmed fysisk modellskattad torrmassa. Den är **inte hela Luleås skogsförråd**; arbetsgräns, vattenklass, gemensam datatäckning och skogsdefinition måste stå i tabellrubrik. Rasterreprojicering har gjorts på hela griddet med `average`, inte bara genom att flytta rasterhörn.
+
+**Jämförbarhet:** 2015 och 2018 har sedan tidigare dokumenterade ton TS/ha och biomassa ovan mark, utan stubbar/rötter. Dock är det inte källbekräftat att deras exakta barr-/lövinklusion, modellkalibrering och nollregler är samma som 2010. Vi får **räkna separata ton TS-värden** men **inte hävda en verifierad relativ fysisk biomassaförändring** mellan åren eller automatiskt korrigera 2010-modellen utifrån differensen.
+
+**Spårbarhet:** `scripts/audit_biomass_units_and_mass_gate.py` har uppdaterats från NULL till faktisk ton TS-omräkning för 2010 under status `PHYSICAL_MASS_2010_CONVERSION_SOURCE_CONFIRMED_TEMPORAL_COMPARABILITY_NOT_VERIFIED`. Vattenfel från äldre QA-körningar korrigeras inte automatiskt; historisk vattentäckning och registrerade avverkningar kräver egna masker och kvalitetskontroller. Detta är en *bekräftelse från källans expert per e-post*, inte en öppet publicerad produktmetadatafil.
+
+---
+
 # Spårning av exakt biomassakälla för SLU Skogskarta 2010
 
 ## Bekräftat från projektets filer (2026-11-25)
