@@ -1,0 +1,66 @@
+name: Audit exact SLU 2010 biomass TIFF physical units sidecars
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/audit_2010_source_unit_metadata.py'
+      - '.github/workflows/audit-slu2010-biomass-units.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check script syntax
+        run: python -m py_compile scripts/audit_2010_source_unit_metadata.py
+      - name: Fetch archive provenance and original native sidecar metadata
+        run: |
+          mkdir -p release-biomass metadata/slu2010_original_sidecars
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass \
+            --pattern 'lulea_biomass_2010_provenance.json' \
+            --pattern 'lulea_biomass_2010_SHA256SUMS.txt'
+          for suffix in '.tif.aux.xml' '.tif.xml'; do
+            curl --fail --location --retry 3 --connect-timeout 45 \
+              --output "metadata/slu2010_original_sidecars/BIOMASS_XX_P_10${suffix}" \
+              "https://gis.slu.se/data/slu_forest_map/2010/Data/Raster/Rt90/BIOMASS_XX_P_10${suffix}"
+          done
+          test -s metadata/slu2010_original_sidecars/BIOMASS_XX_P_10.tif.aux.xml
+          test -s metadata/slu2010_original_sidecars/BIOMASS_XX_P_10.tif.xml
+      - name: Audit exact 2010 native metadata versus archived 2010 provenance
+        run: |
+          python scripts/audit_2010_source_unit_metadata.py \
+            --directory release-biomass \
+            --sidecars metadata/slu2010_original_sidecars \
+            --output metadata/biomass2010_source_unit_metadata_audit.json
+      - name: Validate hard unit and component gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("metadata/biomass2010_source_unit_metadata_audit.json").read_text())
+          assert x["native_crs"]=="EPSG:3021"
+          assert x["native_scale"]==1 and x["native_offset"]==0
+          assert len(x["raw_sidecar_evidence"])==2
+          assert x["status"]=="SOURCE_SIDECARS_AUDITED_PHYSICAL_UNIT_UNVERIFIED"
+          assert x["2010_tonnes_verified"] is False
+          assert x["2010_biomass_components_verified"] is False
+          print("2010 physical sum remains blocked until source-specific evidence is reviewed")
+          PY
+      - name: Archive provenance and source metadata evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slu2010-biomass-source-metadata-and-unit-evidence
+          path: |
+            metadata/biomass2010_source_unit_metadata_audit.json
+            metadata/slu2010_original_sidecars/*.xml
+          if-no-files-found: warn
+          retention-days: 90
