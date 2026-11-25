@@ -1,0 +1,52 @@
+name: Validate biomass components and temporal comparability evidence
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/audit_biomass_components_and_mass_gate.py'
+      - 'scripts/audit_biomass_units_and_mass_gate.py'
+      - 'scripts/audit_biomass_component_comparability.py'
+      - '.github/workflows/audit-biomass-component-comparability.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run product-specific unit and component crosswalk
+        run: |
+          python -m py_compile scripts/audit_biomass_units_and_mass_gate.py scripts/audit_biomass_component_comparability.py
+          python scripts/audit_biomass_component_comparability.py --output metadata/biomass_2010_2015_2018_component_comparability.json
+      - name: Verify guarded unknown foliage and 3-metre zero-rule differences
+        run: |
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"scripts")
+          from audit_biomass_component_comparability import audit
+          from audit_biomass_units_and_mass_gate import SRC
+          d=json.loads(Path("metadata/biomass_2010_2015_2018_component_comparability.json").read_text())
+          assert d["comparability"]["tonnes_dry_matter_per_hectare_same_unit"] is True
+          assert d["comparability"]["no_stumps_or_roots_common_to_product_descriptions"] is True
+          for k in ("same_conifer_needles_inclusion_all_years",
+                    "same_deciduous_leaves_inclusion_all_years",
+                    "same_height_based_zero_rule_all_years"):
+              assert d["comparability"][k] is None
+          assert d["policy"]["allow_label_2010_2018_percent_as_physically_harmonized"] is False
+          assert d["policy"]["allow_per_year_masked_tonnes"] is True
+          assert SRC["2010"]["needles_included"] is True
+          assert SRC["2010"]["deciduous_leaves_included"] is False
+          assert SRC["2015"]["height_zero_rule"] and SRC["2018"]["height_zero_rule"]
+          assert audit(SRC)["status"]==d["status"]
+          print("Component crosswalk verified; no unsupported 2010/2018 time-trend claim")
+          PY
+      - name: Archive machine readable evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass-product-component-comparability-2010-2015-2018
+          path: metadata/biomass_2010_2015_2018_component_comparability.json
+          retention-days: 90
