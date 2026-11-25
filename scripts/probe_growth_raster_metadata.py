@@ -36,9 +36,18 @@ def main():
                         band_descriptions=src.descriptions)
         except Exception as error:
             info["status"]="source_read_failed"
-            info["error"]=str(error)[:600]
+            info["error"]=str(error)[:900]
+            try:
+                import urllib.request
+                req=urllib.request.Request(item["url"],method="HEAD",headers={"User-Agent":"Lulea-statistik-QA/1.0"})
+                with urllib.request.urlopen(req,timeout=20) as resp:
+                    info["http_status"]=resp.status
+                    info["http_accept_ranges"]=resp.headers.get("Accept-Ranges")
+                    info["http_content_length"]=resp.headers.get("Content-Length")
+            except Exception as head_error:
+                info["http_head_error"]=str(head_error)[:500]
         results.append(info)
-        print(item["id"],info["status"],flush=True)
+        print(json.dumps(info,ensure_ascii=False),flush=True)
     report={"probed_utc":datetime.now(timezone.utc).isoformat(),
             "source_registry":"metadata/forest_growth_age_site_index_sources.json",
             "all_layers_verified":all(r["status"]=="metadata_verified" for r in results),
@@ -46,5 +55,8 @@ def main():
             "layers":results}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    print(json.dumps({"statuses":{r["id"]:r["status"] for r in results}},indent=2))
+    print(json.dumps({"statuses":{r["id"]:r["status"] for r in results}},indent=2),flush=True)
+    failures=[r["id"] for r in results if r["status"]!="metadata_verified"]
+    if failures:
+        raise SystemExit("Metadata NOT verified for: "+", ".join(failures))
 if __name__=="__main__":main()
