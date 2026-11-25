@@ -169,9 +169,9 @@ def run(args):
             if not matches_expected_crs(src.crs,3021 if year=="2010" else 3006):
                 raise ValueError("Unverified raster CRS: "+year)
             if src.nodata is None: raise ValueError("NoData missing: "+year)
-        if not nmd.crs or nmd.crs.to_epsg()!=3006 or nmd.count!=1 or any(abs(abs(x)-10)>.01 for x in nmd.res):
-            raise ValueError("Unexpected NMD original CRS/band/resolution")
-        if nmd.nodata in (118,128):raise ValueError("NMD NoData overlaps class zero")
+        if not matches_expected_crs(nmd.crs,3006) or nmd.count!=1 or any(abs(abs(x)-10)>.01 for x in nmd.res):
+            raise ValueError(f"Unexpected NMD original CRS/band/resolution: {nmd.crs}, {nmd.res}")
+        if nmd.nodata in (118,128):raise ValueError("NMD NoData overlaps target temporary-not-forest classes 118/128")
         if not matches_expected_crs(volume.crs,3021) or volume.count!=1 or volume.nodata is None:
             raise ValueError("Unexpected volume 2010 CRS/band/NoData")
         if any(abs(abs(x)-25)>.05 for x in volume.res):
