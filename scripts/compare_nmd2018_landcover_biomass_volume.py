@@ -292,9 +292,13 @@ def run(args):
                         elif bin_label=="2010_volume_0":
                             selected=temp & (v==0)
                         else:
-                            selected=temp & np.isfinite(v) & (v>low) & (
-                                (v<high) if bin_label=="2010_volume_gt0_lt50"
-                                else ((v>=low)&(v<high)) if high is not None else (v>=low))
+                            if bin_label=="2010_volume_gt0_lt50":
+                                in_volume=(v>0)&(v<50)
+                            elif high is None:
+                                in_volume=v>=low
+                            else:
+                                in_volume=(v>=low)&(v<high)
+                            selected=temp & np.isfinite(v) & in_volume
                         if not selected.any():continue
                         t=temp_volume_stats[bin_label]
                         count=int(selected.sum())
