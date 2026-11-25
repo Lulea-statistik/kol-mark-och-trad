@@ -1,3 +1,24 @@
+## Faktiskt körresultat – GitHub Actions 2026-11-25
+
+Körningen [Audit SGD2 2018 Luleå leaf-on off scan metadata, #45635306946](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45635306946) har **slutförts och fått success** med fråga mot den ursprungliga SGD2-tjänsten. Det verkliga fältet **`Lov_Avlov` hittades** i tjänstens schema, och alla **540** verifierade omdrev-2-rutor inom Luleås arbetsgräns hade **kod 1 (med löv)**:
+
+| Senaste angivna skanningsmånad | Metadataregistreringar | `Lov_Avlov=1` | `Lov_Avlov=2` | Okänd |
+|---|---:|---:|---:|---:|
+| Juli 2018 | **382** | 382 | 0 | 0 |
+| Augusti 2018 | **148** | 148 | 0 | 0 |
+| September 2018 | **10** | 10 | 0 | 0 |
+| **Totalt** | **540** | **540** | **0** | **0** |
+
+Räkningen gäller **metadataregistreringar**, inte ytviktade polygoner eller summa ton TS. Källans metadatauppgifter är en kalenderbaserad bedömning av skanning med/utan löv; fältet bevisar inte lövstatus vid varje individuell laserpuls.
+
+**Avgörande analytisk konsekvens:** Det finns **ingen avlövad intern kontrollgrupp i Luleås verifierade SGD2-omdrev-2-metadata**. Vi kan därför inte beräkna en empirisk differens, signifikans eller korrigeringsprocent mellan lövad och avlövad skanning **inom kommunen**. Skogsstyrelsens dokumenterade risk för överskattning vid lövade skanningar är en **potentiell** bias; 540 av 540 med löv är inte evidens för att 2018-biomassavärdet är ett visst procenttal för högt.
+
+En fortsatt analys kan (a) jämföra oavverkad barrdominerad och lövdominerad skog inom en **gemensam lövad skanningsregim**, med kontroll för ålder, bonitet och sensor-/modellskillnader, eller (b) använda andra områden med verifierade avlövade SGD2-rutor och matcha på trädslag/beståndsegenskaper. Dessa är forskningsupplägg, inte redan genomförda kausala tester.
+
+**Spårbarhet:** Loggarna och JSON-artefakten från den genomförda körningen innehåller utfallet; originaldata och tidigare biomassaresultat har inte justerats.
+
+---
+
 # SGD2 Luleå 2018: undersökning av laserskanning med och utan löv
 
 ## Viktig källskillnad – 2026 års beskrivning blandar inte ihop årgångarna
