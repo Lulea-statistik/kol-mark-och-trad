@@ -16,6 +16,18 @@ Källornas SHA-256 (ZIP):
 - 2012-04-17: `dc32745f2273d8180a2771b9ab354bc1f493da1b6d77fe7cb3d68dc762089098`
 - lulea.zip: `057bb69bca2268b3d62c3f158a2bb6ae518b475d8bcf750d878c667d7c44cb7f`
 
+### Översikt av polygonernas areal (källgeometri, ej kommunmaskad 2010-grid)
+
+Area summerad direkt från samtliga SMD-polygoners planarea i respektive källa. **Observera:** Detta är en första inventering av de levererade polygonerna (inklusive havs-/vattenutbredning), inte Luleås administrativa landareal eller ett mått på areal med giltig biomassa.
+
+| SMD-arkiv | Vatten (ha) | Skog (ha) | Övrigt (ha) | Summa polygonarea (ha) |
+|---|---:|---:|---:|---:|
+| 2012-01-16, EPSG:3006 | 213 383,2 | 127 902,9 | 158 379,9 | 499 666,0 |
+| 2012-04-17, angivet lokalt EPSG:3017 | 213 200,3 | 128 063,1 | 158 398,8 | 499 662,3 |
+| lulea.zip, angivet lokalt EPSG:3017 | 213 130,0 | 128 240,5 | 158 314,8 | 499 685,2 |
+
+Skillnaderna mellan arkiven är relativt små i aggregerad yta, men skillnader i polygonindelning och strandgeometri kan vara viktiga nära de 22 avvikande 2010-cellerna. **Areor i olika kartprojektioner kan skilja något även vid identiskt innehåll.** Det får inte tolkas som förändring mellan observationsår, eftersom alla leveranser avser SMD2000.
+
 ### Referensår och kvalitet
 Bifogad `dokument/md_prod.pdf` (Lantmäteriet, 2010-03-26, version 1.2) anger **referensår 2000**, i huvudsak Landsat-satellitdata samt flera kompletterande källor. Originalets pixelunderlag hade 25m grid; dessa uppladdade **vektordata är generaliserade** till minsta ytenheter **1, 2, 5 eller 25 hektar** beroende på klass. Uppgiven sammanlagd tematisk noggrannhet är **cirka 75 %**, men varierar mellan klasser. Det innebär att SMD2000 inte får utges för att vara ett precist facit för enskilda 2010-rasterceller.
 
