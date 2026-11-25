@@ -1,0 +1,103 @@
+name: Audit native 2010 biomass NoData vs NMD2018 water fraction
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/audit_native_2010_water_fraction_mask.py'
+      - '.github/workflows/audit-native-2010-water-fraction.yml'
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install GIS dependencies and check script syntax
+        run: |
+          python -m pip install -r requirements.txt "scipy>=1.11"
+          python -m py_compile scripts/audit_native_2010_water_fraction_mask.py
+      - name: Fetch unchanged source-CRS 2010 biomass and volume
+        run: |
+          mkdir -p release-biomass release-volume
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_2010_source_crs_clip.tif'
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_2010_source_crs_clip.tif'
+          test -s release-biomass/lulea_biomass_2010_source_crs_clip.tif
+          test -s release-volume/lulea_total_volume_2010_source_crs_clip.tif
+      - name: Fetch original 10 m NMD2018 and verify native CRS
+        run: |
+          mkdir -p nmd-input metadata
+          curl --fail --location --retry 3 --retry-delay 10 --connect-timeout 45 \
+            --output nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip \
+            https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip
+          sha256sum nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip > metadata/native2010_nmd_zip_sha256.txt
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import shutil,sys,rasterio
+          sys.path.insert(0,'scripts')
+          from fetch_and_compare_biomass_native import matches_expected_crs
+          p=Path('nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip')
+          with ZipFile(p) as z:
+              tif=[x for x in z.infolist() if x.filename.lower().endswith('.tif') and 'bas' in x.filename.lower()]
+              assert len(tif)==1,[x.filename for x in tif]
+              dst=Path('nmd-input/NMD2018bas_BD.tif')
+              with z.open(tif[0]) as inp,dst.open('wb') as out:shutil.copyfileobj(inp,out,8*1024*1024)
+              for member in z.infolist():
+                  if member.is_dir() or member.filename==tif[0].filename:continue
+                  basename=Path(member.filename).name
+                  if basename.lower().startswith(Path(tif[0].filename).stem.lower()+'.') or basename.lower()==Path(tif[0].filename).with_suffix('.tfw').name.lower():
+                      with z.open(member) as inp,(dst.parent/basename).open('wb') as out:shutil.copyfileobj(inp,out)
+          with rasterio.open(dst) as src:
+              assert src.crs is not None and matches_expected_crs(src.crs,3006)
+              assert src.nodata is not None and src.count==1 and all(abs(abs(r)-10)<.01 for r in src.res)
+              print('Original NMD2018 source',src.crs,src.res,src.nodata,src.bounds)
+          PY
+      - name: Analyse original 2010 source pixel masks and original NMD water-cover fraction
+        run: |
+          python scripts/audit_native_2010_water_fraction_mask.py \
+            --biomass-2010 release-biomass/lulea_biomass_2010_source_crs_clip.tif \
+            --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
+            --nmd nmd-input/NMD2018bas_BD.tif \
+            --output metadata/native_2010_water_fraction_mask.json
+      - name: Validate native-grid water bins and four/eight neighbours
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('metadata/native_2010_water_fraction_mask.json').read_text())
+          assert d['native_analysis_grid']=='EPSG:3021' and d['native_analysis_resolution_m']==25
+          assert d['nmd_source_crs']=='EPSG:3006' and d['nmd_native_resolution_m']==10
+          bands=d['water_fraction_bands']
+          assert list(bands)==['0 %','>0-25 %','>25-50 %','>50-75 %','>75-<100 %','100 %']
+          population=d['study_population']['municipal_cells_with_sufficient_nmd2018_coverage']
+          assert sum(z['cells'] for z in bands.values())==population
+          neighbours=d['pure_nmd2018_water_neighbours']
+          assert len(neighbours)==3
+          assert sum(z['cells'] for z in neighbours.values())==bands['100 %']['cells']
+          assert sum(z['both_2010_valid_cells'] for z in neighbours.values())==bands['100 %']['both_2010_valid_cells']
+          for group in list(bands.values())+list(neighbours.values()):
+              assert 0<=group['both_2010_valid_cells']<=min(group['biomass_2010_valid_cells'],group['volume_2010_valid_cells'])<=group['cells']
+          assert bands['100 %']['cells']>0
+          print('Native 2010 pixel-grid water cover and neighbour audit verified')
+          print('NMD2018 water fraction and native 2010 valid-counts:')
+          for name,z in bands.items():print(name,z)
+          print('Pure water 4/8-neighbour validity:')
+          for name,z in neighbours.items():print(name,z)
+          PY
+      - name: Upload native grid mask sensitivity diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-2010-water-fraction-mask-diagnostics
+          path: |
+            metadata/native_2010_water_fraction_mask.json
+            metadata/native2010_nmd_zip_sha256.txt
+          retention-days: 90
+          if-no-files-found: warn
