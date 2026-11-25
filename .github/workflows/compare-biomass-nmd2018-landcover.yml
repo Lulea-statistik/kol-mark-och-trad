@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/compare_nmd2018_landcover_biomass_volume.py'
       - 'scripts/analyze_2010_biomass_volume_cellwise.py'
+      - 'scripts/audit_biomass_source_coverage_2010.py'
       - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
 permissions:
   contents: read
@@ -23,7 +24,7 @@ jobs:
       - name: Install geospatial dependencies and syntax check
         run: |
           python -m pip install -r requirements.txt "scipy>=1.11"
-          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py scripts/analyze_2010_biomass_volume_cellwise.py
+          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py scripts/analyze_2010_biomass_volume_cellwise.py scripts/audit_biomass_source_coverage_2010.py
       - name: Fetch archived original CRS biomass and volume clips
         run: |
           mkdir -p release-biomass release-volume
@@ -180,6 +181,36 @@ jobs:
           print('NMD2018 groups:')
           for row in d['nmd_groups']:print(row)
           PY
+      - name: Audit the 2010 source effective data masks without later-year selection
+        run: |
+          python scripts/audit_biomass_source_coverage_2010.py \
+            --biomass-2010 release-biomass/lulea_biomass_2010_source_crs_clip.tif \
+            --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
+            --biomass-2015 release-biomass/lulea_biomass_2015_source_crs_clip.tif \
+            --biomass-2018 release-biomass/lulea_biomass_2018_source_crs_clip.tif \
+            --nmd nmd-input/NMD2018bas_BD.tif \
+            --output metadata/biomass_source_coverage_2010.json
+      - name: Verify independent 2010 mask population and shared-population reconciliation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('metadata/biomass_source_coverage_2010.json').read_text())
+          ref=json.loads(Path('metadata/biomass_volume_2010_cellwise.json').read_text())
+          assert d['analysis_crs']=='EPSG:3006' and d['pixel_size_m']==25
+          groups=d['group_rows']
+          assert set(groups)=={'Water_NMD2018','Forest_NMD2018','Other_NMD2018'}
+          assert sum(g['nmd_cells'] for g in groups.values())==d['area']['nmd_valid_cells']
+          assert all(g['both_2010_and_later_valid']<=g['both_2010_valid'] for g in groups.values())
+          assert sum(g['both_2010_and_later_valid'] for g in groups.values())==ref['overall']['cells']
+          expected={'Water_NMD2018':25821,'Forest_NMD2018':1705502,'Other_NMD2018':725087}
+          for name,n in expected.items():assert groups[name]['both_2010_and_later_valid']==n,(name,groups[name])
+          for g in groups.values():
+              assert sum(g.get('pattern_'+format(i,'04b'),0) for i in range(16))==g['nmd_cells']
+          print('Source mask audit validated against PR94 shared reference')
+          for name,group in sorted(groups.items()):
+              print(name,group)
+          PY
       - name: Archive landcover and biomass results
         if: always()
         uses: actions/upload-artifact@v4
@@ -188,6 +219,7 @@ jobs:
           path: |
             metadata/nmd2018_landcover_biomass_volume.json
             metadata/biomass_volume_2010_cellwise.json
+            metadata/biomass_source_coverage_2010.json
             metadata/landcover_source_validation.json
             metadata/nmd2018_landcover_zip_sha256.txt
           if-no-files-found: warn
