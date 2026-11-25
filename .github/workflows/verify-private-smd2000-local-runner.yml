@@ -1,0 +1,65 @@
+name: Verify local private SMD2000 runner without licensed inputs
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/run_private_smd2000_reverse_comparison.py'
+      - '.github/workflows/verify-private-smd2000-local-runner.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax verification
+        run: python -m py_compile scripts/run_private_smd2000_reverse_comparison.py
+      - name: Test sealed local SMD extraction with fake archive (no licensed data)
+        run: |
+          python - <<'PY'
+          import hashlib, importlib.util, pathlib, tempfile, zipfile
+          script=pathlib.Path("scripts/run_private_smd2000_reverse_comparison.py")
+          spec=importlib.util.spec_from_file_location("runner",script)
+          module=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          with tempfile.TemporaryDirectory() as wd:
+              root=pathlib.Path(wd)
+              source=root/"fictional_smd.zip"
+              with zipfile.ZipFile(source,"w") as z:
+                  for ext in (".shp",".dbf",".shx",".prj"):
+                      z.writestr("data/mdv2580"+ext,"synthetic")
+              # Synthetic fixture, never a real SMD geometry or coordinate.
+              module.SMD_SHA=module.hash_file(source)
+              target=root/"private_extract"
+              target.mkdir()
+              result=module.get_smd(source,target)
+              assert result.name=="mdv2580.shp"
+              assert (target/"mdv2580.prj").read_text()=="synthetic"
+              assert all((target/("mdv2580"+ext)).exists() for ext in (".shp",".dbf",".shx",".prj"))
+              # Tampering must be caught before reading SMD contents.
+              module.SMD_SHA="0"*64
+              try:module.get_smd(source,target)
+              except ValueError as e:assert "SHA256" in str(e)
+              else:raise AssertionError("SHA256 validation failed")
+          assert module.REPO=="Lulea-statistik/kol-mark-och-trad"
+          assert module.SMD_STEM=="data/mdv2580"
+          print("Local runner synthetic sealed input and SHA256 rejection passed")
+          PY
+      - name: Validate public CI cannot contain licensed geometry
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("scripts/run_private_smd2000_reverse_comparison.py").read_text()
+          assert 'if output.is_relative_to(ROOT)' in s
+          assert "TemporaryDirectory" in s
+          assert 'gh","release","download' in s
+          assert 'if hash_file(archive)!=SMD_SHA:' in s
+          assert "verify_biomass_release.py" in s
+          assert "matches_expected_crs" in s
+          assert "smd2000-private-reverse-" in s
+          assert "compare_smd2000_reverse_2010_mask_private.py" in s
+          print("Licensed source remains local, never uploaded to Actions")
+          PY
