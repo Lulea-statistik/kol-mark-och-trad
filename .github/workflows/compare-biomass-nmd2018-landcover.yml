@@ -7,6 +7,7 @@ on:
       - 'scripts/analyze_2010_biomass_volume_cellwise.py'
       - 'scripts/audit_biomass_source_coverage_2010.py'
       - 'scripts/decompose_harmonize_biomass2010.py'
+      - 'scripts/audit_biomass_units_and_mass_gate.py'
       - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
 permissions:
   contents: read
@@ -25,7 +26,7 @@ jobs:
       - name: Install geospatial dependencies and syntax check
         run: |
           python -m pip install -r requirements.txt "scipy>=1.11"
-          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py scripts/analyze_2010_biomass_volume_cellwise.py scripts/audit_biomass_source_coverage_2010.py scripts/decompose_harmonize_biomass2010.py
+          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py scripts/analyze_2010_biomass_volume_cellwise.py scripts/audit_biomass_source_coverage_2010.py scripts/decompose_harmonize_biomass2010.py scripts/audit_biomass_units_and_mass_gate.py
       - name: Fetch archived original CRS biomass and volume clips
         run: |
           mkdir -p release-biomass release-volume
@@ -240,6 +241,28 @@ jobs:
           assert not d["interpretation"]["can_label_metric_total_municipal_biomass"]
           print("RAW comparison sum reconciled. Physical unit harmonization remains UNVERIFIED.")
           PY
+      - name: Audit documented biomass units and guard physical mass conversion
+        run: |
+          python scripts/audit_biomass_units_and_mass_gate.py \
+            --input metadata/biomass2010_harmonized_comparison.json \
+            --output metadata/biomass_unit_mass_gate.json
+      - name: Validate 2010 remains unconverted until source verification
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("metadata/biomass_unit_mass_gate.json").read_text())
+          assert d["status"]=="PHYSICAL_MASS_GATE_2010_BLOCKED"
+          a=d["candidate_mass_by_common_mask"]
+          assert len(a)==3
+          for name,part in a.items():
+              values=part["per_year"]
+              assert values["2010"]["tonnes_dry_matter"] is None
+              assert not values["2010"]["hypothetical_is_reportable_total"]
+              assert values["2015"]["tonnes_dry_matter"]>0
+              assert values["2018"]["tonnes_dry_matter"]>0
+          print("2010 physical-tonnage guardrail verified")
+          PY
       - name: Archive landcover and biomass results
         if: always()
         uses: actions/upload-artifact@v4
@@ -250,6 +273,7 @@ jobs:
             metadata/biomass_volume_2010_cellwise.json
             metadata/biomass_source_coverage_2010.json
             metadata/biomass2010_harmonized_comparison.json
+            metadata/biomass_unit_mass_gate.json
             metadata/landcover_source_validation.json
             metadata/nmd2018_landcover_zip_sha256.txt
           if-no-files-found: warn
