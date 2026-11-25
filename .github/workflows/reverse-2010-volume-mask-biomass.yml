@@ -1,0 +1,102 @@
+name: Reverse 2010 forest volume proxy biomass 2018 comparison
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/compare_2010_volume_proxy_reverse_biomass.py'
+      - '.github/workflows/reverse-2010-volume-mask-biomass.yml'
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies and syntax check
+        run: |
+          python -m pip install -r requirements.txt
+          python -m py_compile scripts/compare_2010_volume_proxy_reverse_biomass.py
+      - name: Fetch exact verified source CRS biomass and volume releases
+        run: |
+          mkdir -p release-biomass release-volume
+          gh release download biomass-source-clips-lulea-v1 --dir release-biomass --pattern 'lulea_biomass_*'
+          gh release download total-wood-volume-lulea-2000-2010-v1 --dir release-volume --pattern 'lulea_total_volume_2010_*'
+          for year in 2010 2015 2018; do test -s "release-biomass/lulea_biomass_${year}_source_crs_clip.tif"; done
+          test -s release-volume/lulea_total_volume_2010_source_crs_clip.tif
+      - name: Verify original archived biomass provenance
+        run: python scripts/verify_biomass_release.py --directory release-biomass --output metadata/reverse2010_biomass_provenance.json
+      - name: Download original NMD2018 landcover for transition cross-tab
+        run: |
+          mkdir -p nmd-input
+          curl --fail --location --retry 3 --retry-delay 10 --connect-timeout 45 \
+            --output nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip \
+            https://geodata.naturvardsverket.se/nedladdning/marktacke/NMD2018/bas_lan_ogen/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip
+      - name: Extract and validate NMD source raster and EPSG using WKT authority
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import shutil,sys,rasterio
+          sys.path.insert(0,"scripts")
+          from fetch_and_compare_biomass_native import matches_expected_crs
+          zpath=Path("nmd-input/BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip")
+          with ZipFile(zpath) as z:
+              tifs=[x for x in z.infolist() if x.filename.lower().endswith(".tif") and "bas" in x.filename.lower()]
+              assert len(tifs)==1,[x.filename for x in tifs]
+              dst=Path("nmd-input/NMD2018bas_BD.tif")
+              with z.open(tifs[0]) as a,dst.open("wb") as b:shutil.copyfileobj(a,b)
+              for x in z.infolist():
+                  if x.is_dir() or x.filename==tifs[0].filename:continue
+                  basename=Path(x.filename).name
+                  if basename.lower().startswith(Path(tifs[0].filename).stem.lower()+'.') or basename.lower()==Path(tifs[0].filename).with_suffix(".tfw").name.lower():
+                      with z.open(x) as a,(dst.parent/basename).open("wb") as b:shutil.copyfileobj(a,b)
+          with rasterio.open(dst) as src:
+              assert matches_expected_crs(src.crs,3006) and src.count==1
+              assert all(abs(abs(x)-10)<.01 for x in src.res)
+              assert src.nodata not in (111,112,113,114,115,116,117,121,122,123,124,125,126,127)
+          PY
+      - name: Reverse fixed 2010-volume mask and follow values to 2018
+        run: |
+          python scripts/compare_2010_volume_proxy_reverse_biomass.py \
+            --biomass-2010 release-biomass/lulea_biomass_2010_source_crs_clip.tif \
+            --biomass-2015 release-biomass/lulea_biomass_2015_source_crs_clip.tif \
+            --biomass-2018 release-biomass/lulea_biomass_2018_source_crs_clip.tif \
+            --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
+            --nmd nmd-input/NMD2018bas_BD.tif \
+            --output metadata/biomass_2010_reference_reverse_2018.json
+      - name: Verify reversed mask population and unconverted raw values
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          d=json.loads(Path("metadata/biomass_2010_reference_reverse_2018.json").read_text())
+          assert d["status"]=="2010_MODELED_VOLUME_MASK_RAW_ONLY_NOT_HISTORICAL_FOREST_CLASS"
+          assert d["analysis_crs"]=="EPSG:3006" and d["grid_resolution_m"]==25
+          assert d["all_common"]["cells"]==2456410
+          assert d["original_2018_NMD_forest_mask"]["cells"]==1705502
+          assert d["physical_biomass_tonnes_2010"] is None
+          for t,x in d["2010_modeled_volume_proxy_thresholds"].items():
+              assert x["all"]["cells"]==x["forest_2018"]["cells"]+x["not_forest_2018"]["cells"]
+              for y in ("2010","2015","2018"):
+                  assert math.isclose(x["all"]["raw_sum"][y],
+                      x["forest_2018"]["raw_sum"][y]+x["not_forest_2018"]["raw_sum"][y],rel_tol=1e-8)
+          print("2010 reverse proxy 2018 comparison verified")
+          for t,x in d["2010_modeled_volume_proxy_thresholds"].items():print(t,x)
+          PY
+      - name: Archive original 2010 proxy and 2018 comparison analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reverse2010-forest-proxy-to2018-raw-biomass
+          path: |
+            metadata/biomass_2010_reference_reverse_2018.json
+            metadata/reverse2010_biomass_provenance.json
+          if-no-files-found: warn
+          retention-days: 90
