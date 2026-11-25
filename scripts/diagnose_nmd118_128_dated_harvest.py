@@ -24,6 +24,7 @@ from rasterio.transform import Affine
 from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 from shapely.geometry import shape, mapping
+from shapely.strtree import STRtree
 from shapely.ops import transform as geom_transform
 from pyproj import Transformer
 
@@ -145,6 +146,7 @@ def run(args):
     harvest,metadata=read_harvest(bound)
     if not harvest["2011_2015"] and not harvest["2016_2018"]:
         raise ValueError("No dated harvested polygons for 2011-2018; diagnostic counts: "+json.dumps(metadata,ensure_ascii=False))
+    trees={key:(STRtree(value) if value else None) for key,value in harvest.items()}
     step=25.0
     xmin,ymin,xmax,ymax=bound.bounds
     xmin=math.floor(xmin/step)*step; ymin=math.floor(ymin/step)*step
@@ -212,7 +214,7 @@ def run(args):
                         window_bbox=rasterio.windows.bounds(win,affine)
                         from shapely.geometry import box as make_box
                         b=make_box(*window_bbox)
-                        polys=[g for g in harvest[key] if g.intersects(b)]
+                        polys=[harvest[key][int(i)] for i in trees[key].query(b,predicate="intersects")] if trees[key] is not None else []
                         if polys:
                             mask=rasterize(((mapping(g),1) for g in polys),
                                            out_shape=wh,transform=t,fill=0,dtype=np.uint8)
