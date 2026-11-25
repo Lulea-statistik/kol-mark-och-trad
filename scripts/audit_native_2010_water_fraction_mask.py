@@ -9,6 +9,8 @@ NMD2018 water is explicitly not asserted to be historical 2010 water.
 from __future__ import annotations
 
 import argparse
+import base64
+import zlib
 import json
 import math
 from collections import defaultdict
@@ -162,6 +164,7 @@ def main(args):
         stats={name:empty_stats() for name in BINS}
         neighbour_stats={name:empty_stats() for name in GROUPS}
         totals=defaultdict(int)
+        selected_water_pixels=[]
         for y in range(0,b.height,256):
             for x in range(0,b.width,256):
                 w=Window(x,y,min(256,b.width-x),min(256,b.height-y))
@@ -181,6 +184,13 @@ def main(args):
                 valid_b=~np.ma.getmaskarray(bm) & np.isfinite(biomass) & (biomass>=0)
                 valid_v=~np.ma.getmaskarray(vm) & np.isfinite(volume) & (volume>=0)
                 water_window=water[rows,cols]
+                # Export non-licensed 2010 source-grid pixel indices only; SMD
+                # licensed polygons remain entirely in the local environment.
+                mask=current_coverage & pure[rows,cols] & valid_b & valid_v
+                for iy,ix in zip(*np.nonzero(mask)):
+                    rr=y+int(iy); cc=x+int(ix)
+                    neighbor=(1 if four[rr,cc] else 2 if eight[rr,cc] else 3)
+                    selected_water_pixels.append([rr,cc,neighbor])
                 for name,mask in zip(BINS,bin_masks(water_window)):
                     push_stats(stats[name],current_coverage&mask,biomass,volume,valid_b,valid_v)
                 for name,mask in neighbours.items():
@@ -193,11 +203,16 @@ def main(args):
         for q in list(stats.values())+list(neighbour_stats.values()):
             if q["both_2010_valid"]>min(q["biomass_valid"],q["volume_valid"]):
                 raise ValueError("Overcounting joint source validity")
+        if len(selected_water_pixels)!=stats["100 %"]["both_2010_valid"]:
+            raise ValueError("Native pixel selection disagrees with grouped water statistics")
         results={"analysis":"NATIVE_2010_EPSG3021_MASK_VS_NMD2018_WATER_COVER",
           "created_utc":datetime.now(timezone.utc).isoformat(),
           "native_analysis_grid":"EPSG:3021","native_analysis_resolution_m":25,
           "nmd_source_crs":"EPSG:3006","nmd_native_resolution_m":10,
           "target_pixel_area_m2":625,
+          "native_grid_transform":list(b.transform)[:6],
+          "source_grid_water_valid_pixel_indices_row_col_neighbour":selected_water_pixels,
+          "neighbour_code":{'1':'4 side neighbour contains nonwater','2':'diagonal-only nonwater','3':'no nonwater among 8'},
           "source_metadata":source_metadata,
           "study_population":dict(totals),
           "water_fraction_bands":{name:describe(q) for name,q in stats.items()},
@@ -218,6 +233,12 @@ def main(args):
         print("Native pixel water fraction bands",json.dumps(results["water_fraction_bands"],ensure_ascii=False),flush=True)
         print("Pure-water 4/8-neighbour summary",json.dumps(results["pure_nmd2018_water_neighbours"],ensure_ascii=False),flush=True)
         print("Native mask population",json.dumps(results["study_population"],ensure_ascii=False),flush=True)
+        # UTF-8 ASCII transport in GitHub Actions logs for private local SMD crosswalk.
+        # Contains only 2010 raster grid row/col and NMD neighbour code (NO SMD).
+        payload=json.dumps({"transform":results["native_grid_transform"],
+                            "pixels":selected_water_pixels},separators=(",",":"))
+        packed=base64.b64encode(zlib.compress(payload.encode("utf-8"),9)).decode("ascii")
+        print("NATIVE_2010_WATER_PIXELS_ZLIB_BASE64="+packed,flush=True)
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
