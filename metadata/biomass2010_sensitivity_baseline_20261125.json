@@ -1,0 +1,26 @@
+{
+  "status": "VERIFIED_2026_11_25_RAW_REFERENCE_FROM_PR99_PR101",
+  "analysis_crs": "EPSG:3006",
+  "resolution_m": 25,
+  "common_cells": 2456410,
+  "reference_run": "https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45617126629",
+  "raw_pixel_sums": {
+    "2010": 188867036.3266975,
+    "2015": 159009657.58336228,
+    "2018": 170300693.59857753
+  },
+  "forest_only": {
+    "cells": 1705502,
+    "raw_pixel_sums": {
+      "2010": 150823037.39602703,
+      "2015": 139072469.99998185,
+      "2018": 150389133.14631507
+    }
+  },
+  "temporary_not_forest": {
+    "cells": 469240,
+    "raw_difference_2010_minus_2018": 10430209.959174048
+  },
+  "physical_unit_verified_for_2010": false,
+  "source_note": "Frozen verified raw-value snapshot from approved PR99/101 diagnostics. Rebuild from source rasters for future revisions; do not label tonne biomass."
+}

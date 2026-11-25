@@ -1,0 +1,75 @@
+name: 2010 biomass nonharvest raw sensitivity (not a correction)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/biomass2010_nonharvest_sensitivity.py'
+      - 'metadata/biomass2010_sensitivity_baseline_20261125.json'
+      - '.github/workflows/biomass2010-nonharvest-sensitivity.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: python -m py_compile scripts/biomass2010_nonharvest_sensitivity.py
+      - name: Download immutable PR102 successful original diagnostic artifact
+        run: |
+          mkdir -p harvested metadata
+          gh run download 45621363051 --repo "${GH_REPO}" \
+            --name nmd118-128-temporary-nonforest-dated-harvest-crosscheck \
+            --dir harvested
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          files=list(Path("harvested").rglob("nmd2018_temporary_not_forest_harvest_2011_2018.json"))
+          assert len(files)==1,[str(f) for f in files]
+          shutil.copyfile(files[0],"metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json")
+          print("Pinned PR102 diagnostic:",files[0])
+          PY
+      - name: Reconcile PR99 baseline with PR102 and run noncausal sensitivity
+        run: |
+          python scripts/biomass2010_nonharvest_sensitivity.py \
+            --baseline metadata/biomass2010_sensitivity_baseline_20261125.json \
+            --harvest metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json \
+            --output metadata/biomass2010_nonharvest_sensitivity.json
+      - name: Validate protected harvest values and no physical 2010 estimate
+        run: |
+          python - <<'PY'
+          import json, math
+          from pathlib import Path
+          d=json.loads(Path("metadata/biomass2010_nonharvest_sensitivity.json").read_text())
+          x=d["observations"]
+          assert d["status"]=="EXPLORATORY_NONCAUSAL_SENSITIVITY_ONLY_NOT_A_CORRECTED_TOTAL"
+          assert d["biomass_2010_tonnes"] is None
+          assert x["no_registered_harvest_high_volume_cells"]==34450
+          assert math.isclose(x["no_registered_harvest_high_volume_raw_difference"],2312077.907789737,rel_tol=1e-9)
+          assert math.isclose(x["registered_harvest_high_volume_raw_difference_UNMODIFIED"]+x["no_registered_harvest_high_volume_raw_difference"],
+                              x["temporary_not_forest_high_volume_raw_difference"],rel_tol=1e-9)
+          assert len(d["scenarios"])==4
+          assert all(x["recorded_harvest_2010_values_untouched"] for x in d["scenarios"])
+          assert all(not x["can_publish_as_corrected_biomass_stock"] for x in d["scenarios"])
+          assert math.isclose(d["scenarios"][0]["illustrative_2010_common_area_raw_sum"],x["2010_common_area_raw_sum"])
+          print("Sensitivity is numerically reconciled; no physical correction has been implied")
+          PY
+      - name: Archive transparent scenarios and exact PR102 input
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biomass2010-nonharvest-sensitivity-not-a-correction
+          path: |
+            metadata/biomass2010_nonharvest_sensitivity.json
+            metadata/nmd2018_temporary_not_forest_harvest_2011_2018.json
+            metadata/biomass2010_sensitivity_baseline_20261125.json
+          if-no-files-found: warn
+          retention-days: 90
