@@ -1,0 +1,37 @@
+name: Verify private SMD2000 historical sensitivity analyzer
+on:
+  pull_request:
+    paths:
+      - 'scripts/analyze_smd2000_vs_native_2010.py'
+      - '.github/workflows/verify-smd2000-local-analysis.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and verify syntax
+        run: |
+          python -m pip install -r requirements.txt "scipy>=1.11" fiona
+          python -m py_compile scripts/analyze_smd2000_vs_native_2010.py
+      - name: Check SMD codes and original grid safeguards
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('scripts/analyze_smd2000_vs_native_2010.py').read_text()
+          assert 'SMD_WATER={80,81,82,83,84,85,86}' in s
+          assert 'SMD_FOREST={40,41,43,44,45,46,47,48,49}' in s
+          assert 'render_native_fraction(nmd,b.transform,b.width,b.height)' in s
+          assert 'if (b.transform,b.width,b.height)!=(v.transform,v.width,v.height)' in s
+          assert 'raise ValueError' in s
+          assert 'all_touched=False' in s
+          assert 'SMD2000_forest_and_NMD2018_forest' in s
+          assert 'NMD2018_full_water_no_8_land' in s
+          assert '--smd-epsg' in s
+          print('SMD grouping and geospatial preconditions verified. Licensed data are NOT in CI.')
+          PY
