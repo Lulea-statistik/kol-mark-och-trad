@@ -1,0 +1,66 @@
+name: Audit SGD2 2018 Lulea leaf-on off scan metadata
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/audit_sgd2_leaf_conditions.py'
+      - '.github/workflows/audit-sgd2-leaf-condition.yml'
+permissions:
+  contents: read
+jobs:
+  leaf-metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install geometry and syntax check
+        run: |
+          python -m pip install "shapely>=2,<3"
+          python -m py_compile scripts/audit_sgd2_scan_dates.py scripts/audit_sgd2_leaf_conditions.py
+      - name: Test leaf status without month inference
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "scripts")
+          from audit_sgd2_leaf_conditions import classify_leaf, parse_month, find_leaf_field
+          assert classify_leaf(1)=="leaf_on"
+          assert classify_leaf(2)=="leaf_off"
+          assert classify_leaf(None)=="unknown"
+          assert classify_leaf(3)=="unknown"
+          assert classify_leaf("1")=="leaf_on"
+          assert parse_month("2018-07-12")=="2018-07"
+          assert parse_month("2018-11-20")=="2018-11"
+          assert find_leaf_field({"lov_avlov":"Lov_Avlov"})=="Lov_Avlov"
+          assert find_leaf_field({"datum":"Datum"}) is None
+          print("Leaf field and cautious unknown rule verified")
+          PY
+      - name: Query exact SGD2 original scanner metadata
+        run: python scripts/audit_sgd2_leaf_conditions.py
+      - name: Verify only 2018 and consistent totals
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("docs/data/sgd2_lulea_leaf_conditions.json").read_text())
+          assert d["verified_scan_year"]==2018
+          assert d["product"].startswith("SGD2 omdrev 2")
+          assert d["tile_record_count"]>0
+          assert sum(d["leaf_condition_counts"].values())==d["tile_record_count"]
+          assert sum(d["monthly_record_counts"].values())==d["tile_record_count"]
+          assert all(r["leaf_status"] in ("leaf_on","leaf_off","unknown") for r in d["records"])
+          if not d["leaf_status_available"]:
+              assert d["leaf_condition_counts"]=={"unknown":d["tile_record_count"]}
+          print("Original SGD2 metadata leaf status:",d["leaf_condition_counts"])
+          print("NOT area weighted, NOT biomass weighted")
+          PY
+      - name: Retain observed 2018 SGD2 leaf-status metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sgd2-lulea-2018-leaf-condition-metadata
+          path: docs/data/sgd2_lulea_leaf_conditions.json
+          if-no-files-found: warn
+          retention-days: 90
