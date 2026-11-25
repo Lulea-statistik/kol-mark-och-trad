@@ -120,6 +120,18 @@ def run(args):
     no_land_eight_b2018=np.full((height,width),np.nan,dtype='float32')
     no_land_eight_v2010=np.full((height,width),np.nan,dtype='float32')
     resample_compare={k:{"cells":0,"biomass_sum_2010":0.0,"biomass_sum_2018":0.0} for k in ("water_both","water_nearest_only","water_mode_only","nonwater_both")}
+    # Exactly NMD2018 codes 118/128, not NMD productivity class 0.
+    # Volume is 2010 source-estimated m3/ha and is a stratifier, NOT a
+    # historical measured harvest footprint or a biomass conversion.
+    temp_volume_bins=[("2010_volume_0",0,0),("2010_volume_gt0_lt50",0,50),
+       ("2010_volume_50_100",50,100),("2010_volume_100_200",100,200),
+       ("2010_volume_200_plus",200,None),("2010_volume_missing",None,None)]
+    temp_volume_stats={k:{"cells":0,"sums_raw":{y:0. for y in YEARS},
+       "zero_2015_cells":0,"zero_2018_cells":0,"zero_both_2015_2018_cells":0,
+       "b2010_positive_and_b2018_zero":0,"sum_raw_delta_where_b2018_zero":0.}
+       for k,_,_ in temp_volume_bins}
+    temp_nmd_code_stats={str(k):{"cells":0,"sums_raw":{y:0. for y in YEARS}}
+       for k in (118,128)}
     mode_water_all=0
     shore_bins={side:{band:{'cells':0,'sums':{y:0.0 for y in YEARS},'high_volume_cells':0} for band in ('0-25 m','>25-50 m','>50-75 m','>75-100 m','>100 m')} for side in ('water','forest')}
     water_near_forest={'within_50m':{'cells':0,'sums':{y:0.0 for y in YEARS}},'farther_than_50m':{'cells':0,'sums':{y:0.0 for y in YEARS}}}
@@ -264,6 +276,38 @@ def run(args):
                     hv=vgood & (v>=100)
                     d["highvol_cells"]+=int(hv.sum())
                     for y in YEARS:d["highvol_biomass_sum"][y]+=float(bs[y][hv].sum(dtype="float64"))
+                # Targeted NMD2018 temporary-not-forest assessment.
+                # Only same jointly valid biomass (2010/15/18), NMD2018
+                # group and 2010 volume used for stratification.
+                for nmd_code in (118,128):
+                    temp=valid & (m.data==nmd_code)
+                    if not temp.any():continue
+                    by_code=temp_nmd_code_stats[str(nmd_code)]
+                    by_code["cells"]+=int(temp.sum())
+                    for y in YEARS:
+                        by_code["sums_raw"][y]+=float(bs[y][temp].sum(dtype="float64"))
+                    for bin_label,low,high in temp_volume_bins:
+                        if bin_label=="2010_volume_missing":
+                            selected=temp & ~(np.isfinite(v)&(v>=0))
+                        elif bin_label=="2010_volume_0":
+                            selected=temp & (v==0)
+                        else:
+                            selected=temp & np.isfinite(v) & (v>low) & (
+                                (v<high) if bin_label=="2010_volume_gt0_lt50"
+                                else ((v>=low)&(v<high)) if high is not None else (v>=low))
+                        if not selected.any():continue
+                        t=temp_volume_stats[bin_label]
+                        count=int(selected.sum())
+                        t["cells"]+=count
+                        for y in YEARS:
+                            t["sums_raw"][y]+=float(bs[y][selected].sum(dtype="float64"))
+                        z15=selected&(bs["2015"]==0)
+                        z18=selected&(bs["2018"]==0)
+                        t["zero_2015_cells"]+=int(z15.sum())
+                        t["zero_2018_cells"]+=int(z18.sum())
+                        t["zero_both_2015_2018_cells"]+=int((z15&z18).sum())
+                        t["b2010_positive_and_b2018_zero"]+=int((z18&(bs["2010"]>0)).sum())
+                        t["sum_raw_delta_where_b2018_zero"]+=float(bs["2010"][z18].sum(dtype="float64"))
                 # Diagnose how much apparent 2010 wood biomass sits within water
                 # cells at increasing distances from a non-water NMD cell.
                 water=valid & np.isin(m.data,(61,62))
@@ -414,11 +458,33 @@ def run(args):
         for key,d in resample_compare.items()},
       "interpretation":"Sensitivity of class assignment, not a correction of native 2010 forest biomass or coastline"}
     if sum(d["cells"] for d in resample_compare.values())>total:raise ValueError("Invalid nearest/mode overlap counts")
+    temp_population=sum(z["cells"] for z in temp_nmd_code_stats.values())
+    temp_categorized=sum(z["cells"] for z in temp_volume_stats.values())
+    if temp_population!=temp_categorized:
+        raise ValueError("NMD2018 temporary-not-forest volumes do not partition 118+128")
+    temp_from_classes=sum(data[k]["cells"] for k in (118,128))
+    if temp_population!=temp_from_classes:
+        raise ValueError("Temporary-not-forest cell count differs from class rows")
+    for year in YEARS:
+        by_bin=sum(z["sums_raw"][year] for z in temp_volume_stats.values())
+        by_code=sum(z["sums_raw"][year] for z in temp_nmd_code_stats.values())
+        ref_sum=sum(data[k]["biomass_sum"][year] for k in (118,128))
+        if abs(by_bin-ref_sum)>max(1,abs(ref_sum))*1e-7 or abs(by_code-ref_sum)>max(1,abs(ref_sum))*1e-7:
+            raise ValueError("Temporary-not-forest biomass sums do not reconcile")
+    temp_diagnostics={
+      "definition":"NMD2018 base codes 118 and 128 = temporarily not forest (not productivity code 0)",
+      "cells":temp_population,"area_ha":temp_population*.0625,
+      "volume_groups":temp_volume_stats,"nmd_code_groups":temp_nmd_code_stats,
+      "volume_reference_year":2010,
+      "harvest_confirmation":"NOT TESTED - modeled 2010 volume does not independently prove logging",
+      "zero_rules":"An observed raster zero is distinguished from masked NoData; zero is not automatically attributed to the 3m height rule."
+    }
     out={"status":"DESCRIPTIVE_NMD2018_FIXED_LANDCOVER_NOT_HISTORICAL","generated_utc":datetime.now(timezone.utc).isoformat(),
       "source_NMD2018":"BD_lan_nmd2018bas_ogeneraliserad_v1_1.zip","source_CRS_NMD":str(src.crs),
       "source_CRS_biomass":{"2010":"EPSG:3021","2015":"EPSG:3006","2018":"EPSG:3006"},
       "source_CRS_volume_2010":"EPSG:3021","analysis_CRS":"EPSG:3006","resolution_m":25,
       "forest_only_NMD2018_reference":forest_result,
+      "temporary_not_forest_2018_volume_and_zero_diagnostics":temp_diagnostics,
       "water_distance_NMD2018":water_rows,
       "nmd_nearest_vs_mode_sensitivity":sensitivity,
       "nmd2018_riparian_forest_gradient":riparian,
@@ -438,6 +504,7 @@ def run(args):
     print("Matched:",total,"cells",total*.0625,"ha; expected approx 153525.625 ha")
     print("NMD groups:",json.dumps(groups,ensure_ascii=False))
     print("Forest-only reference:",json.dumps(forest_result,ensure_ascii=False))
+    print("Temporary-not-forest source-volume and zero diagnostics:",json.dumps(temp_diagnostics,ensure_ascii=False))
     print("Water distance:",json.dumps(water_rows,ensure_ascii=False))
     print("Nearest vs mode:",json.dumps(sensitivity,ensure_ascii=False))
     print("Riparian forest gradient:",json.dumps(riparian,ensure_ascii=False))
