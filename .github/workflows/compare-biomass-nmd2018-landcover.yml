@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/compare_nmd2018_landcover_biomass_volume.py'
+      - 'scripts/analyze_2010_biomass_volume_cellwise.py'
       - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
 permissions:
   contents: read
@@ -22,7 +23,7 @@ jobs:
       - name: Install geospatial dependencies and syntax check
         run: |
           python -m pip install -r requirements.txt "scipy>=1.11"
-          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py
+          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py scripts/analyze_2010_biomass_volume_cellwise.py
       - name: Fetch archived original CRS biomass and volume clips
         run: |
           mkdir -p release-biomass release-volume
@@ -149,6 +150,36 @@ jobs:
           print('Riparian forest-gradient validated',shore)
           for x in d['group_rows']:print(x)
           PY
+      - name: Diagnose 2010 biomass-volume relationship per pixel and geographical tile
+        run: |
+          python scripts/analyze_2010_biomass_volume_cellwise.py \
+            --biomass-2010 release-biomass/lulea_biomass_2010_source_crs_clip.tif \
+            --biomass-2015 release-biomass/lulea_biomass_2015_source_crs_clip.tif \
+            --biomass-2018 release-biomass/lulea_biomass_2018_source_crs_clip.tif \
+            --volume-2010 release-volume/lulea_total_volume_2010_source_crs_clip.tif \
+            --nmd nmd-input/NMD2018bas_BD.tif \
+            --output metadata/biomass_volume_2010_cellwise.json
+      - name: Verify 2010 cellwise relation and selection mask
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('metadata/biomass_volume_2010_cellwise.json').read_text())
+          ref=json.loads(Path('metadata/nmd2018_landcover_biomass_volume.json').read_text())
+          assert d['analysis_CRS']=='EPSG:3006' and d['resolution_m']==25
+          assert d['overall']['cells']<=ref['matched_cells']
+          assert d['overall']['cells']>2000000
+          assert sum(r['cells'] for r in d['nmd_groups'])==d['overall']['cells']
+          assert sum(r['cells'] for r in d['nmd_classes'])==d['overall']['cells']
+          assert sum(r['cells'] for r in d['geographic_tiles_by_group'])==d['overall']['cells']
+          for group in d['nmd_groups']:
+              assert group['cells']>0
+              assert group['ratio_cell_count_volume_ge10']<=group['cells']
+              assert group['ols_r_squared'] is None or 0<=group['ols_r_squared']<=1.000000001
+          print('2010 cellwise relationship verified:',d['overall'])
+          print('NMD2018 groups:')
+          for row in d['nmd_groups']:print(row)
+          PY
       - name: Archive landcover and biomass results
         if: always()
         uses: actions/upload-artifact@v4
@@ -156,6 +187,7 @@ jobs:
           name: nmd2018-landcover-biomass-volume-diagnostics
           path: |
             metadata/nmd2018_landcover_biomass_volume.json
+            metadata/biomass_volume_2010_cellwise.json
             metadata/landcover_source_validation.json
             metadata/nmd2018_landcover_zip_sha256.txt
           if-no-files-found: warn
