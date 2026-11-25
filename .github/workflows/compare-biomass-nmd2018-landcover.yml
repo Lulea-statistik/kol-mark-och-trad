@@ -6,6 +6,7 @@ on:
       - 'scripts/compare_nmd2018_landcover_biomass_volume.py'
       - 'scripts/analyze_2010_biomass_volume_cellwise.py'
       - 'scripts/audit_biomass_source_coverage_2010.py'
+      - 'scripts/decompose_harmonize_biomass2010.py'
       - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
 permissions:
   contents: read
@@ -24,7 +25,7 @@ jobs:
       - name: Install geospatial dependencies and syntax check
         run: |
           python -m pip install -r requirements.txt "scipy>=1.11"
-          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py scripts/analyze_2010_biomass_volume_cellwise.py scripts/audit_biomass_source_coverage_2010.py
+          python -m py_compile scripts/compare_nmd2018_landcover_biomass_volume.py scripts/analyze_2010_biomass_volume_cellwise.py scripts/audit_biomass_source_coverage_2010.py scripts/decompose_harmonize_biomass2010.py
       - name: Fetch archived original CRS biomass and volume clips
         run: |
           mkdir -p release-biomass release-volume
@@ -211,6 +212,34 @@ jobs:
           for name,group in sorted(groups.items()):
               print(name,group)
           PY
+      - name: Decompose biomass 2010 excess and compute common-area comparable sums
+        run: |
+          python scripts/decompose_harmonize_biomass2010.py \
+            --input metadata/nmd2018_landcover_biomass_volume.json \
+            --output metadata/biomass2010_harmonized_comparison.json
+      - name: Verify sum conservation and forest-only reference
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, math
+          d=json.loads(Path("metadata/biomass2010_harmonized_comparison.json").read_text())
+          assert d["status"]=="RAW_UNIT_COMMON_AREA_HARMONIZATION_ONLY_NO_PHYSICAL_UNIT_CORRECTION"
+          o=d["comparison_sum_options"]
+          a=o["A_common_valid_all_NMD_groups_raw"]
+          b=o["B_common_valid_excluding_NMD2018_water_raw"]
+          c=o["C_common_valid_NMD2018_forest_only_RAW_RECOMMENDED"]
+          assert a["cells"]==2456410 and c["cells"]==1705502
+          assert len(d["decomposition_by_fixed_NMD2018_class"])==4
+          assert sum(r["cells"] for r in d["decomposition_by_fixed_NMD2018_class"])==a["cells"]
+          for y in ("2010","2015","2018"):
+              raw=a["raw_sums_pixel_units"][y]
+              assert raw>=c["raw_sums_pixel_units"][y]>=0
+              assert raw>=b["raw_sums_pixel_units"][y]>=0
+              assert math.isclose(raw,sum(z["raw_sums_pixel_units"][y] for z in d["decomposition_by_fixed_NMD2018_class"]),rel_tol=1e-10)
+          assert not c["physical_unit_harmonized"]
+          assert not d["interpretation"]["can_label_metric_total_municipal_biomass"]
+          print("RAW comparison sum reconciled. Physical unit harmonization remains UNVERIFIED.")
+          PY
       - name: Archive landcover and biomass results
         if: always()
         uses: actions/upload-artifact@v4
@@ -220,6 +249,7 @@ jobs:
             metadata/nmd2018_landcover_biomass_volume.json
             metadata/biomass_volume_2010_cellwise.json
             metadata/biomass_source_coverage_2010.json
+            metadata/biomass2010_harmonized_comparison.json
             metadata/landcover_source_validation.json
             metadata/nmd2018_landcover_zip_sha256.txt
           if-no-files-found: warn
