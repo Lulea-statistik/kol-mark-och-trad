@@ -72,7 +72,7 @@ def main():
         raise ValueError("Unexpected native grid resolution")
     if not d.get("source_crs") or '3021' not in d["source_crs"]:
         raise ValueError("Expected source native RT90 EPSG:3021 not established")
-    checks=dict(line.split(maxsplit=1) for line in sha.read_text().splitlines() if line.strip())
+    checks={name.strip():hexdigest.strip() for hexdigest,name in (line.split(maxsplit=1) for line in sha.read_text().splitlines() if line.strip())}
     if checks.get(prov.name)!=digest(prov):raise ValueError("Provenance SHA mismatch")
     expected={"BIOMASS_XX_P_10.tif.aux.xml","BIOMASS_XX_P_10.tif.xml"}
     files=sorted(a.sidecars.iterdir()) if a.sidecars.exists() else []
