@@ -153,6 +153,26 @@ jobs:
           print('Riparian forest-gradient validated',shore)
           for x in d['group_rows']:print(x)
           PY
+      - name: Verify temporary-not-forest 118/128 volume and zero strata
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          d=json.loads(Path('metadata/nmd2018_landcover_biomass_volume.json').read_text())
+          t=d['temporary_not_forest_2018_volume_and_zero_diagnostics']
+          rows=[r for r in d['class_rows'] if r['class_code'] in (118,128)]
+          assert t['cells']==sum(r['cells'] for r in rows)
+          bins=t['volume_groups']
+          assert sum(b['cells'] for b in bins.values())==t['cells']
+          for y in ('2010','2015','2018'):
+              target=sum(r['biomass_means_raw'][y]*r['cells'] for r in rows)
+              assert math.isclose(sum(b['sums_raw'][y] for b in bins.values()),target,rel_tol=1e-7)
+          for b in bins.values():
+              assert 0<=b['zero_2015_cells']<=b['cells']
+              assert 0<=b['zero_2018_cells']<=b['cells']
+              assert 0<=b['zero_both_2015_2018_cells']<=min(b['zero_2015_cells'],b['zero_2018_cells'])
+          print('Temporary-not-forest groups verified',json.dumps(t,ensure_ascii=False))
+          PY
       - name: Diagnose 2010 biomass-volume relationship per pixel and geographical tile
         run: |
           python scripts/analyze_2010_biomass_volume_cellwise.py \
