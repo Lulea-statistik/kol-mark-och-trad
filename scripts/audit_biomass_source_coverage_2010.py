@@ -113,6 +113,21 @@ def run(args):
                     n=int(classified.sum())
                     grouped[g]["nmd_cells"]+=n
                     classed[str(int(code))]["nmd_cells"]+=n
+                    # 1011: 2010 biomass and volume + 2018 biomass, but NoData 2015.
+                    # 1111: all four valid. Distinguish positive biomass from zero.
+                    for signature in (11,15):
+                        chosen=classified & (maskcode==signature)
+                        positive2010=chosen & (arr["biomass_2010"]>0)
+                        positive2018=chosen & (arr["biomass_2018"]>0)
+                        label="pattern_"+format(signature,"04b")
+                        for stats in (grouped[g],classed[str(int(code))]):
+                            stats[label+"_positive_2010_cells"]+=int(positive2010.sum())
+                            stats[label+"_positive_2018_cells"]+=int(positive2018.sum())
+                            stats[label+"_2010_tonnes_TS"]+=float(arr["biomass_2010"][chosen].sum(dtype="float64"))*.0625
+                            stats[label+"_2018_tonnes_TS"]+=float(arr["biomass_2018"][chosen].sum(dtype="float64"))*.0625
+                            if signature==15:
+                                stats[label+"_2015_tonnes_TS"]+=float(arr["biomass_2015"][chosen].sum(dtype="float64"))*.0625
+
                     for key in RASTERS:
                         q=classified & valid[key]
                         v=int(q.sum())
@@ -139,11 +154,39 @@ def run(args):
     for g,stats in grouped.items():
         if sum(stats.get("pattern_"+format(i,"04b"),0) for i in range(16))!=stats["nmd_cells"]:
             raise ValueError("Mask signatures do not partition "+g)
+    for signature in ("pattern_1011","pattern_1111"):
+        for group,stats in grouped.items():
+            selected=stats.get(signature,0)
+            for year in ("2010","2018"):
+                positive=stats.get(signature+"_positive_"+year+"_cells",0)
+                if not 0<=positive<=selected:raise ValueError("Positive count invalid "+group+year)
+                if stats.get(signature+"_"+year+"_tonnes_TS",0)<0:
+                    raise ValueError("Negative biomass "+group+year)
+        years=("2010","2015","2018") if signature=="pattern_1111" else ("2010","2018")
+        for year in years:
+            a=sum(v.get(signature+"_"+year+"_tonnes_TS",0) for v in classed.values())
+            b=sum(v.get(signature+"_"+year+"_tonnes_TS",0) for v in grouped.values())
+            if not math.isclose(a,b,rel_tol=1e-9,abs_tol=.01):
+                raise ValueError("NMD2018 per-class biomass sum does not reconcile with group "+signature+year)
+    missing2015=sum(v.get("pattern_1011",0) for v in grouped.values())
+    positive2010=sum(v.get("pattern_1011_positive_2010_cells",0) for v in grouped.values())
+    common=sum(v.get("pattern_1111",0) for v in grouped.values())
     out={"status":"EFFECTIVE_VALID_DATA_MASK_AUDIT_NOT_HISTORICAL_LANDCOVER",
         "created_utc":datetime.now(timezone.utc).isoformat(),
         "analysis_crs":"EPSG:3006","pixel_size_m":25,"source_files":source_meta,
         "mask_signature_bits":{"1":"biomass_2010","2":"volume_2010","4":"biomass_2015","8":"biomass_2018"},
-        "area":dict(coverage_stats["area"]),"group_rows":dict(grouped),
+        "area":dict(coverage_stats["area"]),
+        "coverage_cohorts":{
+          "all_three_years_valid_cells":common,
+          "biomass_2010_and_2018_valid_biomass2015_nodata_cells":missing2015,
+          "biomass2010_positive_2015_nodata_2018_valid_cells":positive2010,
+          "biomass2010_positive_2015_nodata_2018_valid_area_ha":positive2010*.0625,
+          "2015_nodata_cohort_area_ha":missing2015*.0625,
+          "year_valid_cells":{year:sum(v.get("biomass_"+year+"_valid",0) for v in grouped.values()) for year in ("2010","2015","2018")},
+          "landcover_reference_year":2018,
+          "missing2015_signature":"1011"
+        },
+        "group_rows":dict(grouped),
         "class_rows":dict(classed),
         "method":"Native CRS and NoData checked for each original GeoTIFF. Raster values fully warped to common 25m EPSG:3006 grid. Mask comparisons use effective warped-validity, not a supplied 2010 land-use mask.",
         "limitations":[
@@ -159,6 +202,12 @@ def run(args):
     print("Mask coverage area",out["area"])
     print("Original source metadata",json.dumps(source_meta,ensure_ascii=False))
     print("Group coverage patterns",json.dumps(out["group_rows"],ensure_ascii=False))
+    print("COVERAGE_COHORT_RESULTS",json.dumps(out["coverage_cohorts"],ensure_ascii=False))
+    print("COVERAGE_PATTERN_1011_DETAILS",json.dumps({k:{
+      "cells":v.get("pattern_1011",0),"positive_2010":v.get("pattern_1011_positive_2010_cells",0),
+      "tonnes_2010":v.get("pattern_1011_2010_tonnes_TS",0),
+      "tonnes_2018":v.get("pattern_1011_2018_tonnes_TS",0)
+      } for k,v in grouped.items()},ensure_ascii=False))
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
