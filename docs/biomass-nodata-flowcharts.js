@@ -11,7 +11,7 @@ function render(id,rows,metric,title,unit){
  const svg=document.getElementById(id);if(!svg)return;
  const vals=rows.map(r=>({r,a:metric(r,"2010"),b:metric(r,"2018")}));
  const totalA=vals.reduce((s,v)=>s+v.a,0),totalB=vals.reduce((s,v)=>s+v.b,0);
- const max=Math.max(totalA,totalB,0.00001),scale=340/max,top=105;
+ const max=Math.max(totalA,totalB,0.00001),scale=330/max,top=105;
  let left=top,right=top;
  const h=520,w=1100, x1=260,x2=835,bandWidth=65;
  let paths="",blocks="",labels="";
@@ -40,8 +40,8 @@ function render(id,rows,metric,title,unit){
  paths+blocks+
  '<rect x="535" y="76" width="93" height="377" rx="10" fill="#fcfdfa" stroke="#9a6e58" stroke-width="2" stroke-dasharray="7 5"/>'+
  '<text x="581" y="258" font-size="17" fill="#81543a" text-anchor="middle" transform="rotate(-90 581 258)">Inga observerade värden 2015</text>'+
- '<text x="292" y="484" font-size="17" font-weight="600" text-anchor="middle" fill="#243b30">'+fmt(totalA,metric===density?1:0)+' '+esc(unit)+'</text>'+
- '<text x="870" y="484" font-size="17" font-weight="600" text-anchor="middle" fill="#243b30">'+fmt(totalB,metric===density?1:0)+' '+esc(unit)+'</text>'+
+ '<text x="292" y="484" font-size="17" font-weight="600" text-anchor="middle" fill="#243b30">'+(metric===density?'Klassmedelvärden, ej summerbara':fmt(totalA,0)+' '+esc(unit))+'</text>'+
+ '<text x="870" y="484" font-size="17" font-weight="600" text-anchor="middle" fill="#243b30">'+(metric===density?'Klassmedelvärden, ej summerbara':fmt(totalB,0)+' '+esc(unit))+'</text>'+
  labels+
  '<text x="550" y="512" font-size="13" text-anchor="middle" fill="#52635b">'+esc(sub)+'</text>';
 }
