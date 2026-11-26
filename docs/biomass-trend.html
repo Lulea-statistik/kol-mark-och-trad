@@ -5,6 +5,39 @@
 <body><header><h1>Biomassatrend 2000–2018</h1><p>Luleå kommun · skattad biomassa 2000 och 2005 från virkesvolym, följt av rastergenerationerna 2010, 2015 och 2018</p></header>
 <nav class="site-nav" aria-label="Sidnavigation"><a href="index.html">Karta</a><a href="trend.html">Trend markkol</a><a href="water-cluster-review.html">Vattenkluster 2010</a><a href="biomass-trend.html" aria-current="page">Trend biomassa</a><a href="modelled-biomass-2000.html">Biomassa 2000–2018 (modell)</a><a href="biomass-reconciliation.html">Före–efter-avstämning</a><a href="statistics.html">Diagram och tabeller</a></nav>
 <main>
+<section id="nmd2018-fixed-mask-flows">
+<h2>Marktäcke och biomassa 2010–2018 – tre diagram på samma geografiska celler</h2>
+<p>De här diagrammen använder <strong>2 456 410 gemensamt giltiga 25-metersceller</strong> (153 525,625 ha) och en <strong>fast marktäckeklassning enligt NMD2018</strong>. Samma klass visas alltså för samma cell under 2010, 2015 och 2018; banden visar <strong>inte historiska marktäckeövergångar</strong>. Avverkning och markförändring kan ha skett mellan åren.</p>
+<p><strong>Viktig uppdatering:</strong> SLU bekräftade 2026-11-25 att exakt 2010-raster <code>BIOMASS_XX_P_10.tif</code> mäter <strong>ton torrsubstans per hektar</strong> för trädets delar ovan stubbskär; barr ingår, löv på lövträd ingår inte. Enheten ton TS/ha stöds också för 2015/2018. Att åren har samma enhet innebär <strong>inte</strong> att biomassakomponenter, nollregler och modeller är metodharmoniserade.</p>
+<p id="nmdFlowStatus" role="status">Laddar verifierade flödesdiagram …</p>
+<h3>1. Areal per marktäcke – hektar</h3>
+<p>Den geografiska arealen är konstant genom flödet eftersom vi följer samma celler och låser marktäckeklassen till NMD2018.</p>
+<div class="nmd-flow-svg-wrap"><svg id="nmdFlowArea" aria-label="Arealflöde efter fasta NMD2018-marktäckeklasser 2010, 2015 och 2018"></svg></div>
+<h3>2. Modellerad biomassa – ton torrsubstans</h3>
+<p>Här visar bandens bredd <strong>summa ton TS</strong> i respektive marktäckeklass och år, alltså biomassadensitet × cellernas totala hektar. Värdet 2015 gäller <em>bara</em> celler som också är giltiga 2010 och 2018; den norra 2015-luckan är inte imputerad.</p>
+<div class="nmd-flow-svg-wrap"><svg id="nmdFlowMass" aria-label="Biomassaflöde i ton torrsubstans efter fast marktäcke för 2010, 2015 och 2018"></svg></div>
+<div class="nmd-flow-legend" id="nmdFlowLegend" aria-label="Färgförklaring till marktäckeklasser"></div>
+<h3>3. Biomassatäthet – ton TS per hektar</h3>
+<p>Linjerna visar varje marktäckeklass modellerade <strong>medelvärde i ton TS/ha</strong> inom exakt samma celler över tid. Jämför särskilt skogstypernas nivåer med övrig mark; biomassa som modellerats på vatten kan vara ett felaktigt rastervärde.</p>
+<div class="chart-wrap" style="height:440px"><canvas id="nmdFlowDensityChart" aria-label="Ton torrsubstans per hektar för åtta NMD2018-marktäckeklasser över åren 2010, 2015 och 2018"></canvas></div>
+<h3>Kontrolltabell – hektar, total torrmassa och ton TS/ha</h3>
+<div class="table-scroll"><table><thead><tr><th rowspan="2">NMD2018-marktäcke</th><th rowspan="2">Areal, ha</th><th colspan="3">Biomassa, ton TS</th><th colspan="3">Medelvärde, ton TS/ha</th></tr><tr><th>2010</th><th>2015</th><th>2018</th><th>2010</th><th>2015</th><th>2018</th></tr></thead><tbody id="nmdFlowTableRows"></tbody></table></div>
+<p class="hint">Källor: SLU biomassa 2010, 2015 och Skogsstyrelsens/SLU:s SGD2 2018; Naturvårdsverkets NMD2018. Fullständig rasteromprojicering till <strong>EPSG:3006, 25 m</strong> har gjorts innan statistiken beräknats, inte i webbläsaren. <a id="nmdFlowSource" href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45632982924">Visa verifierad rasterkörning</a> · <a href="data/biomass_nmd2018_flow_2010_2018.json">Hämta diagrammens källdata (JSON)</a>. <strong>Inga NoData ersätts med noll.</strong> Den del som saknar giltigt värde 2015 ligger utanför denna gemensamma population och ingår inte i diagrammen.</p>
+</section>
+<style>
+.nmd-flow-svg-wrap{width:100%;overflow-x:auto;background:#fcfdfa;border:1px solid #dfe7df;border-radius:8px;margin:10px 0 18px}
+.nmd-flow-svg-wrap svg{width:100%;min-width:650px;height:auto;display:block}
+.nmd-flow-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:8px 0 18px}
+.nmd-flow-legend-item{display:inline-flex;align-items:center;gap:6px;font-size:.85rem}
+.nmd-flow-legend-item i{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #d0d8d1}
+#nmd2018-fixed-mask-flows h3{margin:18px 0 4px}
+#nmd2018-fixed-mask-flows table{min-width:1020px}
+#nmd2018-fixed-mask-flows td{text-align:right;white-space:nowrap}
+#nmd2018-fixed-mask-flows td:first-child{text-align:left}
+</style>
+<script src="biomass-nmd2018-flows.js"></script>
+
+
 <section id="component-scenario">
 <h2>Biomassa ovan och under mark – jämförbara definitioner (teoretiskt scenario)</h2>
 <p><strong>Viktig källkonflikt om 2010 års definition:</strong> SCB:s rapport från 2017 beskriver den äldre SLU Skogskartans biomassa som summerad <em>över och under mark</em>, men beskriver i samma avsnitt sin beräknade kolmängd som <em>ovan jord</em>. Dessutom beskriver en vetenskaplig tillämpning av SLU:s 2010-skikt biomassan som <em>ovanjordisk</em>. Det är därför <strong>inte verifierat</strong> att just vårt arkiverade 2010-band innehåller stubbar och rötter. SLU Skogskarta 2015 och Skogsstyrelsens skogliga grunddata anger biomassa ovan jord utan stubbar och rötter. Scenariot nedan testar vad en tänkt komponentolikhet <em>skulle</em> innebära – det visar inte att denna komponentolikhet finns i våra data. <strong>Inga värden får användas som korrigerade historiska biomassamängder.</strong></p>
