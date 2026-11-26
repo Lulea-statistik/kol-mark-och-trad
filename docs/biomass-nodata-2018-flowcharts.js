@@ -51,6 +51,15 @@ async function init(){
   if(!response.ok)throw Error("Verifierad resultatfil saknas (HTTP "+response.status+"). Rasteranalysen behöver köras och resultatfilen publiceras.");
   const d=await response.json();
   if(d.status!=="VERIFIED_POSITIVE_2010_BIOMASS_2018_NODATA"||d.analysis_crs!=="EPSG:3006"||d.cell_m!==25)throw Error("Fel datastatus, CRS eller grid.");
+  const lost=d.totals[valid].cells+d.totals[missing].cells;
+  if(lost===0){
+   status.textContent="Verifierat resultat: 0 celler (0 ha) med positiv biomassa 2010 saknar rastervärde 2018. Inget 2018-bortfall har påvisats inom den undersökta NMD2018-giltiga ytan och gemensamma 25 m-gridden. Därför finns inga värden att illustrera med flödesdiagram.";
+   for(const id of ["biomassNoData2018Area","biomassNoData2018Density","biomassNoData2018Mass"]){
+     const svg=document.getElementById(id);
+     if(svg){svg.setAttribute("viewBox","0 0 850 115");svg.innerHTML='<rect width="850" height="115" rx="9" fill="#f3f7f3"/><text x="425" y="50" text-anchor="middle" font-size="21" fill="#277456" font-weight="700">Inget 2018-bortfall: 0 ha</text><text x="425" y="79" text-anchor="middle" font-size="15" fill="#4a6654">Positiv biomassa 2010 och NoData 2018 – inga sådana celler</text>';}
+   }
+   return;
+  }
   const rows=order.map(name=>{
    const subset=d.rows.filter(x=>x.group===name),cohorts={};
    for(const k of [valid,missing]){
