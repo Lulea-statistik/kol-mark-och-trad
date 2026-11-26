@@ -71,8 +71,8 @@
 </section>
 <script src="biomass-coverage-2015-nodata.js"></script>
 <section id="biomass-coverage-2018-nodata">
-<h2>Biomassa 2010 som saknar rastervärde 2018 – tre flödesdiagram</h2>
-<p>Urvalet omfattar celler med <strong>positiv modellerad biomassa 2010</strong> men <strong>NoData 2018</strong>, oavsett om 2015 är giltigt eller NoData. Två disjunkta grupper skiljer giltiga 2015-celler från dem som saknar värde både 2015 och 2018. Marktäcket är fast klassat enligt NMD2018, inte historisk marktäckning 2010. Ingen saknad biomassa imputeras.</p>
+<h2>Kontroll av eventuellt 2018-bortfall relativt biomassa 2010</h2>
+<p><strong>Resultat från PR #118:s rasterkörning:</strong> Inga celler med positiv modellerad biomassa 2010 saknade giltigt värde 2018 inom den undersökta, NMD2018-giltiga ytan. Kontrollen skiljer mellan giltiga 2015-celler och NoData 2015; båda kategorierna har 0 celler med bortfall 2018. Därför visas ett nollresultat i stället för fiktiva flöden. Åren använder samma EPSG:3006-grid (25 m), men produkternas skattningar är inte fullt metodharmoniserade.</p>
 <p id="biomassNoData2018Status" role="status">Laddar verifierad 2018-bortfallsanalys …</p>
 <h3>7. Bortfallsflöde – hektar</h3><p>Hur många hektar med biomassa 2010 saknar värde 2018, fördelat efter NMD2018-marktäcke och 2015 års giltighet.</p>
 <div class="nmd-flow-svg-wrap"><svg id="biomassNoData2018Area" aria-label="2018 års NoData-lucka i hektar för celler med biomassa 2010"></svg></div>
