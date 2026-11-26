@@ -1,0 +1,202 @@
+{
+  "status": "VERIFIED_COVERAGE_2015_NODATA_AND_POSITIVE_2010_MASS",
+  "source_run": "https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45779418706",
+  "source_workflow": "https://github.com/Lulea-statistik/kol-mark-och-trad/actions/workflows/compare-biomass-nmd2018-landcover.yml",
+  "source_script": "scripts/audit_biomass_source_coverage_2010.py",
+  "analysis_crs": "EPSG:3006",
+  "cell_m": 25,
+  "area_ha_per_cell": 0.0625,
+  "cover_reference": "NMD2018 landcover, same class assigned to each 2010/2015/2018 pixel",
+  "common_cells": 2456410,
+  "missing_2015_valid_2010_2018_cells": 264484,
+  "positive_2010_missing_2015_valid_2018_cells": 261113,
+  "year_valid_cells": {
+    "2010": 2720894,
+    "2015": 4684649,
+    "2018": 5391169
+  },
+  "missing_2015_mass_tonnes_TS": {
+    "2010": 1043662.9701546631,
+    "2018": 872020.8175431881
+  },
+  "groups": [
+    {
+      "group": "Exploaterad mark",
+      "common_cells": 52277,
+      "missing_2015_cells": 3864,
+      "positive_biomass_2010_missing_2015_cells": 3828,
+      "positive_biomass_2018_missing_2015_cells": 3827,
+      "missing_2015_tonnes_TS": {
+        "2010": 10566.09214839805,
+        "2018": 8122.2582330442965
+      },
+      "common_tonnes_TS": {
+        "2010": 167623.72751305593,
+        "2015": 149001.64583302283,
+        "2018": 138660.8241435187
+      },
+      "year_valid_cells": {
+        "2010": 56141,
+        "2015": 99073,
+        "2018": 103185
+      }
+    },
+    {
+      "group": "Skog på våtmark",
+      "common_cells": 106822,
+      "missing_2015_cells": 19293,
+      "positive_biomass_2010_missing_2015_cells": 19271,
+      "positive_biomass_2018_missing_2015_cells": 19291,
+      "missing_2015_tonnes_TS": {
+        "2010": 70897.04562041443,
+        "2018": 59733.64234121516
+      },
+      "common_tonnes_TS": {
+        "2010": 476519.64610509714,
+        "2015": 509004.11458433646,
+        "2018": 545017.8075515311
+      },
+      "year_valid_cells": {
+        "2010": 126115,
+        "2015": 185509,
+        "2018": 216268
+      }
+    },
+    {
+      "group": "Skog utanför våtmark",
+      "common_cells": 1598680,
+      "missing_2015_cells": 158274,
+      "positive_biomass_2010_missing_2015_cells": 158045,
+      "positive_biomass_2018_missing_2015_cells": 158127,
+      "missing_2015_tonnes_TS": {
+        "2010": 753796.8507538748,
+        "2018": 680514.6195030324
+      },
+      "common_tonnes_TS": {
+        "2010": 8949920.191146592,
+        "2015": 8183025.260414528,
+        "2018": 8854303.01409316
+      },
+      "year_valid_cells": {
+        "2010": 1756954,
+        "2015": 1698888,
+        "2018": 1863980
+      }
+    },
+    {
+      "group": "Temporärt ej skog",
+      "common_cells": 469240,
+      "missing_2015_cells": 58411,
+      "positive_biomass_2010_missing_2015_cells": 55358,
+      "positive_biomass_2018_missing_2015_cells": 56306,
+      "missing_2015_tonnes_TS": {
+        "2010": 125654.71293420649,
+        "2018": 84473.23737607338
+      },
+      "common_tonnes_TS": {
+        "2010": 1398493.1595352858,
+        "2015": 755376.9791682798,
+        "2018": 746605.0370869078
+      },
+      "year_valid_cells": {
+        "2010": 527651,
+        "2015": 480291,
+        "2018": 538986
+      }
+    },
+    {
+      "group": "Vatten",
+      "common_cells": 25821,
+      "missing_2015_cells": 2454,
+      "positive_biomass_2010_missing_2015_cells": 2454,
+      "positive_biomass_2018_missing_2015_cells": 1896,
+      "missing_2015_tonnes_TS": {
+        "2010": 17611.999106496572,
+        "2018": 3168.483816633001
+      },
+      "common_tonnes_TS": {
+        "2010": 196239.7589183189,
+        "2015": 24392.213541965022,
+        "2018": 22899.482071930543
+      },
+      "year_valid_cells": {
+        "2010": 28275,
+        "2015": 1629154,
+        "2018": 2021274
+      }
+    },
+    {
+      "group": "Åkermark",
+      "common_cells": 16389,
+      "missing_2015_cells": 151,
+      "positive_biomass_2010_missing_2015_cells": 151,
+      "positive_biomass_2018_missing_2015_cells": 122,
+      "missing_2015_tonnes_TS": {
+        "2010": 259.97115683555603,
+        "2018": 150.18250048533082
+      },
+      "common_tonnes_TS": {
+        "2010": 32444.88906198123,
+        "2015": 18334.020833532344,
+        "2018": 14851.630408398807
+      },
+      "year_valid_cells": {
+        "2010": 16540,
+        "2015": 126491,
+        "2018": 126932
+      }
+    },
+    {
+      "group": "Öppen våtmark",
+      "common_cells": 72789,
+      "missing_2015_cells": 13507,
+      "positive_biomass_2010_missing_2015_cells": 13488,
+      "positive_biomass_2018_missing_2015_cells": 13283,
+      "missing_2015_tonnes_TS": {
+        "2010": 40346.291243350366,
+        "2018": 18717.71651042998
+      },
+      "common_tonnes_TS": {
+        "2010": 240229.8372208415,
+        "2015": 89470.02083373933,
+        "2018": 102546.97612715326
+      },
+      "year_valid_cells": {
+        "2010": 86296,
+        "2015": 254765,
+        "2018": 299670
+      }
+    },
+    {
+      "group": "Övrig öppen mark",
+      "common_cells": 114392,
+      "missing_2015_cells": 8530,
+      "positive_biomass_2010_missing_2015_cells": 8518,
+      "positive_biomass_2018_missing_2015_cells": 8508,
+      "missing_2015_tonnes_TS": {
+        "2010": 24530.007191086886,
+        "2018": 17140.67726227455
+      },
+      "common_tonnes_TS": {
+        "2010": 342718.5609174208,
+        "2015": 209499.3437507358,
+        "2018": 218908.5784284938
+      },
+      "year_valid_cells": {
+        "2010": 122922,
+        "2015": 210478,
+        "2018": 220874
+      }
+    }
+  ],
+  "cautions": [
+    "2015 NoData means missing raster coverage, NOT zero biomass or observed logging",
+    "2010 positive biomass is modelled and may include water or misclassified nonforest",
+    "NMD2018 classes do not establish land cover in 2010",
+    "2010 and 2018 mass on 2015-NoData cells cannot be compared with a 2015 estimate",
+    "Valid cell may have biomass exactly zero; positive 2010 is explicitly counted",
+    "Full raster-grid reprojection EPSG:3021 or EPSG:3006 to common EPSG:3006 25m performed during source audit",
+    "2010/2015/2018 estimation methods and foliage component equivalence not verified",
+    "No 2015 biomass mass has been imputed or replaced by zero"
+  ]
+}

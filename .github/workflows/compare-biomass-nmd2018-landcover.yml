@@ -6,6 +6,7 @@ on:
       - 'scripts/compare_nmd2018_landcover_biomass_volume.py'
       - 'scripts/analyze_2010_biomass_volume_cellwise.py'
       - 'scripts/audit_biomass_source_coverage_2010.py'
+      - 'scripts/build_biomass_coverage_web_data.py'
       - 'scripts/decompose_harmonize_biomass2010.py'
       - 'scripts/audit_biomass_units_and_mass_gate.py'
       - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
@@ -233,6 +234,22 @@ jobs:
           for name,group in sorted(groups.items()):
               print(name,group)
           PY
+      - name: Build per-class 2015 NoData biomass and 2010 positive-stock data
+        run: |
+          python scripts/build_biomass_coverage_web_data.py \
+            --source metadata/biomass_source_coverage_2010.json \
+            --output docs/data/biomass_coverage_nmd2018_2010_2018.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("docs/data/biomass_coverage_nmd2018_2010_2018.json").read_text())
+          assert d["common_cells"]==2456410
+          assert d["missing_2015_valid_2010_2018_cells"]==264484
+          assert 0<d["positive_2010_missing_2015_valid_2018_cells"]<=264484
+          for y in ("2010","2018"):
+              assert sum(x["missing_2015_tonnes_TS"][y] for x in d["groups"])>0
+          print("Verified source-derived coverage plus biomass, no 2015 imputation")
+          PY
       - name: Decompose biomass 2010 excess and compute common-area comparable sums
         run: |
           python scripts/decompose_harmonize_biomass2010.py \
@@ -293,6 +310,7 @@ jobs:
             metadata/nmd2018_landcover_biomass_volume.json
             metadata/biomass_volume_2010_cellwise.json
             metadata/biomass_source_coverage_2010.json
+            docs/data/biomass_coverage_nmd2018_2010_2018.json
             metadata/biomass2010_harmonized_comparison.json
             metadata/biomass_unit_mass_gate.json
             metadata/landcover_source_validation.json

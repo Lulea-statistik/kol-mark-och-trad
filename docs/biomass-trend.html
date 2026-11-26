@@ -38,6 +38,26 @@
 <script src="biomass-nmd2018-flows.js"></script>
 
 
+<section id="biomass-coverage-2015-nodata">
+<h2>Datatäckning 2010, 2015 och 2018 – bortfallet i 2015 års raster</h2>
+<p>Den tidigare jämförelsen följer bara celler som har giltig biomassa <strong>alla tre åren</strong>. Här visar vi separat hur mycket rasterdata som finns varje år, och de celler som har giltiga värden <strong>2010 och 2018 men NoData 2015</strong>. Vi jämför areal och biomassa inom samma NMD2018-marktäckeklasser utan att fylla luckan med påhittad biomassa.</p>
+<p id="biomassCoverageStatus" role="status">Laddar rastertäckning och bortfallsanalys …</p>
+<h3>4. Geografisk rastertäckning per år (ha)</h3>
+<p>Giltig respektive saknad rastertäckning inom hela den undersökta, NMD2018-giltiga arbetsytan. Giltigt värde <strong>0</strong> räknas som data och är inte NoData. Detta är inte skogsareal eller areal med positiv biomassa.</p>
+<div class="chart-wrap" style="height:340px"><canvas id="biomassCoverageYearChart" aria-label="Giltig respektive saknad geografisk rastertäckning för 2010, 2015 och 2018 i hektar"></canvas></div>
+<h3>5. Gemensamma celler jämfört med 2015-luckan – efter NMD2018-marktäcke</h3>
+<p>Gröna staplar: 2010, 2015 och 2018 giltiga. Bruna staplar: 2010 och 2018 giltiga, men 2015 NoData. Urvalen är <strong>disjunkta</strong>, och marktäckeklassen beskriver <strong>2018</strong> även för äldre biomassavärden.</p>
+<div class="chart-wrap" style="height:430px"><canvas id="biomassCoverageCohortChart" aria-label="Areal i hektar per NMD2018-marktäcke för gemensam data och bortfall i 2015 års biomassa"></canvas></div>
+<h3>6. Biomassa i de celler som saknas 2015 – ton TS</h3>
+<p>Endast celler med data både 2010 och 2018 men <strong>NoData 2015</strong> ingår. Vi visar de faktiskt beräknade rastervärdena för <strong>2010 och 2018</strong>. 2015 saknar värde och presenteras inte som noll. Därmed synliggörs hur stor torrmassa som uteslutits ur treårsjämförelsen, utan att ange en obestyrkt 2015-massa.</p>
+<div class="chart-wrap" style="height:440px"><canvas id="biomassCoverageMissingMassChart" aria-label="Ton torrsubstans 2010 och 2018 efter NMD2018-marktäcke i celler med NoData 2015"></canvas></div>
+<p id="biomassCoverageHighlights" role="status"></p>
+<h3>Kontrolltabell för 2015-bortfallet</h3>
+<div class="table-scroll"><table><thead><tr><th>NMD2018-marktäcke</th><th>Gemensamt giltig yta (ha)</th><th>2015 NoData-yta (ha)</th><th>Därav positiv 2010-biomassa (ha)</th><th>Biomassa 2010 (ton TS)</th><th>Biomassa 2015</th><th>Biomassa 2018 (ton TS)</th></tr></thead><tbody id="biomassCoverageRows"></tbody></table></div>
+<p class="hint"><strong>Metod:</strong> Analysen använder originalraster för biomassa 2010 (EPSG:3021, 25 m), 2015 (EPSG:3006, 12,5 m), 2018 (EPSG:3006, 10 m) och NMD2018 (EPSG:3006, 10 m). Samtliga raster omprojiceras fullt till analysgridden <strong>EPSG:3006, 25 m</strong> innan cellurval. Arealer = antal celler × 0,0625 ha; torrmassan = rasterdensitet (ton TS/ha) × samma areal. NMD2018 ger 2018 års referensmarktäcke, inte belägg för att en cell var skog år 2010. Geografiskt bortfall 2015 är <strong>inte</strong> en uppmätt biomassa­minskning eller skogsavverkning. Modellernas exakta komponenter och nollregler är inte harmoniserade. <a href="data/biomass_coverage_nmd2018_2010_2018.json">Granska datatabellen (JSON)</a> · <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/workflows/compare-biomass-nmd2018-landcover.yml">Källkörning och proveniens</a>.</p>
+</section>
+<script src="biomass-coverage-2015-nodata.js"></script>
+
 <section id="component-scenario">
 <h2>Biomassa ovan och under mark – jämförbara definitioner (teoretiskt scenario)</h2>
 <p><strong>Viktig källkonflikt om 2010 års definition:</strong> SCB:s rapport från 2017 beskriver den äldre SLU Skogskartans biomassa som summerad <em>över och under mark</em>, men beskriver i samma avsnitt sin beräknade kolmängd som <em>ovan jord</em>. Dessutom beskriver en vetenskaplig tillämpning av SLU:s 2010-skikt biomassan som <em>ovanjordisk</em>. Det är därför <strong>inte verifierat</strong> att just vårt arkiverade 2010-band innehåller stubbar och rötter. SLU Skogskarta 2015 och Skogsstyrelsens skogliga grunddata anger biomassa ovan jord utan stubbar och rötter. Scenariot nedan testar vad en tänkt komponentolikhet <em>skulle</em> innebära – det visar inte att denna komponentolikhet finns i våra data. <strong>Inga värden får användas som korrigerade historiska biomassamängder.</strong></p>

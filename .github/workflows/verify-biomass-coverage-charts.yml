@@ -1,0 +1,58 @@
+name: Verify 2015 biomass NoData coverage web charts
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/biomass-trend.html'
+      - 'docs/biomass-coverage-2015-nodata.js'
+      - 'docs/data/biomass_coverage_nmd2018_2010_2018.json'
+      - 'scripts/build_biomass_coverage_web_data.py'
+      - '.github/workflows/verify-biomass-coverage-charts.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax and HTML DOM source wiring
+        run: |
+          node --check docs/biomass-coverage-2015-nodata.js
+          python -m py_compile scripts/build_biomass_coverage_web_data.py scripts/audit_biomass_source_coverage_2010.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("docs/biomass-trend.html").read_text()
+          script=Path("docs/biomass-coverage-2015-nodata.js").read_text()
+          for marker in ("biomassCoverageStatus","biomassCoverageYearChart",
+               "biomassCoverageCohortChart","biomassCoverageMissingMassChart",
+               "biomassCoverageRows","biomassCoverageHighlights"):
+              assert p.count('id="'+marker+'"')==1, marker
+              assert marker in script, marker
+          assert 'src="biomass-coverage-2015-nodata.js"' in p
+          assert "biomass_coverage_nmd2018_2010_2018.json" in p
+          assert "2015 NoData" in p
+          print("Three 2015-gap diagrams have working DOM and source locations")
+          PY
+      - name: Validate published source report if present
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          f=Path("docs/data/biomass_coverage_nmd2018_2010_2018.json")
+          if not f.exists():
+              print("Source report pending original GIS workflow; don't present guessed statistics")
+          else:
+              d=json.loads(f.read_text())
+              assert d["status"]=="VERIFIED_COVERAGE_2015_NODATA_AND_POSITIVE_2010_MASS"
+              assert d["analysis_crs"]=="EPSG:3006" and d["cell_m"]==25
+              assert d["common_cells"]==2456410
+              assert d["missing_2015_valid_2010_2018_cells"]==264484
+              assert sum(r["missing_2015_cells"] for r in d["groups"])==264484
+              assert sum(r["positive_biomass_2010_missing_2015_cells"] for r in d["groups"])==d["positive_2010_missing_2015_valid_2018_cells"]
+              for y in ("2010","2018"):
+                  assert math.isfinite(sum(r["missing_2015_tonnes_TS"][y] for r in d["groups"]))
+              print("Published biomass gap data source checked")
+          PY
