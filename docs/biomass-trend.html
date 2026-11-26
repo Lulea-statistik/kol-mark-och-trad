@@ -70,6 +70,19 @@
 <p class="hint"><strong>Metod:</strong> Analysen använder originalraster för biomassa 2010 (EPSG:3021, 25 m), 2015 (EPSG:3006, 12,5 m), 2018 (EPSG:3006, 10 m) och NMD2018 (EPSG:3006, 10 m). Samtliga raster omprojiceras fullt till analysgridden <strong>EPSG:3006, 25 m</strong> innan cellurval. Arealer = antal celler × 0,0625 ha; torrmassan = rasterdensitet (ton TS/ha) × samma areal. NMD2018 ger 2018 års referensmarktäcke, inte belägg för att en cell var skog år 2010. Geografiskt bortfall 2015 är <strong>inte</strong> en uppmätt biomassa­minskning eller skogsavverkning. Modellernas exakta komponenter och nollregler är inte harmoniserade. <a href="data/biomass_coverage_nmd2018_2010_2018.json">Granska datatabellen (JSON)</a> · <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/workflows/compare-biomass-nmd2018-landcover.yml">Källkörning och proveniens</a>.</p>
 </section>
 <script src="biomass-coverage-2015-nodata.js"></script>
+<section id="biomass-coverage-2018-nodata">
+<h2>Kontroll av eventuellt 2018-bortfall relativt biomassa 2010</h2>
+<p><strong>Resultat från PR #118:s rasterkörning:</strong> Inga celler med positiv modellerad biomassa 2010 saknade giltigt värde 2018 inom den undersökta, NMD2018-giltiga ytan. Kontrollen skiljer mellan giltiga 2015-celler och NoData 2015; båda kategorierna har 0 celler med bortfall 2018. Därför visas ett nollresultat i stället för fiktiva flöden. Åren använder samma EPSG:3006-grid (25 m), men produkternas skattningar är inte fullt metodharmoniserade.</p>
+<p id="biomassNoData2018Status" role="status">Laddar verifierad 2018-bortfallsanalys …</p>
+<h3>7. Bortfallsflöde – hektar</h3><p>Hur många hektar med biomassa 2010 saknar värde 2018, fördelat efter NMD2018-marktäcke och 2015 års giltighet.</p>
+<div class="nmd-flow-svg-wrap"><svg id="biomassNoData2018Area" aria-label="2018 års NoData-lucka i hektar för celler med biomassa 2010"></svg></div>
+<h3>8. Bortfallsflöde – ton TS per hektar</h3><p>2010 års genomsnitt jämfört med 2015 där detta år har giltig biomassa. Genomsnitt per grupp är inte summerbara.</p>
+<div class="nmd-flow-svg-wrap"><svg id="biomassNoData2018Density" aria-label="Biomassatäthet i ton TS per hektar för 2018 års NoData"></svg></div>
+<h3>9. Bortfallsflöde – ton torrsubstans</h3><p>Modellerad torrmassa 2010 samt 2015 enbart för celler där 2015 har giltiga värden. 2018 är NoData och visas aldrig som noll.</p>
+<div class="nmd-flow-svg-wrap"><svg id="biomassNoData2018Mass" aria-label="Modellerad biomassa i ton TS för 2018 års NoData"></svg></div>
+<p class="hint"><strong>Metod:</strong> Originalraster kontrolleras för CRS och NoData och omprojiceras fullständigt till EPSG:3006, 25 m. Celler med 2010-värdet 0 ingår inte i detta urval. Klassningen avser NMD2018; metoderna för biomassaskattning är inte helt harmoniserade. <a href="data/biomass_2018_nodata_nmd2018.json">Resultatfil (JSON)</a> · <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/workflows/compare-biomass-nmd2018-landcover.yml">Rasteranalysens körning</a>.</p>
+</section>
+<script src="biomass-nodata-2018-flowcharts.js"></script>
 
 <section id="component-scenario">
 <h2>Biomassa ovan och under mark – jämförbara definitioner (teoretiskt scenario)</h2>

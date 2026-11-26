@@ -128,6 +128,20 @@ def run(args):
                             if signature==15:
                                 stats[label+"_2015_tonnes_TS"]+=float(arr["biomass_2015"][chosen].sum(dtype="float64"))*.0625
 
+                    # Positive biomass in 2010 but 2018 NoData: distinguish whether
+                    # 2015 is valid or NoData. Volume 2010 need not be valid.
+                    for label,chosen in (
+                        ("lost2018_2015valid",classified & valid["biomass_2010"] & valid["biomass_2015"] & ~valid["biomass_2018"] & (arr["biomass_2010"]>0)),
+                        ("lost2018_2015missing",classified & valid["biomass_2010"] & ~valid["biomass_2015"] & ~valid["biomass_2018"] & (arr["biomass_2010"]>0))
+                    ):
+                        count=int(chosen.sum())
+                        t2010=float(arr["biomass_2010"][chosen].sum(dtype="float64"))*.0625
+                        t2015=float(arr["biomass_2015"][chosen].sum(dtype="float64"))*.0625 if label=="lost2018_2015valid" else None
+                        for stats in (grouped[g],classed[str(int(code))]):
+                            stats[label+"_cells"]+=count
+                            stats[label+"_2010_tonnes_TS"]+=t2010
+                            if t2015 is not None:stats[label+"_2015_tonnes_TS"]+=t2015
+
                     for key in RASTERS:
                         q=classified & valid[key]
                         v=int(q.sum())
@@ -168,6 +182,21 @@ def run(args):
             b=sum(v.get(signature+"_"+year+"_tonnes_TS",0) for v in grouped.values())
             if not math.isclose(a,b,rel_tol=1e-9,abs_tol=.01):
                 raise ValueError("NMD2018 per-class biomass sum does not reconcile with group "+signature+year)
+    # Exhaustive 2018 NoData partition for cells with positive 2010 biomass.
+    for g,stats in grouped.items():
+        for label,valid2015 in (("lost2018_2015valid",True),("lost2018_2015missing",False)):
+            signatures=(5,7) if valid2015 else (1,3)
+            n=stats.get(label+"_cells",0)
+            if n>sum(stats.get("pattern_"+format(v,"04b"),0) for v in signatures):
+                raise ValueError("2018 loss exceeds effective mask pattern population")
+            if stats.get(label+"_2010_tonnes_TS",0)<0:raise ValueError("Negative 2010 loss mass")
+            if valid2015 and stats.get(label+"_2015_tonnes_TS",0)<0:raise ValueError("Negative 2015 retained mass")
+    for label in ("lost2018_2015valid","lost2018_2015missing"):
+        for field in ("cells","2010_tonnes_TS")+(("2015_tonnes_TS",) if label.endswith("valid") else ()):
+            a=sum(x.get(label+"_"+field,0) for x in grouped.values())
+            b=sum(x.get(label+"_"+field,0) for x in classed.values())
+            if not math.isclose(a,b,rel_tol=1e-9,abs_tol=.01):raise ValueError("2018 lost cohort reconciliation error")
+
     missing2015=sum(v.get("pattern_1011",0) for v in grouped.values())
     positive2010=sum(v.get("pattern_1011_positive_2010_cells",0) for v in grouped.values())
     common=sum(v.get("pattern_1111",0) for v in grouped.values())
