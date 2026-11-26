@@ -155,13 +155,13 @@ def run(args):
         if sum(stats.get("pattern_"+format(i,"04b"),0) for i in range(16))!=stats["nmd_cells"]:
             raise ValueError("Mask signatures do not partition "+g)
     for signature in ("pattern_1011","pattern_1111"):
-        for group,stats in grouped.items():
+        for group_name,stats in grouped.items():
             selected=stats.get(signature,0)
             for year in ("2010","2018"):
                 positive=stats.get(signature+"_positive_"+year+"_cells",0)
-                if not 0<=positive<=selected:raise ValueError("Positive count invalid "+group+year)
+                if not 0<=positive<=selected:raise ValueError("Positive count invalid "+group_name+year)
                 if stats.get(signature+"_"+year+"_tonnes_TS",0)<0:
-                    raise ValueError("Negative biomass "+group+year)
+                    raise ValueError("Negative biomass "+group_name+year)
         years=("2010","2015","2018") if signature=="pattern_1111" else ("2010","2018")
         for year in years:
             a=sum(v.get(signature+"_"+year+"_tonnes_TS",0) for v in classed.values())
