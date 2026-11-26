@@ -1,17 +1,26 @@
 name: Compare biomass and 2010 volume by NMD2018 landcover
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/audit_biomass_source_coverage_2010.py'
+      - 'scripts/build_biomass_2018_nodata_web_data.py'
+      - 'docs/biomass-nodata-2018-flowcharts.js'
+      - 'docs/biomass-trend.html'
+      - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
   pull_request:
     paths:
       - 'scripts/compare_nmd2018_landcover_biomass_volume.py'
       - 'scripts/analyze_2010_biomass_volume_cellwise.py'
       - 'scripts/audit_biomass_source_coverage_2010.py'
       - 'scripts/build_biomass_coverage_web_data.py'
+      - 'scripts/build_biomass_2018_nodata_web_data.py'
       - 'scripts/decompose_harmonize_biomass2010.py'
       - 'scripts/audit_biomass_units_and_mass_gate.py'
       - '.github/workflows/compare-biomass-nmd2018-landcover.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -250,6 +259,33 @@ jobs:
               assert sum(x["missing_2015_tonnes_TS"][y] for x in d["groups"])>0
           print("Verified source-derived coverage plus biomass, no 2015 imputation")
           PY
+      - name: Build 2018 NoData data by NMD2018 and check positive 2010 cohorts
+        run: |
+          python scripts/build_biomass_2018_nodata_web_data.py \
+            --source metadata/biomass_source_coverage_2010.json \
+            --output docs/data/biomass_2018_nodata_nmd2018.json
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          d=json.loads(Path("docs/data/biomass_2018_nodata_nmd2018.json").read_text())
+          assert d["analysis_crs"]=="EPSG:3006" and d["cell_m"]==25
+          assert d["status"]=="VERIFIED_POSITIVE_2010_BIOMASS_2018_NODATA"
+          assert all(0<=v["cells"] for v in d["totals"].values())
+          assert sum(v["cells"] for v in d["totals"].values())>0
+          for k in ("lost2018_2015valid","lost2018_2015missing"):
+              assert d["totals"][k]["cells"]==sum(r["cohorts"][k]["cells"] for r in d["rows"])
+          print("Verified 2018 missing-cell data:",d["totals"])
+          PY
+      - name: Publish verified 2018 NoData data to website on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/biomass_2018_nodata_nmd2018.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'data: publish verified 2018 NoData biomass flows'
+            git push origin HEAD:main
+          fi
       - name: Decompose biomass 2010 excess and compute common-area comparable sums
         run: |
           python scripts/decompose_harmonize_biomass2010.py \
@@ -311,6 +347,7 @@ jobs:
             metadata/biomass_volume_2010_cellwise.json
             metadata/biomass_source_coverage_2010.json
             docs/data/biomass_coverage_nmd2018_2010_2018.json
+            docs/data/biomass_2018_nodata_nmd2018.json
             metadata/biomass2010_harmonized_comparison.json
             metadata/biomass_unit_mass_gate.json
             metadata/landcover_source_validation.json
