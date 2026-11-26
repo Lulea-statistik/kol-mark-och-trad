@@ -149,10 +149,18 @@ def run(args):
                         subset=base&flag_mask
                         if not subset.any():continue
                         add(buckets[(scope,group,"all","all")],subset,data)
+                        for threshold in (20,60,80,100):
+                            age_subset=subset&(data["age"]>=threshold)
+                            if age_subset.any():
+                                add(buckets[(scope,group,"all",f"age_ge{threshold}")],age_subset,data)
                         for cls in range(5):
                             species=subset&(c==cls)
                             if not species.any():continue
                             add(buckets[(scope,group,labels[cls],"all")],species,data)
+                            for threshold in (20,60,80,100):
+                                older=species&(data["age"]>=threshold)
+                                if older.any():
+                                    add(buckets[(scope,group,labels[cls],f"age_ge{threshold}")],older,data)
                             for amin,amax in AGE:
                                 age_mask=species&(data["age"]>=amin)&(data["age"]<amax)
                                 if age_mask.any():
@@ -177,6 +185,23 @@ def run(args):
                 n=buckets[(scope,group,species,"all")]["cells"]
                 in_bins=sum(buckets[(scope,group,species,f"{x}-{y}")]["cells"] for x,y in AGE)
                 if n<in_bins:raise ValueError("Overlapping age bins")
+    older={scope:{flag:{species:{
+       f"age_ge{threshold}":finish(buckets[(scope,flag,species,f"age_ge{threshold}")])
+       for threshold in (20,60,80,100)}
+       for species in ("all",)+labels}
+       for flag in strata}
+       for scope in masks}
+    for scope in masks:
+        for flag in strata:
+            for threshold in (20,60,80,100):
+                parent=buckets[(scope,flag,"all",f"age_ge{threshold}")]
+                children=[buckets[(scope,flag,s,f"age_ge{threshold}")] for s in labels]
+                if parent["cells"]!=sum(v["cells"] for v in children):
+                    raise ValueError("Older forest species cohort count mismatch")
+                for year in YEARS:
+                    if not math.isclose(parent["sum_tTS"][year],
+                        sum(v["sum_tTS"][year] for v in children),rel_tol=1e-8,abs_tol=.01):
+                        raise ValueError("Older forest biomass sum mismatch")
     result={"status":"DESCRIPTIVE_FIXED_CELL_2010_SPECIES_AGE_RECORDED_HARVEST_STRATIFICATION",
       "date_utc":datetime.now(timezone.utc).isoformat(),
       "analysis_crs":"EPSG:3006","cell_size_m":25,
@@ -186,7 +211,7 @@ def run(args):
       "masks":{scope:{
        "no_recorded_harvest":finish(buckets[(scope,"no_recorded_harvest","all","all")]),
        "recorded_harvest":finish(buckets[(scope,"recorded_harvest","all","all")])} for scope in masks},
-      "strata":summary,"species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
+      "strata":summary,"older_age_cohorts":older,"species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
       "species_classification":"pine/spruce/DECIDUOUS>=60pct of their sum, >=20 total volume, <=20pct component-total closure difference; birch not additionally added to DECIDUOUS",
       "biomass_unit":"tonnes dry matter on 25m cell; source-converted from tTS/ha",
       "age_basis":"SLU modelled age in 2010; age groups are not observed chronological cohorts",
