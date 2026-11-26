@@ -105,6 +105,24 @@ jobs:
                   for label,x in children.items():
                       assert x['all_ages']['verified_real_biomass_growth_percent'] is None
                       assert x['all_ages']['cells']>=sum(v['cells'] for v in x['age_bins'].values())
+          older=d['older_age_cohorts']
+          for scope,groups in older.items():
+              for flag,species in groups.items():
+                  for threshold in (20,60,80,100):
+                      key=f'age_ge{threshold}'
+                      parent=species['all'][key]
+                      assert parent['cells']==sum(v[key]['cells'] for name,v in species.items() if name!='all')
+                      for y in ('2010','2015','2018'):
+                          assert math.isclose(parent['ton_TS_by_year'][y],
+                              sum(v[key]['ton_TS_by_year'][y] for name,v in species.items() if name!='all'),
+                              rel_tol=1e-8,abs_tol=.01)
+                      if threshold>20:assert parent['cells']<=species['all']['age_ge20']['cells']
+          forest=older['nmd2018_forest']['no_recorded_harvest']
+          for t in (20,60,80,100):
+              k=f'age_ge{t}'
+              print('OLDER_FOREST_NO_RECORDED_HARVEST',k,forest['all'][k],
+                  'pine',forest['pine'][k]['2018_vs_2010_model_ratio_percent'],
+                  'spruce',forest['spruce'][k]['2018_vs_2010_model_ratio_percent'])
           print('All strata and tTS sums reconcile across fixed masks')
           for scope,groups in d['masks'].items():print(scope,groups)
           PY
