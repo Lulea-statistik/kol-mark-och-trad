@@ -42,6 +42,19 @@
 <h2>Datatäckning 2010, 2015 och 2018 – bortfallet i 2015 års raster</h2>
 <p>Den tidigare jämförelsen följer bara celler som har giltig biomassa <strong>alla tre åren</strong>. Här visar vi separat hur mycket rasterdata som finns varje år, och de celler som har giltiga värden <strong>2010 och 2018 men NoData 2015</strong>. Vi jämför areal och biomassa inom samma NMD2018-marktäckeklasser utan att fylla luckan med påhittad biomassa.</p>
 <p id="biomassCoverageStatus" role="status">Laddar rastertäckning och bortfallsanalys …</p>
+<h3>Tre flödesdiagram – celler med NoData 2015</h3>
+<p>Flödena avser <strong>exakt samma celler med giltig biomassa 2010 och 2018, men NoData 2015</strong>, uppdelat efter den fasta NMD2018-klassningen. De visar <strong>inte</strong> om cellernas marktäcke förändrades och påstår inte att biomassan 2015 var noll. Bortfall som också är NoData 2018 kan ännu inte särredovisas i detta källdatauttag.</p>
+<p id="biomassNoDataFlowStatus" role="status">Laddar flöden för 2015 års NoData-celler …</p>
+<h4>Flöde B1. Areal – hektar</h4>
+<div class="nmd-flow-svg-wrap"><svg id="biomassNoDataFlowArea" aria-label="Flödesdiagram med areal i hektar för 2015 års NoData-lucka efter NMD2018-marktäcke"></svg></div>
+<h4>Flöde B2. Biomassatäthet – ton torrsubstans per hektar</h4>
+<p>Medelvärden per marktäckeklass för samma celler 2010 och 2018. Bandens bredd avspeglar klassmedelvärden, <strong>inte summerbar biomassa</strong>.</p>
+<div class="nmd-flow-svg-wrap"><svg id="biomassNoDataFlowDensity" aria-label="Flödesdiagram över ton torrsubstans per hektar i 2015 års NoData-lucka"></svg></div>
+<h4>Flöde B3. Biomassa – ton torrsubstans</h4>
+<p>Summan av modellerad biomassa i cellerna 2010 och 2018. Något värde för 2015 visas inte eftersom det är NoData.</p>
+<div class="nmd-flow-svg-wrap"><svg id="biomassNoDataFlowMass" aria-label="Flödesdiagram över total biomassa i ton torrsubstans i 2015 års NoData-lucka"></svg></div>
+<script src="biomass-nodata-flowcharts.js"></script>
+
 <h3>4. Geografisk rastertäckning per år (ha)</h3>
 <p>Giltig respektive saknad rastertäckning inom hela den undersökta, NMD2018-giltiga arbetsytan. Giltigt värde <strong>0</strong> räknas som data och är inte NoData. Detta är inte skogsareal eller areal med positiv biomassa.</p>
 <div class="chart-wrap" style="height:340px"><canvas id="biomassCoverageYearChart" aria-label="Giltig respektive saknad geografisk rastertäckning för 2010, 2015 och 2018 i hektar"></canvas></div>
