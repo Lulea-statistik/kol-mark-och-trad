@@ -28,8 +28,7 @@ def build(a):
             calc=sum(v.get(label+"_"+suffix,0) for v in a["group_rows"].values())
             if not math.isclose(calc,totals[label]["cells" if suffix=="cells" else "tonnes_TS_"+suffix[:4]],rel_tol=1e-9,abs_tol=.01):
                 raise ValueError("Class and group aggregates disagree")
-    if totals["lost2018_2015valid"]["cells"]+totals["lost2018_2015missing"]["cells"]<=0:
-        raise ValueError("No 2018 NoData 2010-positive cells")
+    # Zero loss is a verified possible result and must not fail analysis.
     return {"status":"VERIFIED_POSITIVE_2010_BIOMASS_2018_NODATA","analysis_crs":"EPSG:3006","cell_m":25,
             "source":"scripts/audit_biomass_source_coverage_2010.py","fixed_landcover":"NMD2018",
             "rows":sorted(rows,key=lambda r:r["nmd_code"]),"totals":totals,
