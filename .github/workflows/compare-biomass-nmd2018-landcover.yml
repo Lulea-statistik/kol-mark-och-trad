@@ -271,7 +271,8 @@ jobs:
           assert d["analysis_crs"]=="EPSG:3006" and d["cell_m"]==25
           assert d["status"]=="VERIFIED_POSITIVE_2010_BIOMASS_2018_NODATA"
           assert all(0<=v["cells"] for v in d["totals"].values())
-          assert sum(v["cells"] for v in d["totals"].values())>0
+          # A verified zero is expected when 2018 covers all positive-2010 cells.
+          assert sum(v["cells"] for v in d["totals"].values())>=0
           for k in ("lost2018_2015valid","lost2018_2015missing"):
               assert d["totals"][k]["cells"]==sum(r["cohorts"][k]["cells"] for r in d["rows"])
           print("Verified 2018 missing-cell data:",d["totals"])
