@@ -1,0 +1,56 @@
+name: Verify NMD2018 biomass area mass and density flow charts
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/biomass-trend.html'
+      - 'docs/biomass-nmd2018-flows.js'
+      - 'docs/data/biomass_nmd2018_flow_2010_2018.json'
+      - '.github/workflows/verify-biomass-nmd2018-flows.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax and exact in-page targets
+        run: |
+          node --check docs/biomass-nmd2018-flows.js
+          python - <<'PY'
+          from pathlib import Path
+          html=Path("docs/biomass-trend.html").read_text()
+          script=Path("docs/biomass-nmd2018-flows.js").read_text()
+          for marker in ("nmdFlowArea","nmdFlowMass","nmdFlowDensityChart","nmdFlowStatus","nmdFlowTableRows","nmdFlowLegend","nmdFlowSource"):
+              assert html.count('id="'+marker+'"')==1,marker
+              assert marker in script,marker
+          assert 'src="biomass-nmd2018-flows.js"' in html
+          assert 'biomass_nmd2018_flow_2010_2018.json' in script
+          print("All three chart containers and live source links verified")
+          PY
+      - name: Verify source 25m grid, class areas, mass sums and density denominators
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,math
+          d=json.loads(Path("docs/data/biomass_nmd2018_flow_2010_2018.json").read_text())
+          assert d['status']=='VERIFIED_NMD2018_COMMON_MASK_2010_2015_2018'
+          assert d['analysis_crs']=='EPSG:3006' and d['pixel_size_m']==25
+          assert d['cells']==2456410
+          rows=d['groups']
+          assert len(rows)==8 and len({r['label'] for r in rows})==8
+          assert sum(r['cells'] for r in rows)==d['cells']
+          assert math.isclose(sum(r['cells']*.0625 for r in rows),153525.625,abs_tol=1e-6)
+          expected={'2010':11804189.770418592,'2015':9938103.59896014,'2018':10643793.349911094}
+          for year,target in expected.items():
+              assert all(math.isfinite(r['mean_tTS_ha'][year]) and r['mean_tTS_ha'][year]>=0 for r in rows)
+              mass=sum(r['cells']*.0625*r['mean_tTS_ha'][year] for r in rows)
+              assert math.isclose(mass,target,abs_tol=2.0), (year,mass,target)
+              weighted_density=mass/153525.625
+              assert math.isclose(weighted_density,sum(r['cells']*.0625*r['mean_tTS_ha'][year] for r in rows)/153525.625)
+              print(year,'tonnes dry matter',round(mass,1),'tonnes/ha',round(weighted_density,2))
+          print("All NMD2018 class totals reconcile without imputing 2015 NoData")
+          PY
