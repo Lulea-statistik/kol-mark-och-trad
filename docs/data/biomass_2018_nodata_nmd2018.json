@@ -1,0 +1,408 @@
+{
+  "status": "VERIFIED_POSITIVE_2010_BIOMASS_2018_NODATA",
+  "analysis_crs": "EPSG:3006",
+  "cell_m": 25,
+  "source": "scripts/audit_biomass_source_coverage_2010.py",
+  "fixed_landcover": "NMD2018",
+  "rows": [
+    {
+      "nmd_code": 2,
+      "group": "Öppen våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 3,
+      "group": "Åkermark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 41,
+      "group": "Övrig öppen mark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 42,
+      "group": "Övrig öppen mark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 51,
+      "group": "Exploaterad mark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 52,
+      "group": "Exploaterad mark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 53,
+      "group": "Exploaterad mark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 61,
+      "group": "Vatten",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 62,
+      "group": "Vatten",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 111,
+      "group": "Skog utanför våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 112,
+      "group": "Skog utanför våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 113,
+      "group": "Skog utanför våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 114,
+      "group": "Skog utanför våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 115,
+      "group": "Skog utanför våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 118,
+      "group": "Temporärt ej skog",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 121,
+      "group": "Skog på våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 122,
+      "group": "Skog på våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 123,
+      "group": "Skog på våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 124,
+      "group": "Skog på våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 125,
+      "group": "Skog på våtmark",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    },
+    {
+      "nmd_code": 128,
+      "group": "Temporärt ej skog",
+      "cohorts": {
+        "lost2018_2015valid": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": 0.0
+        },
+        "lost2018_2015missing": {
+          "cells": 0,
+          "area_ha": 0.0,
+          "tonnes_TS_2010": 0.0,
+          "tonnes_TS_2015": null
+        }
+      }
+    }
+  ],
+  "totals": {
+    "lost2018_2015valid": {
+      "cells": 0,
+      "tonnes_TS_2010": 0.0,
+      "tonnes_TS_2015": 0.0
+    },
+    "lost2018_2015missing": {
+      "cells": 0,
+      "tonnes_TS_2010": 0.0,
+      "tonnes_TS_2015": null
+    }
+  },
+  "cautions": [
+    "2018 NoData is not zero biomass",
+    "2015 NoData is not zero biomass",
+    "2010 positive biomass only; valid zero 2010 values intentionally excluded",
+    "Year 2015 mass exists only for the 2015-valid subset",
+    "Full source raster reprojection to 25 m EPSG:3006 was performed before counts",
+    "NMD2018 landcover is not the historical 2010 cover",
+    "Products are not model-harmonized"
+  ]
+}
