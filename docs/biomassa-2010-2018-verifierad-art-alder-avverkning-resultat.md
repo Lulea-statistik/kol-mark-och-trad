@@ -58,6 +58,23 @@ Inom 2010 års volym≥50-mask överlappar **104 728 celler (6 545,5 ha)** regis
 
 I samma 2010-mask, men **utan registrerad avverkning**, är modellkvoten endast **−9,43 %**. Den stora skillnaden stödjer att avverkningar har en väsentlig roll i den tidigare observerade minskningen, men innebär **inte** att avverkning ensam kausalt förklarar varje ändrad rastercell: tidpunkter, överlappskvalitet, andra skogsåtgärder och metodskillnader kan påverka.
 
+## Uppföljning PR #119 – sammanvägda äldre bestånd, verifierad 26 november 2026
+
+Körning [#45838159388](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45838159388) slutfördes med **success**. Resultatet avser **samma celler** inom NMD2018-skog, med **ingen registrerad avverkning 2011–2018**, och stratifiering efter *modellerad* ålder 2010. Åldersurvalen är **nästlade**, inte separata åldersklasser; minst 100 år ingår även i minst 80, 60 och 20 år.
+
+| Modellerad ålder 2010 | Celler | Areal ha | 2010 ton TS/ha | 2015 ton TS/ha | 2018 ton TS/ha | Modellskillnad 2018/2010 |
+|---|---:|---:|---:|---:|---:|---:|
+| ≥20 år | 1 649 647 | 103 102,94 | 90,40 | 82,82 | 90,06 | −0,37 % |
+| ≥60 år | 1 029 451 | 64 340,69 | 111,29 | 91,97 | 97,95 | −11,99 % |
+| ≥80 år | 582 663 | 36 416,44 | 125,40 | 99,83 | 103,91 | −17,14 % |
+| ≥100 år | 177 484 | 11 092,75 | 134,24 | 102,28 | 103,59 | −22,83 % |
+
+För ≥100 år är delgruppens relativa modellskillnad **−17,54 % för tall** och **−36,32 % för gran**, utifrån 2010-modellerad trädslagsdominans. För ≥60 år är dessa −9,83 % och −26,86 %. Lövdominans är fortfarande i praktiken oklassificerbar med nuvarande komponenttolkning; tall/granresultaten representerar bara sina respektive klassificerade urval.
+
+**Tolkning:** Skillnaden ökar när urvalet begränsas till äldre bestånd. Det är förenligt med en modellrelaterad ålders-/volymeffekt men också med oregistrerad gallring/avverkning, skillnader i mätår och återstående klassningsproblem. Ålder, volym och 2010-biomassa har inte oberoende modellunderlag. Inte heller garanterar NMD2018-skog att området var skog 2010. **Resultatet får inte beskrivas som verifierad faktisk biomassaminskning eller användas för att korrigera 2010 års raster.**
+
+**Nästa test:** För att minska risken att trädslagsbyten och 2010 års klassningsfel driver mönstret samkörs modellen för *2005 och 2010 års trädslagsdominans* med 2010/2018-biomassa, NMD2018 och daterade avverkningar. Stabil **modellerad** dominans är fortfarande inte fältverifierad oförändrad skog.
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.
