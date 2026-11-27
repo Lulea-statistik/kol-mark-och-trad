@@ -158,6 +158,34 @@ Rasterkörning [#45981899353](https://github.com/Lulea-statistik/kol-mark-och-tr
 
 **Tolkning:** Detta kontrollerar grovt för observerbara *modellerade* beståndsegenskaper och förhindrar att överlappande åldersurval blandas ihop. Det är inte en regression eller kausal identifiering. Eftersom 2010 års virkesvolym, ålder, granandel och biomassa är modellbaserade och statistiskt kopplade finns risk för korrelerade modellfel samt selektions-/kontrollbias. 2018 års modellvärden kan ha skilda metodantaganden. Ingen säker slutsats om verkliga biomassaförändringar följer enbart av analysen.
 
+
+## Direkt standardiserad jämförelse av gran/tall-balans, ålder och virkesvolym (PR #128)
+
+**Källa:** Verifierad rasterbaserad sammanställning från PR #127, `docs/data/gran_tall_balans_2005_2010.json`. Samma cellpopulation NMD2018-skog utan registrerad avverkning 2011–2018, 25 m-grid i EPSG:3006, modellerad ålder, virkesvolym och gran/tall-balans från 2010. Standardiseringen beräknas på redan verifierade stratumvisa cellantal och biomassa, utan att approximera cellfördelning från andra källor.
+
+**Metod för att kontrollera sammansättning:** Välj *gemensamt stöd* där **var och en av nio balansklasser har minst 30 celler** inom samma icke överlappande ålder–volym-stratum. Referenspopulationens vikt i stratum `s` är `w_s = N_s / ΣN_s`, där `N_s` är antalet celler från samtliga nio klasser inom gemensamt stöd. Varje balansklass `k` får samma `w_s` och ett standardiserat medelvärde ton TS/ha för vart och ett av 2010 och 2018: `D_kt = Σ_s w_s * M_kst / (0,0625 * n_ks)`. Modellskillnaden beräknas som `100 * (D_k2018/D_k2010 - 1)`. Detta är inte medelvärdet av individuella cellkvoter och inte ett mått på faktisk skogstillväxt.
+
+**Resultat i publicerat, källverifierat rasterunderlag:** Av 30 möjliga ålder–volymkombinationer uppfyller **10** minimikravet. Den sammanlagda målpopulationen i dessa är **1 446 461 celler**, motsvarande cirka 90 404 ha. Klassvis täckning varierar, vilket är en viktig begränsning.
+
+| Gran/tall 2010 | Ojusterad modellskillnad 2018/2010 | Standardiserad modellskillnad 2018/2010 | Täckningsgrad |
+|---|---:|---:|---:|
+| 10/90 | +3,99 % | −5,31 % | 75,0 % |
+| 20/80 | +9,66 % | +0,80 % | 84,0 % |
+| 30/70 | +3,48 % | +0,53 % | 92,9 % |
+| 40/60 | −2,19 % | +0,33 % | 95,8 % |
+| 50/50 | −5,83 % | −0,55 % | 97,6 % |
+| 60/40 | −9,28 % | −2,76 % | 97,9 % |
+| 70/30 | −12,51 % | −5,62 % | 97,4 % |
+| 80/20 | −20,63 % | −6,62 % | 87,1 % |
+| 90/10 | −16,22 % | −7,99 % | 84,1 % |
+
+**Huvudslutsats:** Den starkt negativa gradienten i råa biomassakvoter reduceras avsevärt när de nio balansklasserna ges samma fördelning av modellerad ålder och 2010 års totalvolym inom gemensamt stöd. En mer negativ skillnad finns ändå för flera grandominerade klasser. Detta ger **belägg för att sammansättningsskillnader kan förklara en betydande del av den observerade skillnaden**, men inte för att eventuell kvarvarande skillnad orsakas av trädslag eller är faktisk förändring av biomassa.
+
+**Robusthet och osäkerhet:** Skript `scripts/standardize_gran_tall_biomass.py` redovisar dessutom känslighetsberäkningar med minst 10 respektive 100 celler i varje klass och gemensamt stratum. Urvalskravet 30 celler är ett analytiskt val, inte en inferentiell konfidensgräns. Den standardiserade populationen representerar inte alla bestånd – exempelvis mindre vanliga trädslags-/volymkombinationer faller bort. 2010 års ålder, virkesvolym, gran/tall-balans och biomassa är korrelerade modellprodukter; standardisering eliminerar därför inte gemensamma modellfel eller eventuell selektionsbias.
+
+**Verifiering/publicering:** Datafilen `docs/data/gran_tall_standardisering_2010_2018.json` beräknas från den publicerade rasterfilen, stäms av mot totalsummor och publiceras först efter godkänd GitHub Actions-körning av `.github/workflows/standardize-gran-tall-biomass.yml`. Tabellvärden ovan är en direkt beräkning på det publicerade aggregerade underlaget; diagrammet ska inte visa numeriska värden om den genererade filen saknas.
+
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.
