@@ -53,6 +53,25 @@ jobs:
           assert v['verified_real_biomass_growth_percent'] is None
           print('Synthetic species classifier and cell-area weighting passed')
           PY
+      - name: Verify balance page integration and JavaScript syntax
+        run: |
+          node --check docs/gran-tall-balans.js
+          python - <<'PY'
+          from pathlib import Path
+          html=Path('docs/biomass-trend.html').read_text(encoding='utf-8')
+          for key in ('granTallBalans','granTallBalansAge','granTallBalansMatrix',
+                      'granTallBalansDistribution','granTallBalansBiomassa'):
+              assert html.count('id="'+key+'"')==1,key
+          assert 'src="gran-tall-balans.js"' in html
+          import numpy as np
+          def classify(gran,tall):
+              ratio=gran/(gran+tall)
+              return int(np.clip(np.floor(ratio*10-.5+1e-9),0,8))
+          assert [classify(x,100-x) for x in range(0,101,10)]==[0,0,1,2,3,4,5,6,7,8,8]
+          for age in (20,60,80,100):
+              assert age>=20
+          print('Synthetic gran/tall balance boundaries and HTML passed')
+          PY
       - name: Fetch original historical rasters and archived provenance
         run: |
           mkdir -p release-biomass release-volume release-age nmd-input
