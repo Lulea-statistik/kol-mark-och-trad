@@ -120,6 +120,8 @@ def run(args):
         "delta_bins":[0]*7,"near_60_2005":0,"near_60_2010":0,
         "crossed_60":0,"component_exceeds_total_2005":0,
         "component_exceeds_total_2010":0})
+    share_excluded=defaultdict(int)
+    share_population=defaultdict(int)
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
     masks=("nmd2018_forest","all_common_2010_volume_ge50")
@@ -214,7 +216,11 @@ def run(args):
                             np.isfinite(pine05)&(pine05>=0)&np.isfinite(spruce05)&(spruce05>=0)&
                             np.isfinite(pine10)&(pine10>=0)&np.isfinite(spruce10)&(spruce10>=0))
                         for min_age in (20,60,80,100):
-                            smask=subset & valid_share & (data["age"]>=min_age)
+                            parent_mask=subset & (data["age"]>=min_age)
+                            smask=parent_mask & valid_share
+                            k=(scope,group,min_age)
+                            share_population[k]+=int(parent_mask.sum())
+                            share_excluded[k]+=int(np.count_nonzero(parent_mask & ~valid_share))
                             n=int(smask.sum())
                             if n==0:continue
                             for label,source05,source10 in (
@@ -360,11 +366,20 @@ def run(args):
         if n!=sum(stat["delta_bins"]):
             raise ValueError("Continuous share bins do not reconcile")
         expected=buckets[(scope,group,"all",f"age_ge{age}")]["cells"]
-        # All source validity requirements are already included in common.
-        if n!=expected:raise ValueError("Continuous share population not matched")
+        # Continuous shares require TOTALVOL >=20 in *both* years, a
+        # stricter condition than the common raster mask (TOTALVOL >=0).
+        # Account for excluded low-volume cells explicitly, never set them to 0.
+        excluded=share_excluded[(scope,group,age)]
+        if n+excluded!=expected or share_population[(scope,group,age)]!=expected:
+            raise ValueError(
+                f"Continuous share population not matched: {scope}/{group}/{age}, "
+                f"valid={n}, excluded_low_volume={excluded}, expected={expected}")
         entry=continuous_shares.setdefault(scope,{}).setdefault(group,{}).setdefault(f"age_ge{age}",{})
         entry[label]={
             "cells":n,
+            "eligible_parent_cells":expected,
+            "excluded_low_or_invalid_total_volume_cells":excluded,
+            "coverage_share":n/expected if expected else None,
             "mean_share_2005_pct":100*stat["sum_2005"]/n,
             "mean_share_2010_pct":100*stat["sum_2010"]/n,
             "mean_delta_percentage_points":stat["sum_delta"]/n,
