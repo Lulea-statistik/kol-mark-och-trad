@@ -110,6 +110,8 @@ def run(args):
     buckets=defaultdict(new)
     stable_buckets=defaultdict(new)
     stable_counts=defaultdict(int)
+    dominance_matrices=defaultdict(lambda:np.zeros((4,4),dtype="int64"))
+    dominance_sensitivity=defaultdict(int)
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
     masks=("nmd2018_forest","all_common_2010_volume_ge50")
@@ -160,6 +162,20 @@ def run(args):
                 c05=dominance(pine05,spruce05,v05)
                 c10=dominance(pine10,spruce10,v10)
                 stable=(c05==c10)&(c05<2)
+                # Diagnostic classes 0=pine, 1=spruce, 2=neither >=threshold,
+                # 3=invalid/low volume. Always compare the same valid raster cells.
+                # The historical products are correlated model estimates, not observations.
+                def diagnosis(p,s,v,threshold):
+                    ok=np.isfinite(p)&(p>=0)&np.isfinite(s)&(s>=0)&np.isfinite(v)&(v>=20)
+                    out=np.full(v.shape,3,dtype="uint8")
+                    out[ok]=2
+                    out[ok & (p>=threshold*v)]=0
+                    out[ok & (p<threshold*v) & (s>=threshold*v)]=1
+                    return out
+                classes_by_threshold={
+                    t:(diagnosis(pine05,spruce05,v05,t),
+                       diagnosis(pine10,spruce10,v10,t))
+                    for t in (.4,.5,.6,.7)}
                 add(total,common,data)
                 for scope,geo_mask in (
                   ("nmd2018_forest",np.isin(data["nmd"],list(FOREST))),
@@ -172,6 +188,15 @@ def run(args):
                         subset=base&flag_mask
                         if not subset.any():continue
                         add(buckets[(scope,group,"all","all")],subset,data)
+                        for minimum_age in (20,60,80,100):
+                            eligible=subset & (data["age"]>=minimum_age)
+                            if not eligible.any():continue
+                            for threshold,(from_2005,to_2010) in classes_by_threshold.items():
+                                key=(scope,group,minimum_age,str(threshold))
+                                pair=(from_2005[eligible].astype("int64")*4+
+                                      to_2010[eligible].astype("int64"))
+                                dominance_matrices[key]+=np.bincount(pair,minlength=16).reshape(4,4)
+                                dominance_sensitivity[key]+=int(eligible.sum())
                         # Fixed NMD2018 forest and no recorded harvest. Stable
                         # pine/spruce labels use a conservative >=60% of total
                         # volume in each historical raster year.
@@ -249,6 +274,41 @@ def run(args):
                         raise ValueError("Stable cohort exceeds baseline")
                     if age>20 and cohort["cells"]>stable_buckets[(scope,group,label,20)]["cells"]:
                         raise ValueError("Stable cohort increases with age")
+    # Row=dominant class in 2005 and column=dominant class in 2010.
+    # Reconciliation detects loss and exposes the exact reason a spruce cell
+    # does not qualify as stable at each threshold.
+    class_names=("pine","spruce","neither","invalid_or_low_volume")
+    dominance_audit={}
+    for (scope,flag,age,threshold),matrix in dominance_matrices.items():
+        cells=int(matrix.sum())
+        if cells!=dominance_sensitivity[(scope,flag,age,threshold)]:
+            raise ValueError("Dominance matrix total differs from selected cohort")
+        parent=buckets[(scope,flag,"all",f"age_ge{age}")]["cells"]
+        if cells!=parent:
+            raise ValueError("Dominance matrix does not cover whole older cohort")
+        entry=dominance_audit.setdefault(scope,{}).setdefault(flag,{}).setdefault(f"age_ge{age}",{})
+        spruce_2010=int(matrix[:,1].sum())
+        spruce_2005=int(matrix[1,:].sum())
+        stable_spruce=int(matrix[1,1])
+        entry[threshold]={
+            "cells":cells,"classes":list(class_names),"transition_matrix_2005_rows_2010_columns":matrix.tolist(),
+            "spruce_dominant_2005_cells":spruce_2005,
+            "spruce_dominant_2010_cells":spruce_2010,
+            "stable_spruce_cells":stable_spruce,
+            "share_stable_of_2010_spruce":stable_spruce/spruce_2010 if spruce_2010 else None,
+            "2010_spruce_previously_pine":int(matrix[0,1]),
+            "2010_spruce_previously_neither":int(matrix[2,1]),
+            "2010_spruce_previously_invalid_or_low":int(matrix[3,1]),
+            "2005_spruce_later_pine":int(matrix[1,0]),
+            "2005_spruce_later_neither":int(matrix[1,2]),
+            "2005_spruce_later_invalid_or_low":int(matrix[1,3])}
+    for scope in masks:
+        for flag in strata:
+            for age in (20,60,80,100):
+                ref=dominance_audit[scope][flag][f"age_ge{age}"]["0.6"]
+                stable_ref=stable_buckets[(scope,flag,"stable_spruce",age)]["cells"]
+                if ref["stable_spruce_cells"]!=stable_ref:
+                    raise ValueError("Historical spruce stability does not match audited matrix")
     result={"status":"DESCRIPTIVE_FIXED_CELL_2010_SPECIES_AGE_RECORDED_HARVEST_STRATIFICATION",
       "date_utc":datetime.now(timezone.utc).isoformat(),
       "analysis_crs":"EPSG:3006","cell_size_m":25,
@@ -258,7 +318,7 @@ def run(args):
       "masks":{scope:{
        "no_recorded_harvest":finish(buckets[(scope,"no_recorded_harvest","all","all")]),
        "recorded_harvest":finish(buckets[(scope,"recorded_harvest","all","all")])} for scope in masks},
-      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,
+      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,"historic_dominance_diagnostics":dominance_audit,
       "historical_stability_definition":"Same estimated pine or spruce >=60% of TOTALVOL in both 2005 and 2010. Other species not classified. Requires valid source pixels both years. No observed stand identity inferred.","species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
       "species_classification":"pine/spruce/DECIDUOUS>=60pct of their sum, >=20 total volume, <=20pct component-total closure difference; birch not additionally added to DECIDUOUS",
       "biomass_unit":"tonnes dry matter on 25m cell; source-converted from tTS/ha",
