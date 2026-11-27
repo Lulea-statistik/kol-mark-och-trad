@@ -100,6 +100,25 @@
 <p class="hint"><strong>Källor:</strong> <a href="https://www.scb.se/contentassets/0020464162f64348bb47b3d1b9a1c9a7/mi1301_2015a01_br_mi71br1701.pdf">SCB – äldre SLU Skogskartans biomassa över/under mark</a> · <a href="https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf">SLU – Biomass_leaf 2015, biomassa ovan jord</a> · <a href="https://www.skogsstyrelsen.se/globalassets/om-oss/regeringsuppdrag/uppdatering-av-skogliga-grundata/skogliga-grunddata---produktbeskrivning.pdf">Skogsstyrelsen – biomassa exklusive stubbar/rötter</a> · <a href="https://hess.copernicus.org/articles/29/5493/2025/hess-29-5493-2025-supplement.pdf">Forskningssupplement – SLU biomassa 2010 beskrivs som ovanjordisk</a> · <a href="data/biomass_2010_excess_diagnostics.json">Råvärden och gemensam EPSG:3006-yta</a>.</p>
 <script src="biomass-component-scenario.js"></script>
 </section>
+<section id="older-forest-biomass-2010-2018">
+<h2>Äldre skog utan registrerad avverkning – verifierad åldersanalys</h2>
+<p>Analysen i <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45838159388">PR #119:s godkända rasterkörning</a> jämför identiska 25 m-celler med NMD2018-skog och ingen <em>registrerad</em> avverkning 2011–2018. Ålder är SLU:s <strong>modellerade 2010-ålder</strong>, inte oberoende uppmätt ålder. Urvalen är nästlade: 100+ ingår också i 80+, 60+ och 20+.</p>
+<div class="table-scroll"><table><thead><tr><th>Ålder 2010</th><th>Ha</th><th>2010 ton TS/ha</th><th>2015 ton TS/ha</th><th>2018 ton TS/ha</th><th>2018/2010</th></tr></thead><tbody>
+<tr><td>≥20 år</td><td>103 102,94</td><td>90,40</td><td>82,82</td><td>90,06</td><td>−0,37 %</td></tr>
+<tr><td>≥60 år</td><td>64 340,69</td><td>111,29</td><td>91,97</td><td>97,95</td><td>−11,99 %</td></tr>
+<tr><td>≥80 år</td><td>36 416,44</td><td>125,40</td><td>99,83</td><td>103,91</td><td>−17,14 %</td></tr>
+<tr><td>≥100 år</td><td>11 092,75</td><td>134,24</td><td>102,28</td><td>103,59</td><td>−22,83 %</td></tr>
+</tbody></table></div>
+<div class="chart-wrap" style="height:340px"><canvas id="olderForestModelDifferenceChart" aria-label="Modellerad procentuell biomassaskillnad 2018 mot 2010 för åldrar minst 20, 60, 80, 100 år"></canvas></div>
+<p>Inom minst 100-åriga celler uppgår modellskillnaden till <strong>−17,54 % i talldominerade</strong> och <strong>−36,32 % i grandominerade</strong> delurval. Trädslagsdominans avser 2010 års volymmodell, och lövklassningen är otillräcklig. Resultatet kan bero på verklig gallring/avverkning som saknas i registren, förändrat bestånd eller metodskillnader. Det bevisar <strong>inte</strong> att 2010 års modell överskattar verklig biomassa. Nästa kontroll prövar stabil modellerad tall-/grandominans 2005–2010.</p>
+<p class="hint"><a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/docs/biomassa-2010-2018-verifierad-art-alder-avverkning-resultat.md">Fullständig dokumentation av urval, metod och osäkerheter</a>. Raster-CRS: 2010 EPSG:3021, 2015/2018 och NMD2018 EPSG:3006. All rasterdata är fullt omprojicerad till EPSG:3006, 25 m före analys.</p>
+</section>
+<script>
+(function(){const el=document.getElementById('olderForestModelDifferenceChart');
+if(!el||typeof Chart==='undefined')return;
+new Chart(el,{type:'bar',data:{labels:['≥20 år','≥60 år','≥80 år','≥100 år'],datasets:[{label:'Modellskillnad 2018/2010, %',data:[-0.372095,-11.988505,-17.137088,-22.831009],backgroundColor:'#3c8061'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:c=>c.parsed.y.toLocaleString('sv-SE',{maximumFractionDigits:2})+' %'}}},scales:{y:{max:0,title:{display:true,text:'Skillnad 2018/2010 (%)'}}}}});
+})();
+</script>
 <section id="biomass-forest-only-nmd2018">
 <h2>Biomassa i skogsklassade områden – samma celler 2010, 2015 och 2018</h2>
 <p><strong>Ny viktig kontroll:</strong> När analysen begränsas till NMD2018:s 14 skogsklasser (111–117 och 121–127), alltså utan temporärt ej skog, vatten och övriga marktyper, är det viktade medelråvärdet <strong>88,43 år 2010</strong> och <strong>88,18 år 2018</strong>, en differens om endast <strong>+0,29&nbsp;%</strong>. År 2015 ligger lägre, på <strong>81,54</strong>. Jämförelsen gäller exakt <strong>106 593,875 ha</strong> gemensamma celler i <strong>EPSG:3006, 25 m</strong>; den visar inte en verifierad faktisk skoglig biomassatrend.</p>

@@ -18,7 +18,7 @@ from rasterio.windows import Window
 from shapely.geometry import shape,mapping,box
 from shapely.ops import transform as geom_transform
 from pyproj import Transformer
-from fetch_and_compare_biomass_native import crop_source,matches_expected_crs
+from fetch_and_compare_biomass_native import crop_source,matches_expected_crs,EXPECTED
 from analyze_forest_age_2010 import check_age
 from analyze_historic_volume import validate_archive
 from verify_biomass_release import run as verify_biomass
@@ -92,6 +92,15 @@ def run(args):
     paths.update({"vol":args.volume_dir/"lulea_total_volume_2010_source_crs_clip.tif",
       "age":args.age_dir/"lulea_forest_age_2010_source_crs_clip.tif","nmd":args.nmd})
     paths.update(species_paths)
+    # Paired historical source estimates: identical per-pixel location after
+    # full raster-grid reprojection, not inferred historical landcover.
+    EXPECTED["2005"]=(3021,25.0)
+    for name,source_key in (("pine_2005","PINEVOL"),("spruce_2005","SPRUCEVOL")):
+        source=f"https://gis.slu.se/data/slu_forest_map/2005/Data/Raster/Rt90/{source_key}_XX_P_05.tif"
+        dest=args.species_dir/(name+"_source_crs_clip.tif")
+        crop_source(source,"2005",b,dest,{"sources":{}})
+        paths[name]=dest
+    paths["volume_2005"]=args.volume_dir/"lulea_total_volume_2005_source_crs_clip.tif"
     minx,miny,maxx,maxy=g.bounds
     x0=math.floor(minx/25)*25;y0=math.floor(miny/25)*25
     x1=math.ceil(maxx/25)*25;y1=math.ceil(maxy/25)*25
@@ -99,6 +108,8 @@ def run(args):
     if w*h>40_000_000:raise ValueError("Unreasonable grid")
     tf=Affine(25,0,x0,0,-25,y1)
     buckets=defaultdict(new)
+    stable_buckets=defaultdict(new)
+    stable_counts=defaultdict(int)
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
     masks=("nmd2018_forest","all_common_2010_volume_ge50")
@@ -137,6 +148,18 @@ def run(args):
                     if found:
                         flags |= rasterize(((mapping(p),flag) for p in found),out_shape=size,transform=transform,fill=0,dtype="uint8")
                 c=classify(data["pine"],data["spruce"],data["deciduous"],data["vol"])
+                # Historical stability is restricted to independently
+                # classifiable pine/spruce dominance in BOTH source years.
+                # Not a verified absence of actual species changes.
+                v05=data["volume_2005"];v10=data["vol"]
+                pine05=data["pine_2005"];spruce05=data["spruce_2005"]
+                pine10=data["pine"];spruce10=data["spruce"]
+                def dominance(p,s,v):
+                    ok=np.isfinite(v)&(v>=20)&np.isfinite(p)&(p>=0)&np.isfinite(s)&(s>=0)
+                    return np.where(ok & (p>=.6*v),0,np.where(ok & (s>=.6*v),1,2))
+                c05=dominance(pine05,spruce05,v05)
+                c10=dominance(pine10,spruce10,v10)
+                stable=(c05==c10)&(c05<2)
                 add(total,common,data)
                 for scope,geo_mask in (
                   ("nmd2018_forest",np.isin(data["nmd"],list(FOREST))),
@@ -149,6 +172,15 @@ def run(args):
                         subset=base&flag_mask
                         if not subset.any():continue
                         add(buckets[(scope,group,"all","all")],subset,data)
+                        # Fixed NMD2018 forest and no recorded harvest. Stable
+                        # pine/spruce labels use a conservative >=60% of total
+                        # volume in each historical raster year.
+                        for min_age in (20,60,80,100):
+                            for label,code in (("stable_pine",0),("stable_spruce",1)):
+                                selection=subset & stable & (c10==code) & (data["age"]>=min_age)
+                                if selection.any():
+                                    add(stable_buckets[(scope,group,label,min_age)],selection,data)
+                                    stable_counts[(scope,group,label,min_age)]+=int(selection.sum())
                         for threshold in (20,60,80,100):
                             age_subset=subset&(data["age"]>=threshold)
                             if age_subset.any():
@@ -202,6 +234,21 @@ def run(args):
                     if not math.isclose(parent["sum_tTS"][year],
                         sum(v["sum_tTS"][year] for v in children),rel_tol=1e-8,abs_tol=.01):
                         raise ValueError("Older forest biomass sum mismatch")
+    historic_stability={scope:{group:{label:{
+        f"age_ge{min_age}":finish(stable_buckets[(scope,group,label,min_age)])
+        for min_age in (20,60,80,100)}
+        for label in ("stable_pine","stable_spruce")}
+        for group in strata}
+        for scope in masks}
+    for scope in masks:
+        for group in strata:
+            for label in ("stable_pine","stable_spruce"):
+                for age in (20,60,80,100):
+                    cohort=stable_buckets[(scope,group,label,age)]
+                    if cohort["cells"]>buckets[(scope,group,"all",f"age_ge{age}")]["cells"]:
+                        raise ValueError("Stable cohort exceeds baseline")
+                    if age>20 and cohort["cells"]>stable_buckets[(scope,group,label,20)]["cells"]:
+                        raise ValueError("Stable cohort increases with age")
     result={"status":"DESCRIPTIVE_FIXED_CELL_2010_SPECIES_AGE_RECORDED_HARVEST_STRATIFICATION",
       "date_utc":datetime.now(timezone.utc).isoformat(),
       "analysis_crs":"EPSG:3006","cell_size_m":25,
@@ -211,7 +258,8 @@ def run(args):
       "masks":{scope:{
        "no_recorded_harvest":finish(buckets[(scope,"no_recorded_harvest","all","all")]),
        "recorded_harvest":finish(buckets[(scope,"recorded_harvest","all","all")])} for scope in masks},
-      "strata":summary,"older_age_cohorts":older,"species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
+      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,
+      "historical_stability_definition":"Same estimated pine or spruce >=60% of TOTALVOL in both 2005 and 2010. Other species not classified. Requires valid source pixels both years. No observed stand identity inferred.","species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
       "species_classification":"pine/spruce/DECIDUOUS>=60pct of their sum, >=20 total volume, <=20pct component-total closure difference; birch not additionally added to DECIDUOUS",
       "biomass_unit":"tonnes dry matter on 25m cell; source-converted from tTS/ha",
       "age_basis":"SLU modelled age in 2010; age groups are not observed chronological cohorts",
@@ -226,6 +274,7 @@ def run(args):
         "Age classes exclude modeled ages >=500; these cells remain in all-age groups",
         "Working geometry may differ from legal administrative municipality boundary",
         "Forest NMD2018 reference applies later-year forest selection and is not 2010 forest map",
+      "Stability of modeled 2005/2010 pine/spruce dominance is not verified stable forest cover or absence of thinning",
         "No spatial raster or physical biomass stocks are modified"]}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
