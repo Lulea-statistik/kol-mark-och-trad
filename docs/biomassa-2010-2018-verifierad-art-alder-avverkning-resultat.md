@@ -113,6 +113,26 @@ Ett kompletterande test ersätter hård tall-/grandominans med en parvis **grana
 
 **Tolkningsbegränsning:** Balansklassändringar visar olika rastermodellers skattning, inte verifierade faktiska trädslagsbyten eller biomassaförändringar. 2005 och 2010 års volymskattningar kan ha metodskillnader och reella beståndsförändringar. **Inga numeriska balansresultat publiceras förrän resultat-JSON har genererats och verifierats av GitHub Actions.**
 
+## Gran/tall-balans och biomassaskillnad inom balansklass (PR #125)
+
+Den publicerade, verifierade filen `docs/data/gran_tall_balans_2005_2010.json` med rasterresultaten från PR #124 möjliggör jämförelse av modellerad biomassa **2018 relativt 2010**, grupperad efter samma cellers **gran/tall-balans 2010**. För modellerad ålder minst 100 år och NMD2018-skog utan registrerad avverkning 2011–2018 är modellkvoten:
+
+| Gran/tall-balans 2010 | 2018 relativt 2010 |
+|---|---:|
+| 10/90 | −12,09 % |
+| 20/80 | −16,88 % |
+| 30/70 | −20,69 % |
+| 40/60 | −20,86 % |
+| 50/50 | −22,82 % |
+| 60/40 | −24,09 % |
+| 70/30 | −26,91 % |
+| 80/20 | −35,05 % |
+| 90/10 | −39,65 % |
+
+Mönstret är starkare negativt för mer grandominerad balans. En sådan relation kan bero på **systematiska skillnader mellan biomassamodellerna**, men är inte ett oberoende mått på modellbias. Balansklasserna skattas av historiska modeller och 2010 års trädslags- och biomassamodeller har inte oberoende fel. NMD2018-klass och registrerade avverkningar är inte fullständigt historiskt beståndsbevis; mellanliggande gallring kan saknas.
+
+**Utvidgat test i PR #125:** På samma 25-metersceller beräknas en separat summa av biomassa 2010, 2015, 2018 för **varje** av matrisens 81 övergångar 2005 → 2010. Därmed kan biomassakvoten jämföras *inom samma 2010-balansklass* mellan celler som enligt modellerad balans rört sig mot mer gran, mot mer tall eller legat kvar på diagonalen. Detta prövar en konkurrerande modellförklaring bättre än att bara jämföra hela balansklasser. Alla 81 matrisceller avstäms mot tidigare publicerad total per 2010-balansklass och mot hela cellpopulationen. Slutsatser om **faktiska trädslagsbyten** är fortfarande inte tillåtna. **Resultat från denna utvidgning ska inte användas innan rasterkörningen har slutförts och resultat-JSON publicerats.**
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.

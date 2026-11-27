@@ -128,6 +128,8 @@ def run(args):
     balance_counts={age:np.zeros((9,9),dtype="int64") for age in (20,60,80,100)}
     balance_mass={age:{year:np.zeros(9,dtype="float64") for year in ("2010","2015","2018")}
                   for age in (20,60,80,100)}
+    balance_transition_mass={age:{year:np.zeros((9,9),dtype="float64") for year in ("2010","2015","2018")}
+                             for age in (20,60,80,100)}
     balance_excluded={age:0 for age in (20,60,80,100)}
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
@@ -229,6 +231,8 @@ def run(args):
                                     for year in ("2010","2015","2018"):
                                         balance_mass[min_age][year]+=(np.bincount(
                                             cols,weights=data["bio_"+year][valid],minlength=9)*.0625)
+                                        balance_transition_mass[min_age][year]+=(np.bincount(
+                                            pairs,weights=data["bio_"+year][valid],minlength=81).reshape(9,9)*.0625)
 
                         for minimum_age in (20,60,80,100):
                             eligible=subset & (data["age"]>=minimum_age)
@@ -439,11 +443,21 @@ def run(args):
         rows=mat.sum(axis=1)
         masses={year:[float(x) for x in balance_mass[min_age][year]]
                 for year in ("2010","2015","2018")}
+        transitions={year:balance_transition_mass[min_age][year] for year in ("2010","2015","2018")}
+        for year in transitions:
+            if not np.allclose(transitions[year].sum(axis=0),
+                               balance_mass[min_age][year],rtol=1e-9,atol=.01):
+                raise ValueError("Gran/tall transition mass does not reconcile with 2010 class mass")
         if any(len(masses[year])!=9 for year in masses):
             raise ValueError("Gran/tall mass dimension")
         balance_output[f"age_ge{min_age}"]={
             "matrix_cells":mat.tolist(),
             "matrix_area_ha":(mat.astype(float)*.0625).tolist(),
+            "matrix_biomass_tTS":{year:transitions[year].tolist() for year in transitions},
+            "matrix_biomass_difference_2018_vs_2010_pct":[
+                [float(100*(transitions["2018"][i,j]/transitions["2010"][i,j]-1))
+                  if transitions["2010"][i,j]>0 else None for j in range(9)]
+                for i in range(9)],
             "cells":n,"area_ha":n*.0625,
             "excluded_zero_pine_plus_spruce":balance_excluded[min_age],
             "row_2005_cells":rows.tolist(),"col_2010_cells":cols.tolist(),
@@ -454,6 +468,10 @@ def run(args):
             "density_change_2018_vs_2010_pct":[
                 float(100*(masses["2018"][i]/masses["2010"][i]-1))
                 if masses["2010"][i]>0 else None for i in range(9)]}
+        for year in ("2010","2015","2018"):
+            if not math.isclose(float(transitions[year].sum()),sum(masses[year]),
+                                rel_tol=1e-9,abs_tol=.01):
+                raise ValueError("Gran/tall biomass mass closure invalid")
         if n!=sum(rows) or n!=sum(cols):
             raise ValueError("Gran/tall balance marginals do not reconcile")
     result={"status":"DESCRIPTIVE_FIXED_CELL_2010_SPECIES_AGE_RECORDED_HARVEST_STRATIFICATION",
