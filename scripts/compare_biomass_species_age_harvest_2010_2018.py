@@ -18,7 +18,7 @@ from rasterio.windows import Window
 from shapely.geometry import shape,mapping,box
 from shapely.ops import transform as geom_transform
 from pyproj import Transformer
-from fetch_and_compare_biomass_native import crop_source,matches_expected_crs
+from fetch_and_compare_biomass_native import crop_source,matches_expected_crs,EXPECTED
 from analyze_forest_age_2010 import check_age
 from analyze_historic_volume import validate_archive
 from verify_biomass_release import run as verify_biomass
@@ -94,6 +94,7 @@ def run(args):
     paths.update(species_paths)
     # Paired historical source estimates: identical per-pixel location after
     # full raster-grid reprojection, not inferred historical landcover.
+    EXPECTED["2005"]=(3021,25.0)
     for name,source_key in (("pine_2005","PINEVOL"),("spruce_2005","SPRUCEVOL")):
         source=f"https://gis.slu.se/data/slu_forest_map/2005/Data/Raster/Rt90/{source_key}_XX_P_05.tif"
         dest=args.species_dir/(name+"_source_crs_clip.tif")
