@@ -269,6 +269,20 @@ jobs:
                   actual=sum(masses[a][v][j] for a in range(6) for v in range(5))
                   expected_mass=balance['age_ge20']['2010_balance_class_mass_tTS'][year][j]
                   assert math.isclose(actual,expected_mass,rel_tol=1e-9,abs_tol=.02)
+          fine=web['fine_volume_control']
+          assert fine['volume_2010_edges']==list(range(0,401,25))+[None]
+          assert fine['total_cells']==ctl['population_cells']
+          fine_counts=fine['counts']
+          assert len(fine_counts)==6
+          assert all(len(age)==17 for age in fine_counts)
+          assert all(len(b)==9 for age in fine_counts for b in age)
+          assert [sum(fine_counts[a][v][j] for a in range(6) for v in range(17)) for j in range(9)]==by_class
+          for year in ('2010','2015','2018'):
+              fine_mass=fine['mass_tTS'][year]
+              for j in range(9):
+                  got=sum(fine_mass[a][v][j] for a in range(6) for v in range(17))
+                  ref=balance['age_ge20']['2010_balance_class_mass_tTS'][year][j]
+                  assert math.isclose(got,ref,rel_tol=1e-9,abs_tol=.02)
           print('CONTROLLED_AGE_VOLUME_VALID',ctl['population_cells'],ctl['age_bins'],ctl['volume_2010_bins'])
           print('GRAN_TALL_BALANCE_VALID', [(a,x['cells'],x['excluded_zero_pine_plus_spruce']) for a,x in balance.items()])
           forest=older['nmd2018_forest']['no_recorded_harvest']
@@ -280,6 +294,23 @@ jobs:
           print('All strata and tTS sums reconcile across fixed masks')
           for scope,groups in d['masks'].items():print(scope,groups)
           PY
+      - name: Compute and validate alternative volume bin standardizations
+        run: |
+          python scripts/analyze_gran_tall_volume_bins.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('docs/data/gran_tall_volymkanslighet_2010_2018.json').read_text())
+          assert d['status']=='ALTERNATIVE_VOLUME_BINS_SAME_VERIFIED_RASTER'
+          assert set(d['cases'])=={'25','50','100','original_50_50_100_100_plus'}
+          assert d['source_population_cells']==1617197
+          for title,c in d['cases'].items():
+              assert c['status'] in ('VERIFIED_AGGREGATE_STANDARDIZATION','INSUFFICIENT_COMMON_SUPPORT')
+              if c['status']=='VERIFIED_AGGREGATE_STANDARDIZATION':
+                  assert len(c['by_class'])==9
+                  assert all(0<v['coverage_pct']<=100 for v in c['by_class'].values())
+          print('VOLUME_BIN_OPTIONS_VALID')
+          PY
       - name: Save descriptive results and integrity checks
         if: always()
         uses: actions/upload-artifact@v4
@@ -289,6 +320,7 @@ jobs:
             metadata/biomass_species_age_harvest_2010_2018.json
             metadata/species_biomass_archive_qa.json
             docs/data/gran_tall_balans_2005_2010.json
+            docs/data/gran_tall_volymkanslighet_2010_2018.json
           if-no-files-found: warn
           retention-days: 90
       - name: Commit verified gran/tall balance JSON on main
@@ -296,7 +328,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data/gran_tall_balans_2005_2010.json
+          git add docs/data/gran_tall_balans_2005_2010.json docs/data/gran_tall_volymkanslighet_2010_2018.json
           if ! git diff --cached --quiet; then
             git commit -m "Publish verified spruce/pine balance raster results [skip ci]"
             git push origin HEAD:main
