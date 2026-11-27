@@ -1,0 +1,68 @@
+name: Verify local Lulea site-index preparation without redistributing source rasters
+on:
+  pull_request:
+    paths:
+      - 'scripts/prepare_lulea_site_index.py'
+      - '.github/workflows/site-index-qa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/prepare_lulea_site_index.py'
+      - '.github/workflows/site-index-qa.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install minimal geospatial dependencies
+        run: python -m pip install numpy rasterio
+      - name: Test SI CRS, NoData, binary mask, age stratification
+        run: |
+          python -m py_compile scripts/prepare_lulea_site_index.py
+          python - <<'PY'
+          import json,subprocess,sys,tempfile
+          from pathlib import Path
+          import numpy as np
+          import rasterio
+          from rasterio.transform import from_origin
+          from rasterio.warp import reproject
+          from rasterio.enums import Resampling
+          with tempfile.TemporaryDirectory() as td:
+              t=Path(td)
+              def make(name,a,epsg=3006,nodata=-9999):
+                  path=t/name
+                  with rasterio.open(path,'w',driver='GTiff',width=3,height=3,count=1,
+                    dtype='float32',crs='EPSG:'+str(epsg),transform=from_origin(500000,7300000,25,25),
+                    nodata=nodata) as dst:dst.write(np.array(a,dtype='float32'),1)
+                  return path
+              grid=make('grid.tif',np.ones((3,3)))
+              forest=make('forest.tif',[[0,1,1],[1,1,1],[1,1,0]],nodata=-9999)
+              age=make('age.tif',[[45,45,45],[45,45,45],[45,45,45]])
+              pine=make('pine.tif',np.full((3,3),19))
+              spruce=make('spruce.tif',np.full((3,3),23))
+              output=t/'qa.json'
+              cmd=[sys.executable,'scripts/prepare_lulea_site_index.py',
+                  '--grid',str(grid),'--forest-mask',str(forest),
+                  '--pine',str(pine),'--spruce',str(spruce),
+                  '--age',str(age),'--output',str(output)]
+              subprocess.run(cmd,check=True)
+              d=json.loads(output.read_text())
+              assert d['status']=='LOCAL_SITE_INDEX_H100_QA_NOT_BONITET_NOT_BIOMASSA'
+              assert d['forest_mask_pixels']==7
+              assert d['species']['pine']['cells']==7
+              assert d['species']['spruce']['median_H100_m']==23
+              assert d['by_2010_age_bin']['40-59']['pine']['cells']==7
+              assert d['by_2010_age_bin']['20-39']['pine']['cells']==0
+              bad=t/'bad.tif'
+              with rasterio.open(bad,'w',driver='GTiff',width=3,height=3,count=1,
+                    dtype='float32',crs='EPSG:3021',transform=from_origin(500000,7300000,25,25),
+                    nodata=-9999) as dst:dst.write(np.ones((3,3),dtype='float32'),1)
+              cp=subprocess.run([x if x!=str(grid) else str(bad) for x in cmd],capture_output=True,text=True)
+              assert cp.returncode!=0 and 'EPSG:3006' in cp.stderr
+              print('SITE_INDEX_SOURCE_AND_CRS_VALIDATED')
+          PY
