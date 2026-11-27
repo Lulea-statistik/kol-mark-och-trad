@@ -11,7 +11,7 @@ const matrix=document.getElementById('granTallBalansMatrix');
 const summary=document.getElementById('granTallBalansSummary');
 const labels=['10/90','20/80','30/70','40/60','50/50','60/40','70/30','80/20','90/10'];
 const sv=(x,dec=1)=>Number(x).toLocaleString('sv-SE',{maximumFractionDigits:dec,minimumFractionDigits:dec});
-let distributionChart=null,biomassChart=null,source=null;
+let distributionChart=null,biomassChart=null,changeChart=null,directionChart=null,source=null;
 const sourceURL='data/gran_tall_balans_2005_2010.json';
 function paintHeatmap(cohort){
   const counts=cohort.matrix_cells;
@@ -38,6 +38,8 @@ function paintCharts(cohort){
   if(typeof Chart==='undefined')return;
   if(distributionChart){distributionChart.destroy();distributionChart=null;}
   if(biomassChart){biomassChart.destroy();biomassChart=null;}
+  if(changeChart){changeChart.destroy();changeChart=null;}
+  if(directionChart){directionChart.destroy();directionChart=null;}
   const bars=document.getElementById('granTallBalansDistribution');
   const bio=document.getElementById('granTallBalansBiomassa');
   if(bars){
@@ -57,6 +59,44 @@ function paintCharts(cohort){
       options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:c=>c.parsed.y===null?'Saknar celler':c.dataset.label+': '+sv(c.parsed.y,2)}}},
        scales:{x:{title:{display:true,text:'Balans gran/tall enligt 2010'}},y:{beginAtZero:true,title:{display:true,text:'Ton TS/ha'}}}}});
   }
+
+  const changeEl=document.getElementById('granTallBalansDifference');
+  if(changeEl){
+    changeChart=new Chart(changeEl,{type:'line',data:{labels,datasets:[{
+      label:'Biomassaskillnad 2018/2010, %',
+      data:cohort.density_change_2018_vs_2010_pct,
+      borderColor:'#9a473d',backgroundColor:'#9a473d',borderWidth:3,pointRadius:4,tension:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:c=>c.parsed.y===null?'Inga celler':sv(c.parsed.y,2)+' %'}}},
+      scales:{x:{title:{display:true,text:'Gran/tall-balans enligt 2010'}},
+      y:{title:{display:true,text:'Skillnad i modellerad torrmassa (%)'}}}}});
+  }
+  const directionEl=document.getElementById('granTallBalansDirection');
+  const transition=cohort.matrix_biomass_tTS;
+  const transitionStatus=document.getElementById('granTallBalansDirectionStatus');
+  if(directionEl&&transition){
+    const groups=[{name:'Mot mer tall',check:(i,j)=>j<i,color:'#6e92b6'},
+      {name:'Samma balansklass',check:(i,j)=>j===i,color:'#888b8b'},
+      {name:'Mot mer gran',check:(i,j)=>j>i,color:'#af654f'}];
+    const data=groups.map(g=>({
+      label:g.name,backgroundColor:g.color,
+      data:labels.map((_,j)=>{
+        let mass10=0,mass18=0,cells=0;
+        for(let i=0;i<9;i++)if(g.check(i,j)){
+          cells+=cohort.matrix_cells[i][j];
+          mass10+=transition['2010'][i][j];mass18+=transition['2018'][i][j];
+        }
+        return cells>0&&mass10>0?100*(mass18/mass10-1):null;
+      })}));
+    directionChart=new Chart(directionEl,{type:'bar',data:{labels,datasets:data},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{
+        label:c=>c.parsed.y===null?'Inga celler':c.dataset.label+': '+sv(c.parsed.y,2)+' %'}}},
+        scales:{x:{title:{display:true,text:'Gran/tall-balans enligt 2010'}},
+        y:{title:{display:true,text:'Skillnad 2018/2010 (%)'}}}}});
+    if(transitionStatus)transitionStatus.textContent='Verifierad jämförelse inom respektive 2010-klass. Grupperna utgår från hur cellens modellerade balansklass förändrades 2005–2010. Saknas en grupp visas inget värde.';
+  }else if(transitionStatus){
+    transitionStatus.textContent='Detaljerad jämförelse av balansförskjutningar kräver den nya verifierade rasterfilen från PR #125.';
+  }
+
 }
 function render(){
   if(!source)return;
