@@ -1,0 +1,75 @@
+name: Verify and publish standardized gran-tall biomass comparison
+on:
+  pull_request:
+    paths:
+      - 'scripts/standardize_gran_tall_biomass.py'
+      - 'docs/gran-tall-balans.js'
+      - 'docs/biomass-trend.html'
+      - '.github/workflows/standardize-gran-tall-biomass.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/standardize_gran_tall_biomass.py'
+      - 'docs/gran-tall-balans.js'
+      - 'docs/biomass-trend.html'
+      - '.github/workflows/standardize-gran-tall-biomass.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  standardize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install numerical dependencies and check syntax
+        run: |
+          python -m pip install numpy
+          python -m py_compile scripts/standardize_gran_tall_biomass.py
+          node --check docs/gran-tall-balans.js
+      - name: Compute standardization from verified source data
+        run: python scripts/standardize_gran_tall_biomass.py
+      - name: Independent closure and common-support checks
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          src=json.loads(Path('docs/data/gran_tall_balans_2005_2010.json').read_text())
+          data=json.loads(Path('docs/data/gran_tall_standardisering_2010_2018.json').read_text())
+          assert data['analysis_crs']=='EPSG:3006' and data['cell_m']==25
+          assert data['axis_classes_gran_tall']==src['axis_classes_gran_tall']
+          assert data['common_support_strata_count']>0
+          assert math.isclose(sum(s['standard_weight'] for s in data['common_support_strata']),1,abs_tol=1e-12)
+          assert sum(s['pooled_cells_all_classes'] for s in data['common_support_strata'])==data['standard_population_total_cells']
+          for label,value in data['standardized_by_balance_class'].items():
+              assert 0 < value['coverage_percent'] <= 100
+              assert value['shared_cells']<=value['total_cells']
+              den=value['standardized_density_tTS_per_ha']
+              assert den['2010']>0 and den['2018']>=0
+              assert math.isclose(value['standardized_2018_vs_2010_percent'],100*(den['2018']/den['2010']-1),abs_tol=1e-10)
+          for threshold,other in data['sensitivity'].items():
+              assert other['threshold_min_cells_per_balance_class_in_each_stratum']==int(threshold)
+              assert other['common_support_strata_count']>0
+          html=Path('docs/biomass-trend.html').read_text()
+          for key in ('granTallStandardChart','granTallStandardStatus','granTallStandardTable'):
+              assert html.count('id="'+key+'"')==1,key
+          assert 'granTallStandardChart' in Path('docs/gran-tall-balans.js').read_text()
+          print('STANDARDIZATION_QA_PASS',data['common_support_strata_count'],data['minimum_coverage_percent'])
+          PY
+      - name: Save standardized result as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gran-tall-standardisering-2010-2018
+          path: docs/data/gran_tall_standardisering_2010_2018.json
+      - name: Commit verified standardized result to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/gran_tall_standardisering_2010_2018.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified age-volume-standardized biomass comparison [skip ci]'
+            git push origin HEAD:main
+          fi
