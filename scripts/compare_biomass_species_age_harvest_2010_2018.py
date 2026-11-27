@@ -112,6 +112,14 @@ def run(args):
     stable_counts=defaultdict(int)
     dominance_matrices=defaultdict(lambda:np.zeros((4,4),dtype="int64"))
     dominance_sensitivity=defaultdict(int)
+    # Continuous 2005/2010 pine and spruce shares, conditional on valid
+    # TOTALVOL >=20 in both years (not on discrete species classification).
+    share_diagnostics=defaultdict(lambda:{
+        "cells":0,"sum_2005":0.,"sum_2010":0.,"sum_delta":0.,
+        "sum_abs_delta":0.,"sum_delta_squared":0.,
+        "delta_bins":[0]*7,"near_60_2005":0,"near_60_2010":0,
+        "crossed_60":0,"component_exceeds_total_2005":0,
+        "component_exceeds_total_2010":0})
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
     masks=("nmd2018_forest","all_common_2010_volume_ge50")
@@ -197,6 +205,40 @@ def run(args):
                                       to_2010[eligible].astype("int64"))
                                 dominance_matrices[key]+=np.bincount(pair,minlength=16).reshape(4,4)
                                 dominance_sensitivity[key]+=int(eligible.sum())
+                        # Shares are based on the SAME set of cells in both
+                        # years. Report continuous changes in percentage points;
+                        # threshold crossing is reported separately. This avoids
+                        # treating a marginal crossing as a real species change.
+                        valid_share=(
+                            np.isfinite(v05)&np.isfinite(v10)&(v05>=20)&(v10>=20)&
+                            np.isfinite(pine05)&(pine05>=0)&np.isfinite(spruce05)&(spruce05>=0)&
+                            np.isfinite(pine10)&(pine10>=0)&np.isfinite(spruce10)&(spruce10>=0))
+                        for min_age in (20,60,80,100):
+                            smask=subset & valid_share & (data["age"]>=min_age)
+                            n=int(smask.sum())
+                            if n==0:continue
+                            for label,source05,source10 in (
+                                ("pine",pine05,pine10),("spruce",spruce05,spruce10)):
+                                share05=source05[smask]/v05[smask]
+                                share10=source10[smask]/v10[smask]
+                                delta=(share10-share05)*100.
+                                stat=share_diagnostics[(scope,group,min_age,label)]
+                                stat["cells"]+=n
+                                stat["sum_2005"]+=float(share05.sum(dtype="float64"))
+                                stat["sum_2010"]+=float(share10.sum(dtype="float64"))
+                                stat["sum_delta"]+=float(delta.sum(dtype="float64"))
+                                stat["sum_abs_delta"]+=float(np.abs(delta).sum(dtype="float64"))
+                                stat["sum_delta_squared"]+=float(np.square(delta).sum(dtype="float64"))
+                                # Bins: <-30, [-30,-15), [-15,-5), [-5,5],
+                                # (5,15], (15,30], >30 percentage points.
+                                stat["delta_bins"]=[old+int(count) for old,count in zip(
+                                    stat["delta_bins"],
+                                    np.histogram(delta,bins=[-np.inf,-30,-15,-5,5,15,30,np.inf])[0])]
+                                stat["near_60_2005"]+=int(np.count_nonzero(np.abs(share05-.6)<=.05))
+                                stat["near_60_2010"]+=int(np.count_nonzero(np.abs(share10-.6)<=.05))
+                                stat["crossed_60"]+=int(np.count_nonzero((share05>=.6)!=(share10>=.6)))
+                                stat["component_exceeds_total_2005"]+=int(np.count_nonzero(share05>1.000001))
+                                stat["component_exceeds_total_2010"]+=int(np.count_nonzero(share10>1.000001))
                         # Fixed NMD2018 forest and no recorded harvest. Stable
                         # pine/spruce labels use a conservative >=60% of total
                         # volume in each historical raster year.
@@ -309,6 +351,36 @@ def run(args):
                 stable_ref=stable_buckets[(scope,flag,"stable_spruce",age)]["cells"]
                 if ref["stable_spruce_cells"]!=stable_ref:
                     raise ValueError("Historical spruce stability does not match audited matrix")
+    continuous_shares={}
+    labels_delta=["lt_minus_30pp","minus_30_to_minus_15pp",
+        "minus_15_to_minus_5pp","minus_5_to_plus_5pp",
+        "plus_5_to_plus_15pp","plus_15_to_plus_30pp","gt_plus_30pp"]
+    for (scope,group,age,label),stat in share_diagnostics.items():
+        n=stat["cells"]
+        if n!=sum(stat["delta_bins"]):
+            raise ValueError("Continuous share bins do not reconcile")
+        expected=buckets[(scope,group,"all",f"age_ge{age}")]["cells"]
+        # All source validity requirements are already included in common.
+        if n!=expected:raise ValueError("Continuous share population not matched")
+        entry=continuous_shares.setdefault(scope,{}).setdefault(group,{}).setdefault(f"age_ge{age}",{})
+        entry[label]={
+            "cells":n,
+            "mean_share_2005_pct":100*stat["sum_2005"]/n,
+            "mean_share_2010_pct":100*stat["sum_2010"]/n,
+            "mean_delta_percentage_points":stat["sum_delta"]/n,
+            "mean_absolute_delta_percentage_points":stat["sum_abs_delta"]/n,
+            "rms_delta_percentage_points":math.sqrt(stat["sum_delta_squared"]/n),
+            "delta_distribution_cells":dict(zip(labels_delta,stat["delta_bins"])),
+            "near_60pct_plus_minus_5pp_2005_cells":stat["near_60_2005"],
+            "near_60pct_plus_minus_5pp_2010_cells":stat["near_60_2010"],
+            "crossed_60pct_threshold_cells":stat["crossed_60"],
+            "component_over_100pct_2005_cells":stat["component_exceeds_total_2005"],
+            "component_over_100pct_2010_cells":stat["component_exceeds_total_2010"]}
+    for scope in masks:
+        for group in strata:
+            for age in (20,60,80,100):
+                detail=continuous_shares[scope][group][f"age_ge{age}"]
+                assert detail["pine"]["cells"]==detail["spruce"]["cells"]
     result={"status":"DESCRIPTIVE_FIXED_CELL_2010_SPECIES_AGE_RECORDED_HARVEST_STRATIFICATION",
       "date_utc":datetime.now(timezone.utc).isoformat(),
       "analysis_crs":"EPSG:3006","cell_size_m":25,
@@ -318,7 +390,7 @@ def run(args):
       "masks":{scope:{
        "no_recorded_harvest":finish(buckets[(scope,"no_recorded_harvest","all","all")]),
        "recorded_harvest":finish(buckets[(scope,"recorded_harvest","all","all")])} for scope in masks},
-      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,"historic_dominance_diagnostics":dominance_audit,
+      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,"historic_dominance_diagnostics":dominance_audit,"continuous_species_shares":continuous_shares,
       "historical_stability_definition":"Same estimated pine or spruce >=60% of TOTALVOL in both 2005 and 2010. Other species not classified. Requires valid source pixels both years. No observed stand identity inferred.","species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
       "species_classification":"pine/spruce/DECIDUOUS>=60pct of their sum, >=20 total volume, <=20pct component-total closure difference; birch not additionally added to DECIDUOUS",
       "biomass_unit":"tonnes dry matter on 25m cell; source-converted from tTS/ha",
@@ -335,6 +407,7 @@ def run(args):
         "Working geometry may differ from legal administrative municipality boundary",
         "Forest NMD2018 reference applies later-year forest selection and is not 2010 forest map",
       "Stability of modeled 2005/2010 pine/spruce dominance is not verified stable forest cover or absence of thinning",
+        "Pine and spruce shares are fractions of modeled TOTALVOL; sums may be less or greater than 100 pct because other species and model inconsistencies exist",
         "No spatial raster or physical biomass stocks are modified"]}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
