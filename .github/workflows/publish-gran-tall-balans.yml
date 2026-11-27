@@ -1,0 +1,58 @@
+name: Publish verified gran-tall balance results from PR 124
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-gran-tall-balans.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download exact verified raster results (PR 124)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 45978335754 --repo "${{ github.repository }}" --name biomass-2010-species-age-harvest-2018-comparison --dir verified-artifact
+          test -s verified-artifact/docs/data/gran_tall_balans_2005_2010.json
+      - name: Verify balance matrix consistency and original CRS
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          src=Path('verified-artifact/docs/data/gran_tall_balans_2005_2010.json')
+          d=json.loads(src.read_text(encoding='utf-8'))
+          assert d['status']=='VERIFIED_ORIGINAL_RASTER_COMPARISON'
+          assert d['analysis_crs']=='EPSG:3006' and d['cell_m']==25
+          assert d['source_crs']=={'2005':'EPSG:3021','2010':'EPSG:3021','2015':'EPSG:3006','2018':'EPSG:3006'}
+          assert d['axis_classes_gran_tall']==['10/90','20/80','30/70','40/60','50/50','60/40','70/30','80/20','90/10']
+          expected={'age_ge20':(1617197,19163),'age_ge60':(1018062,411),'age_ge80':(574156,86),'age_ge100':(172007,21)}
+          assert set(d['cohorts'])==set(expected)
+          for age,c in d['cohorts'].items():
+              mat=c['matrix_cells'];total=c['cells'];exc=c['excluded_zero_pine_plus_spruce']
+              assert (total,exc)==expected[age]
+              assert len(mat)==9 and all(len(row)==9 for row in mat)
+              assert total==sum(map(sum,mat))
+              assert [sum(row) for row in mat]==c['row_2005_cells']
+              assert [sum(row[i] for row in mat) for i in range(9)]==c['col_2010_cells']
+              assert math.isclose(total*.0625,c['area_ha'],abs_tol=1e-6)
+          print('PASS: exact verified PR124 artifact',src.stat().st_size,'bytes')
+          dest=Path('docs/data/gran_tall_balans_2005_2010.json')
+          dest.parent.mkdir(parents=True,exist_ok=True)
+          dest.write_bytes(src.read_bytes())
+          PY
+      - name: Commit published verified result JSON
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/gran_tall_balans_2005_2010.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified 9x9 gran-tall balance data from PR124 [skip ci]'
+            git push origin HEAD:main
+          fi
