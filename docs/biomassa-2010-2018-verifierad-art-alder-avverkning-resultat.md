@@ -133,6 +133,21 @@ Mönstret är starkare negativt för mer grandominerad balans. En sådan relatio
 
 **Utvidgat test i PR #125:** På samma 25-metersceller beräknas en separat summa av biomassa 2010, 2015, 2018 för **varje** av matrisens 81 övergångar 2005 → 2010. Därmed kan biomassakvoten jämföras *inom samma 2010-balansklass* mellan celler som enligt modellerad balans rört sig mot mer gran, mot mer tall eller legat kvar på diagonalen. Detta prövar en konkurrerande modellförklaring bättre än att bara jämföra hela balansklasser. Alla 81 matrisceller avstäms mot tidigare publicerad total per 2010-balansklass och mot hela cellpopulationen. Slutsatser om **faktiska trädslagsbyten** är fortfarande inte tillåtna. **Resultat från denna utvidgning ska inte användas innan rasterkörningen har slutförts och resultat-JSON publicerats.**
 
+## Resultat från PR #125 – modellförskjutning och biomassaskillnad
+
+Rasterkörning [#45981899353](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45981899353) är **godkänd** och har producerat matriser med biomassa 2010/2015/2018 för var och en av de 81 balansövergångarna. Analysens urval avser samma giltiga 25 m-rasterceller i EPSG:3006, NMD2018-skog och **ingen registrerad avverkning 2011–2018**. Gruppnamnen avser *modellerad* balansgranandel 2005 → 2010, där mer gran betyder högre gran/tall-klass 2010.
+
+| Modellerad ålder 2010 | Mot mer tall (ha; 2018/2010) | Samma balansklass (ha; 2018/2010) | Mot mer gran (ha; 2018/2010) |
+|---|---:|---:|---:|
+| ≥20 år | 36 226,7; **+6,24 %** | 26 643,4; **−0,28 %** | 38 204,7; **−5,42 %** |
+| ≥60 år | 20 683,5; **−6,82 %** | 17 456,9; **−9,93 %** | 25 488,4; **−15,39 %** |
+| ≥80 år | 9 224,7; **−13,50 %** | 9 727,5; **−14,22 %** | 16 932,6; **−18,94 %** |
+| ≥100 år | 2 761,1; **−18,57 %** | 2 778,5; **−17,81 %** | 5 210,9; **−24,39 %** |
+
+**Tolkning:** I samtliga fyra överlappande åldersurval uppvisar gruppen "mot mer gran" en lägre modellerad 2018/2010-kvot än gruppen "mot mer tall". Skillnaden kan delvis bero på att övergångsgrupperna har olika fördelning av 2010 års balansklasser, ålder och volym. **Det är därför inte en kausal effekt av en trädslagsförändring.** För att pröva denna invändning visas även ett separat diagram *inom samma balansklass 2010*, baserat på samma 81 biomassasummor. För mycket små grupper bör resultaten tolkas försiktigt.
+
+**Datapublicering:** Resultat-JSON innehåller `matrix_biomass_tTS` och `matrix_biomass_difference_2018_vs_2010_pct`. Dessa fält kommer från PR #125:s lyckade rasterkörning och ska publiceras på `docs/data/gran_tall_balans_2005_2010.json` efter separat kontroll av de 81 delmassorna mot tidigare klasssummor. Tills dess visar webbplatsen ett informationsmeddelande för det nya detaljdiagrammet.
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.
