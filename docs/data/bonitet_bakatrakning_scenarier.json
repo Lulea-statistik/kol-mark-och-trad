@@ -1,0 +1,196 @@
+{
+  "status": "ILLUSTRATIVE_NOT_FIELD_CALIBRATED",
+  "crs": "EPSG:3006",
+  "cell_m": 25,
+  "same_cell_forest_mask": "NMD2018 forest, no recorded harvest 2011-2018",
+  "site_productivity_reference": "Norrbotten mean approx 3.0 m3sk/ha/year (Skogsdata 2024 table 3.11a); Lulea/species ranges assumed, not municipality-estimated.",
+  "species_weight_definition": "2010 SPRUCEVOL/(SPRUCEVOL+PINEVOL) balance-class midpoint 0.1..0.9, not an observed trädslag distribution.",
+  "biomass_conversion_caveat": "tTS per m3sk is assumed scenario conversion; source-specific biomass definitions must be validated before applying.",
+  "assumptions": "Fixed stand species/site productivity, no mortality/harvest/thinning/recruitment and constant net gain each year. BONITET IS POTENTIAL LONG-RUN YIELD, NOT REALIZED GROWTH. Do not use for corrections.",
+  "scenario_parameters": {
+    "low": {
+      "pine_bonitet_m3sk_ha_year": 2.2,
+      "spruce_bonitet_m3sk_ha_year": 2.4,
+      "realized_fraction_of_bonitet": 0.5,
+      "tTS_per_m3sk": 0.5
+    },
+    "central": {
+      "pine_bonitet_m3sk_ha_year": 3.2,
+      "spruce_bonitet_m3sk_ha_year": 3.5,
+      "realized_fraction_of_bonitet": 0.75,
+      "tTS_per_m3sk": 0.65
+    },
+    "high": {
+      "pine_bonitet_m3sk_ha_year": 4.6,
+      "spruce_bonitet_m3sk_ha_year": 5.0,
+      "realized_fraction_of_bonitet": 1.0,
+      "tTS_per_m3sk": 0.8
+    }
+  },
+  "cohorts": {
+    "age_ge20": {
+      "cell_count": 1617197,
+      "area_ha": 101074.8125,
+      "modeled_mass_tTS": {
+        "2010": 9162434.961340412,
+        "2015": 8393612.057291366,
+        "2018": 9124493.297235642
+      },
+      "modeled_mean_density_tTS_ha": {
+        "2010": 90.65003174099792,
+        "2015": 83.04355803075435,
+        "2018": 90.27464975248549
+      },
+      "scenario_backcast": {
+        "low": {
+          "assumed_annual_net_gain_tTS": 57253.07312500002,
+          "2010_backcast_from_2015_tTS": 8107346.6916663665,
+          "2010_backcast_from_2018_tTS": 8666468.71223564,
+          "2010_model_minus_2015_backcast_tTS": 1055088.269674046,
+          "2010_model_minus_2018_backcast_tTS": 495966.24910477176,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 243627.07998142517
+        },
+        "central": {
+          "assumed_annual_net_gain_tTS": 162537.84178125003,
+          "2010_backcast_from_2015_tTS": 7580922.848385116,
+          "2010_backcast_from_2018_tTS": 7824190.562985642,
+          "2010_model_minus_2015_backcast_tTS": 1581512.1129552964,
+          "2010_model_minus_2018_backcast_tTS": 1338244.3983547706,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 243627.07998142517
+        },
+        "high": {
+          "assumed_annual_net_gain_tTS": 382591.63800000004,
+          "2010_backcast_from_2015_tTS": 6480653.867291366,
+          "2010_backcast_from_2018_tTS": 6063760.193235641,
+          "2010_model_minus_2015_backcast_tTS": 2681781.0940490467,
+          "2010_model_minus_2018_backcast_tTS": 3098674.768104771,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 243627.07998142517
+        }
+      },
+      "cohort_note": "Age>= thresholds overlap: only age_ge20 represents full comparison population."
+    },
+    "age_ge60": {
+      "cell_count": 1018062,
+      "area_ha": 63628.875,
+      "modeled_mass_tTS": {
+        "2010": 7054633.329439342,
+        "2015": 5861688.49999868,
+        "2018": 6243692.726496754
+      },
+      "modeled_mean_density_tTS_ha": {
+        "2010": 110.87157095641471,
+        "2015": 92.12308877060423,
+        "2018": 98.12671882846827
+      },
+      "scenario_backcast": {
+        "low": {
+          "assumed_annual_net_gain_tTS": 36080.15156250001,
+          "2010_backcast_from_2015_tTS": 5681287.74218618,
+          "2010_backcast_from_2018_tTS": 5955051.513996754,
+          "2010_model_minus_2015_backcast_tTS": 1373345.5872531617,
+          "2010_model_minus_2018_backcast_tTS": 1099581.8154425882,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 127334.74216602463
+        },
+        "central": {
+          "assumed_annual_net_gain_tTS": 102432.53566406251,
+          "2010_backcast_from_2015_tTS": 5349525.821678367,
+          "2010_backcast_from_2018_tTS": 5424232.441184254,
+          "2010_model_minus_2015_backcast_tTS": 1705107.5077609746,
+          "2010_model_minus_2018_backcast_tTS": 1630400.8882550877,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 127334.74216602463
+        },
+        "high": {
+          "assumed_annual_net_gain_tTS": 241093.59000000003,
+          "2010_backcast_from_2015_tTS": 4656220.54999868,
+          "2010_backcast_from_2018_tTS": 4314944.006496754,
+          "2010_model_minus_2015_backcast_tTS": 2398412.779440662,
+          "2010_model_minus_2018_backcast_tTS": 2739689.3229425885,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 127334.74216602463
+        }
+      },
+      "cohort_note": "Age>= thresholds overlap: only age_ge20 represents full comparison population."
+    },
+    "age_ge80": {
+      "cell_count": 574156,
+      "area_ha": 35884.75,
+      "modeled_mass_tTS": {
+        "2010": 4480422.4277893305,
+        "2015": 3592871.130207925,
+        "2018": 3741314.386487404
+      },
+      "modeled_mean_density_tTS_ha": {
+        "2010": 124.85589081125912,
+        "2015": 100.12250692029136,
+        "2018": 104.25917378517069
+      },
+      "scenario_backcast": {
+        "low": {
+          "assumed_annual_net_gain_tTS": 20392.9025,
+          "2010_backcast_from_2015_tTS": 3490906.617707925,
+          "2010_backcast_from_2018_tTS": 3578171.1664874037,
+          "2010_model_minus_2015_backcast_tTS": 989515.8100814056,
+          "2010_model_minus_2018_backcast_tTS": 902251.2613019268,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 49481.08542649293
+        },
+        "central": {
+          "assumed_annual_net_gain_tTS": 57899.85825000001,
+          "2010_backcast_from_2015_tTS": 3303371.838957925,
+          "2010_backcast_from_2018_tTS": 3278115.520487404,
+          "2010_model_minus_2015_backcast_tTS": 1177050.5888314056,
+          "2010_model_minus_2018_backcast_tTS": 1202306.9073019265,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 49481.08542649293
+        },
+        "high": {
+          "assumed_annual_net_gain_tTS": 136256.136,
+          "2010_backcast_from_2015_tTS": 2911590.4502079254,
+          "2010_backcast_from_2018_tTS": 2651265.298487404,
+          "2010_model_minus_2015_backcast_tTS": 1568831.977581405,
+          "2010_model_minus_2018_backcast_tTS": 1829157.1293019266,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 49481.08542649293
+        }
+      },
+      "cohort_note": "Age>= thresholds overlap: only age_ge20 represents full comparison population."
+    },
+    "age_ge100": {
+      "cell_count": 172007,
+      "area_ha": 10750.4375,
+      "modeled_mass_tTS": {
+        "2010": 1429950.5899813175,
+        "2015": 1107493.17187507,
+        "2018": 1122746.4898885824
+      },
+      "modeled_mean_density_tTS_ha": {
+        "2010": 133.01324620335848,
+        "2015": 103.01842802909836,
+        "2018": 104.4372835885593
+      },
+      "scenario_backcast": {
+        "low": {
+          "assumed_annual_net_gain_tTS": 6114.756562500001,
+          "2010_backcast_from_2015_tTS": 1076919.3890625702,
+          "2010_backcast_from_2018_tTS": 1073828.4373885824,
+          "2010_model_minus_2015_backcast_tTS": 353031.20091874734,
+          "2010_model_minus_2018_backcast_tTS": 356122.15259273513,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 5084.4393378374325
+        },
+        "central": {
+          "assumed_annual_net_gain_tTS": 17361.579117187503,
+          "2010_backcast_from_2015_tTS": 1020685.2762891325,
+          "2010_backcast_from_2018_tTS": 983853.8569510824,
+          "2010_model_minus_2015_backcast_tTS": 409265.313692185,
+          "2010_model_minus_2018_backcast_tTS": 446096.73303023516,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 5084.4393378374325
+        },
+        "high": {
+          "assumed_annual_net_gain_tTS": 40854.512,
+          "2010_backcast_from_2015_tTS": 903220.61187507,
+          "2010_backcast_from_2018_tTS": 795910.3938885824,
+          "2010_model_minus_2015_backcast_tTS": 526729.9781062475,
+          "2010_model_minus_2018_backcast_tTS": 634040.1960927352,
+          "2015_to_2018_observed_model_mean_increment_tTS_year": 5084.4393378374325
+        }
+      },
+      "cohort_note": "Age>= thresholds overlap: only age_ge20 represents full comparison population."
+    }
+  }
+}
