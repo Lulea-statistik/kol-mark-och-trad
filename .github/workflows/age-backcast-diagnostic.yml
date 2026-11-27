@@ -1,0 +1,64 @@
+name: Verify age-specific 2010 backcast consistency and eligibility
+on:
+  pull_request:
+    paths:
+      - 'scripts/diagnose_age_backcast_consistency.py'
+      - 'docs/biomass-trend.html'
+      - '.github/workflows/age-backcast-diagnostic.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/diagnose_age_backcast_consistency.py'
+      - 'docs/biomass-trend.html'
+      - '.github/workflows/age-backcast-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compute age-specific diagnostic and verify arithmetic
+        run: |
+          python -m py_compile scripts/diagnose_age_backcast_consistency.py
+          python scripts/diagnose_age_backcast_consistency.py
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          data=json.loads(Path('docs/data/bonitet_alder_valideringsdiagnostik.json').read_text())
+          assert data['status']=='MODEL_TO_MODEL_AGE_DIAGNOSTIC_NOT_OBSERVED_GROWTH'
+          assert data['same_cell_population']==1617197
+          assert data['eligibility_rules']['current_status']=='NO_SUBSTITUTE_APPROVAL'
+          assert len(data['age_group_results'])==6
+          assert all(row['ha']>0 for row in data['age_group_results'])
+          src=json.loads(Path('docs/data/gran_tall_balans_2005_2010.json').read_text())
+          for y in ('2010','2015','2018'):
+              expected=sum(src['cohorts']['age_ge20']['2010_balance_class_mass_tTS'][y])
+              assert math.isclose(expected,data['total_modelled_tTS'][y],rel_tol=1e-9,abs_tol=.01)
+          for row in data['age_group_results']:
+              assert math.isclose(row['linear_2015_2018_extrapolated_2010_tTS'],
+                  row['modeled_mass_tTS']['2015']-5*
+                  row['ha']*row['required_annual_change_tTS_ha_if_models_were_true']['2015_to_2018'],abs_tol=.01)
+          html=Path('docs/biomass-trend.html').read_text()
+          assert html.count('id="bonitetAgeDiagnosticTable"')==1
+          print('AGE_DIAGNOSTIC_PASS_NOT_CALIBRATED')
+          PY
+      - name: Store diagnostic as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bonitet-age-backcast-diagnostic-not-correction
+          path: docs/data/bonitet_alder_valideringsdiagnostik.json
+      - name: Publish separate age-diagnostic JSON on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/bonitet_alder_valideringsdiagnostik.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish age-stratified modeled biomass diagnostic [skip ci]'
+            git push origin HEAD:main
+          fi
