@@ -131,6 +131,32 @@ jobs:
               k=f'age_ge{t}'
               print('HISTORICALLY_STABLE_PINE',k,stability['nmd2018_forest']['no_recorded_harvest']['stable_pine'][k])
               print('HISTORICALLY_STABLE_SPRUCE',k,stability['nmd2018_forest']['no_recorded_harvest']['stable_spruce'][k])
+          diagnostic=d['historic_dominance_diagnostics']
+          for scope,groups in diagnostic.items():
+              for flag,ages in groups.items():
+                  for age,thresholds in ages.items():
+                      base=d['older_age_cohorts'][scope][flag]['all'][age]['cells']
+                      for t in ('0.4','0.5','0.6','0.7'):
+                          detail=thresholds[t]
+                          matrix=detail['transition_matrix_2005_rows_2010_columns']
+                          assert detail['cells']==base==sum(map(sum,matrix))
+                          assert len(matrix)==4 and all(len(row)==4 for row in matrix)
+                          assert detail['stable_spruce_cells']==matrix[1][1]
+                          assert detail['spruce_dominant_2005_cells']==sum(matrix[1])
+                          assert detail['spruce_dominant_2010_cells']==sum(row[1] for row in matrix)
+                      assert thresholds['0.7']['stable_spruce_cells']<=thresholds['0.6']['stable_spruce_cells']<=thresholds['0.5']['stable_spruce_cells']
+          forest_audit=diagnostic['nmd2018_forest']['no_recorded_harvest']
+          for age in ('age_ge20','age_ge60','age_ge80','age_ge100'):
+              for t in ('0.4','0.5','0.6','0.7'):
+                  result=forest_audit[age][t]
+                  print('SPRUCE_DOMINANCE_AUDIT',age,'cutoff',t,
+                        'total',result['cells'],
+                        'spruce2005',result['spruce_dominant_2005_cells'],
+                        'spruce2010',result['spruce_dominant_2010_cells'],
+                        'stable',result['stable_spruce_cells'],
+                        'from_pine',result['2010_spruce_previously_pine'],
+                        'from_neither',result['2010_spruce_previously_neither'],
+                        'from_low',result['2010_spruce_previously_invalid_or_low'])
           forest=older['nmd2018_forest']['no_recorded_harvest']
           for t in (20,60,80,100):
               k=f'age_ge{t}'
