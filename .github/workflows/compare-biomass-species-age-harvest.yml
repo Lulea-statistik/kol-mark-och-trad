@@ -301,7 +301,7 @@ jobs:
         run: |
           python scripts/analyze_gran_tall_volume_bins.py
           python - <<'PY'
-          import json
+          import json,math
           from pathlib import Path
           d=json.loads(Path('docs/data/gran_tall_volymkanslighet_2010_2018.json').read_text())
           assert d['status']=='ALTERNATIVE_VOLUME_BINS_SAME_VERIFIED_RASTER'
@@ -312,6 +312,16 @@ jobs:
               if c['status']=='VERIFIED_AGGREGATE_STANDARDIZATION':
                   assert len(c['by_class'])==9
                   assert all(0<v['coverage_pct']<=100 for v in c['by_class'].values())
+          baseline=json.loads(Path('docs/data/gran_tall_standardisering_2010_2018.json').read_text())
+          old=d['cases']['original_50_50_100_100_plus']
+          assert old['status']=='VERIFIED_AGGREGATE_STANDARDIZATION'
+          assert old['shared_strata']==baseline['common_support_strata_count']
+          assert old['target_population_cells']==baseline['standard_population_total_cells']
+          for cls,old_row in old['by_class'].items():
+              expected=baseline['standardized_by_balance_class'][cls]
+              assert math.isclose(
+                  old_row['standardized_2018_vs_2010_pct'],
+                  expected['standardized_2018_vs_2010_percent'],rel_tol=1e-9,abs_tol=.001)
           print('VOLUME_BIN_OPTIONS_VALID')
           PY
       - name: Save descriptive results and integrity checks
