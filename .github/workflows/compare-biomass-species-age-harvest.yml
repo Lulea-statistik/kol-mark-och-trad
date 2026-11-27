@@ -117,6 +117,20 @@ jobs:
                               sum(v[key]['ton_TS_by_year'][y] for name,v in species.items() if name!='all'),
                               rel_tol=1e-8,abs_tol=.01)
                       if threshold>20:assert parent['cells']<=species['all']['age_ge20']['cells']
+          stability=d['historic_pine_spruce_stability']
+          assert 'Same estimated pine or spruce' in d['historical_stability_definition']
+          for scope in stability:
+              for group in stability[scope]:
+                  for label in ('stable_pine','stable_spruce'):
+                      for t in (20,60,80,100):
+                          record=stability[scope][group][label][f'age_ge{t}']
+                          assert record['cells']>=0
+                          assert record['cells']<=older[scope][group]['all'][f'age_ge{t}']['cells']
+                          if t>20:assert record['cells']<=stability[scope][group][label]['age_ge20']['cells']
+          for t in (20,60,80,100):
+              k=f'age_ge{t}'
+              print('HISTORICALLY_STABLE_PINE',k,stability['nmd2018_forest']['no_recorded_harvest']['stable_pine'][k])
+              print('HISTORICALLY_STABLE_SPRUCE',k,stability['nmd2018_forest']['no_recorded_harvest']['stable_spruce'][k])
           forest=older['nmd2018_forest']['no_recorded_harvest']
           for t in (20,60,80,100):
               k=f'age_ge{t}'
