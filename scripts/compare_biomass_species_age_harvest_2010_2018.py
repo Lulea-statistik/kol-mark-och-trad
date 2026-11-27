@@ -122,6 +122,13 @@ def run(args):
         "component_exceeds_total_2010":0})
     share_excluded=defaultdict(int)
     share_population=defaultdict(int)
+    # Nine joint pine/spruce balance classes: spruce/(spruce+pine).
+    # Bins [0,15), [15,25), ... [85,100] percent. End classes
+    # include pure pine and pure spruce; zero joint volume is excluded.
+    balance_counts={age:np.zeros((9,9),dtype="int64") for age in (20,60,80,100)}
+    balance_mass={age:{year:np.zeros(9,dtype="float64") for year in ("2010","2015","2018")}
+                  for age in (20,60,80,100)}
+    balance_excluded={age:0 for age in (20,60,80,100)}
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
     masks=("nmd2018_forest","all_common_2010_volume_ge50")
@@ -186,6 +193,18 @@ def run(args):
                     t:(diagnosis(pine05,spruce05,v05,t),
                        diagnosis(pine10,spruce10,v10,t))
                     for t in (.4,.5,.6,.7)}
+                # Gran/tall balance is independent of TOTALVOL and deciduous
+                # components. Reprojected original species rasters are paired
+                # on the exact same EPSG:3006 25m cell grid.
+                gt05=pine05+spruce05
+                gt10=pine10+spruce10
+                balance_valid=(np.isfinite(gt05)&np.isfinite(gt10)&
+                               (gt05>0)&(gt10>0))
+                share05=np.divide(spruce05,gt05,out=np.zeros_like(gt05),where=gt05>0)
+                share10=np.divide(spruce10,gt10,out=np.zeros_like(gt10),where=gt10>0)
+                # 0-15% -> 10/90, 15-25% -> 20/80, etc.
+                frombin=np.clip(np.floor(share05*10-.5+1e-9).astype("int16"),0,8)
+                tobin=np.clip(np.floor(share10*10-.5+1e-9).astype("int16"),0,8)
                 add(total,common,data)
                 for scope,geo_mask in (
                   ("nmd2018_forest",np.isin(data["nmd"],list(FOREST))),
@@ -198,6 +217,19 @@ def run(args):
                         subset=base&flag_mask
                         if not subset.any():continue
                         add(buckets[(scope,group,"all","all")],subset,data)
+                        if scope=="nmd2018_forest" and group=="no_recorded_harvest":
+                            for min_age in (20,60,80,100):
+                                candidate=subset&(data["age"]>=min_age)
+                                valid=candidate&balance_valid
+                                balance_excluded[min_age]+=int(np.count_nonzero(candidate&~balance_valid))
+                                if np.any(valid):
+                                    pairs=frombin[valid].astype("int64")*9+tobin[valid].astype("int64")
+                                    balance_counts[min_age]+=np.bincount(pairs,minlength=81).reshape(9,9)
+                                    cols=tobin[valid].astype("int64")
+                                    for year in ("2010","2015","2018"):
+                                        balance_mass[min_age][year]+=(np.bincount(
+                                            cols,weights=data["bio_"+year][valid],minlength=9)*.0625)
+
                         for minimum_age in (20,60,80,100):
                             eligible=subset & (data["age"]>=minimum_age)
                             if not eligible.any():continue
@@ -396,6 +428,34 @@ def run(args):
             for age in (20,60,80,100):
                 detail=continuous_shares[scope][group][f"age_ge{age}"]
                 assert detail["pine"]["cells"]==detail["spruce"]["cells"]
+    balance_output={}
+    for min_age in (20,60,80,100):
+        mat=balance_counts[min_age]
+        n=int(mat.sum())
+        parent=buckets[("nmd2018_forest","no_recorded_harvest","all",f"age_ge{min_age}")]["cells"]
+        if n+balance_excluded[min_age]!=parent:
+            raise ValueError("Gran/tall balance coverage does not reconcile")
+        cols=mat.sum(axis=0)
+        rows=mat.sum(axis=1)
+        masses={year:[float(x) for x in balance_mass[min_age][year]]
+                for year in ("2010","2015","2018")}
+        if any(len(masses[year])!=9 for year in masses):
+            raise ValueError("Gran/tall mass dimension")
+        balance_output[f"age_ge{min_age}"]={
+            "matrix_cells":mat.tolist(),
+            "matrix_area_ha":(mat.astype(float)*.0625).tolist(),
+            "cells":n,"area_ha":n*.0625,
+            "excluded_zero_pine_plus_spruce":balance_excluded[min_age],
+            "row_2005_cells":rows.tolist(),"col_2010_cells":cols.tolist(),
+            "2010_balance_class_mass_tTS":masses,
+            "2010_balance_class_density_tTS_ha":{
+                year:[float(masses[year][i]/(cols[i]*.0625)) if cols[i] else None for i in range(9)]
+                for year in masses},
+            "density_change_2018_vs_2010_pct":[
+                float(100*(masses["2018"][i]/masses["2010"][i]-1))
+                if masses["2010"][i]>0 else None for i in range(9)]}
+        if n!=sum(rows) or n!=sum(cols):
+            raise ValueError("Gran/tall balance marginals do not reconcile")
     result={"status":"DESCRIPTIVE_FIXED_CELL_2010_SPECIES_AGE_RECORDED_HARVEST_STRATIFICATION",
       "date_utc":datetime.now(timezone.utc).isoformat(),
       "analysis_crs":"EPSG:3006","cell_size_m":25,
@@ -405,7 +465,8 @@ def run(args):
       "masks":{scope:{
        "no_recorded_harvest":finish(buckets[(scope,"no_recorded_harvest","all","all")]),
        "recorded_harvest":finish(buckets[(scope,"recorded_harvest","all","all")])} for scope in masks},
-      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,"historic_dominance_diagnostics":dominance_audit,"continuous_species_shares":continuous_shares,
+      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,"historic_dominance_diagnostics":dominance_audit,"continuous_species_shares":continuous_shares,"gran_tall_balance":balance_output,
+      "gran_tall_balance_method":"2005 and 2010 SPRUCEVOL/(SPRUCEVOL+PINEVOL) 9 bins 10/90 through 90/10; zero joint conifer volume excluded, forest NMD2018 and no recorded 2011-2018 harvest. Biomass per 2010 balance class.",
       "historical_stability_definition":"Same estimated pine or spruce >=60% of TOTALVOL in both 2005 and 2010. Other species not classified. Requires valid source pixels both years. No observed stand identity inferred.","species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
       "species_classification":"pine/spruce/DECIDUOUS>=60pct of their sum, >=20 total volume, <=20pct component-total closure difference; birch not additionally added to DECIDUOUS",
       "biomass_unit":"tonnes dry matter on 25m cell; source-converted from tTS/ha",
@@ -426,6 +487,22 @@ def run(args):
         "No spatial raster or physical biomass stocks are modified"]}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    # Publish a compact JSON subset for the website, without duplicating
+    # the large diagnostic raster result.
+    if args.balance_web_output:
+        payload={"status":"VERIFIED_ORIGINAL_RASTER_COMPARISON",
+            "source_crs":{"2005":"EPSG:3021","2010":"EPSG:3021","2015":"EPSG:3006","2018":"EPSG:3006"},
+            "analysis_crs":"EPSG:3006","cell_m":25,"area_per_cell_ha":.0625,
+            "axis_classes_gran_tall":["10/90","20/80","30/70","40/60","50/50","60/40","70/30","80/20","90/10"],
+            "source_computation":"SPRUCEVOL/(SPRUCEVOL+PINEVOL) per historical year",
+            "forest_mask":"NMD2018 forest, no recorded harvest 2011-2018",
+            "cohorts":balance_output}
+        args.balance_web_output.parent.mkdir(parents=True,exist_ok=True)
+        args.balance_web_output.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+
+    print(json.dumps({"status":result["status"],"all_common":total["cells"],
+        "mask_totals":result["masks"]},ensure_ascii=False),flush=True)
+
     print(json.dumps({"status":result["status"],"all_common":total["cells"],
         "mask_totals":result["masks"]},ensure_ascii=False),flush=True)
 if __name__=="__main__":
@@ -438,4 +515,5 @@ if __name__=="__main__":
     p.add_argument("--boundary",type=Path,default=Path("docs/data/lulea_boundary.geojson"))
     p.add_argument("--qa",type=Path,default=Path("metadata/species_biomass_archive_qa.json"))
     p.add_argument("--output",type=Path,default=Path("metadata/biomass_species_age_harvest_2010_2018.json"))
+    p.add_argument("--balance-web-output",type=Path,default=Path("docs/data/gran_tall_balans_2005_2010.json"))
     run(p.parse_args())

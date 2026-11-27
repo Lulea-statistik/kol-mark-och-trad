@@ -100,6 +100,29 @@
 <p class="hint"><strong>Källor:</strong> <a href="https://www.scb.se/contentassets/0020464162f64348bb47b3d1b9a1c9a7/mi1301_2015a01_br_mi71br1701.pdf">SCB – äldre SLU Skogskartans biomassa över/under mark</a> · <a href="https://gis.slu.se/data/slu_forest_map/2015/docs/EvaluateSLUSkogskarta.pdf">SLU – Biomass_leaf 2015, biomassa ovan jord</a> · <a href="https://www.skogsstyrelsen.se/globalassets/om-oss/regeringsuppdrag/uppdatering-av-skogliga-grundata/skogliga-grunddata---produktbeskrivning.pdf">Skogsstyrelsen – biomassa exklusive stubbar/rötter</a> · <a href="https://hess.copernicus.org/articles/29/5493/2025/hess-29-5493-2025-supplement.pdf">Forskningssupplement – SLU biomassa 2010 beskrivs som ovanjordisk</a> · <a href="data/biomass_2010_excess_diagnostics.json">Råvärden och gemensam EPSG:3006-yta</a>.</p>
 <script src="biomass-component-scenario.js"></script>
 </section>
+<section id="granTallBalans">
+<h2>Gran/tall-balans 2005–2010 – nio balansklasser</h2>
+<p>Den modellerade granandelen av <strong>gran + tall</strong> beräknas separat för 2005 och 2010 som <code>SPRUCEVOL / (SPRUCEVOL + PINEVOL)</code>. Klasserna <strong>10/90, 20/80, …, 90/10</strong> anger gran/tall och omfattar även yttervärden: 0–15 % gran läggs i 10/90, 15–25 % i 20/80 och så vidare; 85–100 % läggs i 90/10. Inga celler med noll volym för båda barrträdslagen ingår. Detta är en modellbaserad balans, inte faktiskt beståndsbyte.</p>
+<p>Urval: samma 25 m-celler enligt NMD2018-skog, utan registrerad avverkning 2011–2018. Originalraster 2005 och 2010 i EPSG:3021 har omprojicerats fullt till EPSG:3006, 25 m. Biomassadata 2015/2018 har också omprojicerats fullständigt till samma grid.</p>
+<label for="granTallBalansAge">Modellerad beståndsålder 2010</label>
+<select id="granTallBalansAge" aria-label="Välj minsta beståndsålder">
+<option value="age_ge20" selected>Minst 20 år</option>
+<option value="age_ge60">Minst 60 år</option>
+<option value="age_ge80">Minst 80 år</option>
+<option value="age_ge100">Minst 100 år</option>
+</select>
+<p id="granTallBalansStatus" role="status">Laddar verifierad gran/tall-statistik …</p>
+<h3>1. Balansmatris 2005 → 2010 – hektar</h3>
+<p>Varje rutvärde visar hektar från en 2005-klass till en 2010-klass. En mörkare ruta betyder fler hektar. Den markerade diagonalen representerar samma <em>modellerade balansklass</em> båda åren.</p>
+<div id="granTallBalansMatrix" style="overflow-x:auto" aria-live="polite"></div>
+<h3>2. Arealfördelning 2005 och 2010 per balansklass</h3>
+<div class="chart-wrap" style="height:360px"><canvas id="granTallBalansDistribution" aria-label="Hektar gran och tall-balans 2005 och 2010"></canvas></div>
+<h3>3. Biomassatäthet per balansklass 2010</h3>
+<p>Jämför 2010 och 2018 på exakt samma celler, klassade enligt gran/tall-balansen <strong>2010</strong>. Ton torrsubstans per hektar avser modellerad biomassa, inte verifierad beståndstillväxt.</p>
+<div class="chart-wrap" style="height:360px"><canvas id="granTallBalansBiomassa" aria-label="Modellerad biomassa ton TS per hektar 2010 och 2018 efter gran tall balans"></canvas></div>
+<p id="granTallBalansSummary" class="hint"></p>
+<p class="hint">Den fysiska skogen kan ha förändrats även utan registrerad avverkning. Löv och övriga trädslag ingår inte i balansens nämnare; det redovisas därför <em>inte</em> som andel av all trädvolym. <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/docs/data/gran_tall_balans_2005_2010.json">Se resultatfilen när den har publicerats</a>.</p>
+</section>
 <section id="older-forest-biomass-2010-2018">
 <h2>Äldre skog utan registrerad avverkning – verifierad åldersanalys</h2>
 <p>Analysen i <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45838159388">PR #119:s godkända rasterkörning</a> jämför identiska 25 m-celler med NMD2018-skog och ingen <em>registrerad</em> avverkning 2011–2018. Ålder är SLU:s <strong>modellerade 2010-ålder</strong>, inte oberoende uppmätt ålder. Urvalen är nästlade: 100+ ingår också i 80+, 60+ och 20+.</p>
@@ -120,30 +143,12 @@
 <tr><td>≥100 år</td><td>3 414,38</td><td>−15,19 %</td><td>49,31</td><td>−37,75 %</td></tr>
 </tbody></table></div>
 <p>Den negativa åldersgradienten för tall kvarstår vid stabil klassning. För gran finns bara <strong>789 celler (49,31 ha) från minst 100 års ålder</strong>, så den stora procentuella skillnaden har ett begränsat urval. En uppföljande kontroll ska särskilja klassbyte, låg volym och effekten av dominanströskeln. För 2010 års lövvolym gäller fortfarande osäkerheter kring <code>DECIDUOUSVOL</code> och <code>BIRCHVOL</code>; här används enbart tall och gran.</p>
-<h3>Tröskelkänslighet: modellerad stabil gran 2005–2010</h3>
-<p><strong>Verifierad i <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45965534583">PR #121:s godkända rasterkörning</a>.</strong> För skog med modellerad ålder minst 100 år 2010, NMD2018-skog och ingen registrerad avverkning 2011–2018 visar tabellen hur många celler som klassas som grandominerade båda åren när gränsen ändras. Åldersurvalet i denna diagnostik omfattar 172 028 gemensamma celler (10 751,75 ha).</p>
-<div class="table-scroll"><table><thead><tr><th>Dominansgräns båda åren</th><th>Gran 2005 (celler)</th><th>Gran 2010 (celler)</th><th>Stabil gran (celler)</th><th>Stabil gran (ha)</th></tr></thead><tbody>
-<tr><td>≥40 %</td><td>12 955</td><td>32 138</td><td>6 677</td><td>417,31</td></tr>
-<tr><td>≥50 %</td><td>12 532</td><td>27 089</td><td>7 571</td><td>473,19</td></tr>
-<tr><td>≥60 %</td><td>1 704</td><td>16 294</td><td>789</td><td>49,31</td></tr>
-<tr><td>≥70 %</td><td>165</td><td>10 107</td><td>51</td><td>3,19</td></tr>
-</tbody></table></div>
-<div class="chart-wrap" style="height:310px"><canvas id="olderForestSpruceThresholdChart" aria-label="Stabila granceller vid 40 50 60 och 70 procent dominansgräns"></canvas></div>
-<p><strong>Varning för klassificeringseffekt:</strong> Vid 40 % kan tall och gran uppfylla gränsen samtidigt. Diagnostiken ger då tall företräde, vilket gör att stabil gran <em>inte</em> behöver öka när gränsen sänks. På 60 %-nivån klassas 13 197 av 2010 års 16 294 granceller som varken tall- eller grandominerade 2005, medan 2 180 klassas som tall. Det visar modellernas klassificering, inte observerade trädslagsbyten.</p>
-<p>En ny kompletterande rasterdiagnostik analyserar därför <strong>kontinuerlig andel av TOTALVOL för tall och gran</strong> under 2005–2010: medelförändring i procentenheter, genomsnittlig absolut förändring, klassgränspassager och fördelning av ändringarnas storlek. Resultaten publiceras först när rasterkörningen verifierats.</p>
 <p class="hint"><a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/docs/biomassa-2010-2018-verifierad-art-alder-avverkning-resultat.md">Fullständig dokumentation av urval, metod och osäkerheter</a>. Raster-CRS: 2010 EPSG:3021, 2015/2018 och NMD2018 EPSG:3006. All rasterdata är fullt omprojicerad till EPSG:3006, 25 m före analys.</p>
 </section>
 <script>
 (function(){const el=document.getElementById('olderForestModelDifferenceChart');
 if(!el||typeof Chart==='undefined')return;
 new Chart(el,{type:'bar',data:{labels:['≥20 år','≥60 år','≥80 år','≥100 år'],datasets:[{label:'Modellskillnad 2018/2010, %',data:[-0.372095,-11.988505,-17.137088,-22.831009],backgroundColor:'#3c8061'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:c=>c.parsed.y.toLocaleString('sv-SE',{maximumFractionDigits:2})+' %'}}},scales:{y:{max:0,title:{display:true,text:'Skillnad 2018/2010 (%)'}}}}});
-})();
-</script>
-<script>
-(function(){
-const el=document.getElementById('olderForestSpruceThresholdChart');
-if(!el||typeof Chart==='undefined')return;
-new Chart(el,{type:'bar',data:{labels:['40 %','50 %','60 %','70 %'],datasets:[{label:'Stabil gran, ha',data:[417.3125,473.1875,49.3125,3.1875],backgroundColor:'#357e63'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:c=>c.parsed.y.toLocaleString('sv-SE',{maximumFractionDigits:2})+' ha'}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Hektar'}}}}});
 })();
 </script>
 <section id="biomass-forest-only-nmd2018">
@@ -283,4 +288,4 @@ new Chart(canvas,{type:'line',data:{labels:['2010','2015','2018'],datasets:[
 {label:'Alla gemensamma celler',data:[76.88742364943045,64.73253959370062,69.3290996204125],borderColor:'#a85d33',backgroundColor:'#a85d33',borderWidth:3,pointRadius:5,tension:0.1}
 ]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y.toLocaleString('sv-SE',{minimumFractionDigits:2,maximumFractionDigits:2})+' (råvärde)';}}}},scales:{y:{title:{display:true,text:'Medelråvärde (inte verifierad fysisk enhet)'}}}}});
 })();
-</script></body></html>
+</script><script src="gran-tall-balans.js"></script></body></html>
