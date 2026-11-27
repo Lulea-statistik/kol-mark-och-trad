@@ -1,0 +1,76 @@
+name: Verify and publish illustrative bonitet backcasts
+on:
+  pull_request:
+    paths:
+      - 'scripts/bonitet_backcast_scenarios.py'
+      - 'docs/biomass-trend.html'
+      - 'docs/bonitet-backcast.js'
+      - '.github/workflows/bonitet-backcast.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/bonitet_backcast_scenarios.py'
+      - 'docs/biomass-trend.html'
+      - 'docs/bonitet-backcast.js'
+      - '.github/workflows/bonitet-backcast.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  compute:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax validation
+        run: |
+          python -m py_compile scripts/bonitet_backcast_scenarios.py
+          node --check docs/bonitet-backcast.js
+      - name: Calculate and validate illustrative backcasts
+        run: |
+          python scripts/bonitet_backcast_scenarios.py
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          src=json.loads(Path('docs/data/gran_tall_balans_2005_2010.json').read_text(encoding='utf-8'))
+          o=json.loads(Path('docs/data/bonitet_bakatrakning_scenarier.json').read_text(encoding='utf-8'))
+          assert o['status']=='ILLUSTRATIVE_NOT_FIELD_CALIBRATED'
+          assert o['crs']=='EPSG:3006' and o['cell_m']==25
+          for age,group in o['cohorts'].items():
+              orig=src['cohorts'][age]
+              assert group['cell_count']==orig['cells']
+              assert math.isclose(group['area_ha'],orig['area_ha'],abs_tol=1e-6)
+              for year in ('2010','2015','2018'):
+                  ref=sum(orig['2010_balance_class_mass_tTS'][year])
+                  assert math.isclose(group['modeled_mass_tTS'][year],ref,rel_tol=1e-10,abs_tol=.01)
+              for scenario,calc in group['scenario_backcast'].items():
+                  p=o['scenario_parameters'][scenario]
+                  assert 0<p['realized_fraction_of_bonitet']<=1
+                  assert p['pine_bonitet_m3sk_ha_year']>0 and p['spruce_bonitet_m3sk_ha_year']>0
+                  for year,years_elapsed in ((2015,5),(2018,8)):
+                      assert math.isclose(calc[f'2010_backcast_from_{year}_tTS'],
+                          group['modeled_mass_tTS'][str(year)]-years_elapsed*calc['assumed_annual_net_gain_tTS'],
+                          rel_tol=1e-12,abs_tol=.01)
+          html=Path('docs/biomass-trend.html').read_text(encoding='utf-8')
+          for key in ('bonitetBackcastChart','bonitetBackcastStatus','bonitetBackcastTable'):
+              assert html.count('id="'+key+'"')==1
+          assert 'src="bonitet-backcast.js"' in html
+          print('BONITET_BACKCAST_VERIFIED_SCENARIO_NOT_CORRECTION')
+          PY
+      - name: Upload scenario results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bonitet-2010-backcast-scenario-not-calibration
+          path: docs/data/bonitet_bakatrakning_scenarier.json
+      - name: Publish scenario JSON without changing biomass rasters
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/bonitet_bakatrakning_scenarier.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish illustrative bonitet backcasts, not biomass corrections [skip ci]'
+            git push origin HEAD:main
+          fi
