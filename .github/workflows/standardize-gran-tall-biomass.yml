@@ -52,8 +52,26 @@ jobs:
           for threshold,other in data['sensitivity'].items():
               assert other['threshold_min_cells_per_balance_class_in_each_stratum']==int(threshold)
               assert other['common_support_strata_count']>0
+          # Independently verify values and ordered support for all thresholds.
+          from math import isclose
+          thresholds=[(10,data['sensitivity']['10']),(30,data),(100,data['sensitivity']['100'])]
+          assert [x['common_support_strata_count'] for t,x in thresholds]==sorted(
+              [x['common_support_strata_count'] for t,x in thresholds],reverse=True)
+          for t,x in thresholds:
+              assert x['threshold_min_cells_per_balance_class_in_each_stratum']==t
+              assert len(x['standardized_by_balance_class'])==9
+              assert len(x['common_support_strata'])==x['common_support_strata_count']
+              for label,value in x['standardized_by_balance_class'].items():
+                  assert value['shared_cells']>=0
+                  assert 0<value['coverage_percent']<=100
+                  assert isclose(value['standardized_2018_vs_2010_percent'],
+                      100*(value['standardized_density_tTS_per_ha']['2018']/
+                      value['standardized_density_tTS_per_ha']['2010']-1),
+                      rel_tol=1e-12,abs_tol=1e-8)
+          assert thresholds[0][1]['standard_population_total_cells'] >= thresholds[1][1]['standard_population_total_cells'] >= thresholds[2][1]['standard_population_total_cells']
           html=Path('docs/biomass-trend.html').read_text()
-          for key in ('granTallStandardChart','granTallStandardStatus','granTallStandardTable'):
+          for key in ('granTallStandardChart','granTallStandardStatus','granTallStandardTable',
+                      'granTallSensitivityChart','granTallSensitivityStatus','granTallSensitivityTable'):
               assert html.count('id="'+key+'"')==1,key
           assert 'granTallStandardChart' in Path('docs/gran-tall-balans.js').read_text()
           print('STANDARDIZATION_QA_PASS',data['common_support_strata_count'],data['minimum_coverage_percent'])
