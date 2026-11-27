@@ -150,6 +150,12 @@
 <div class="chart-wrap" style="height:380px"><canvas id="granTallSensitivityChart" aria-label="Känslighet i standardiserad biomassaskillnad när kravet ändras mellan 10 30 och 100 celler per balansklass"></canvas></div>
 <div id="granTallSensitivityTable" style="overflow-x:auto"></div>
 <p class="hint">En liten skillnad mellan scenarierna betyder att resultatet inte påverkas mycket av just dessa tre urvalsgränser. Det är inte ett konfidensintervall eller ett bevis för att biomassamodellerna är jämförbara. Underlaget bygger på modellerade rastervärden, inte oberoende fältmätning.</p>
+<h3>9. Känslighet för alternativa volymklasser – 25, 50 och 100 enheter</h3>
+<p>Kontrollen använder originalrastercellerna grupperade i <strong>25-enhetsintervall</strong> för modellerad TOTALVOL 2010. Dessa aggregeras till alternativa volymindelningar 25, 50 och 100 samt tidigare 0–50, 50–100, 100–200, 200–300, 300+. En gemensam ålder–volymfördelning används för samtliga nio gran/tall-klasser <em>inom varje alternativ</em>, där minst 30 celler per klass krävs. En metod kan ha otillräcklig gemensam datatäckning; då visas inte någon uppskattad kvot.</p>
+<p id="granTallVolumeSensitivityStatus" role="status">Resultat visas när originalrasterkörningen och kvalitetskontrollerna är godkända och resultatfilen publicerad.</p>
+<div class="chart-wrap" style="height:380px"><canvas id="granTallVolumeSensitivityChart" aria-label="Standardiserad biomassaskillnad mellan olika volymklassbredder"></canvas></div>
+<div id="granTallVolumeSensitivityTable" style="overflow-x:auto"></div>
+<p class="hint">Observera att alternativen inte nödvändigtvis har samma gemensamma referenspopulation. Ett resultat som saknar gemensamt stöd visas som datalucka, aldrig som noll. Inte heller denna kontroll mäter verklig biomassatillväxt eller fastställer korrigeringsfaktorer för enskilda år.</p>
 <p id="granTallBalansSummary" class="hint"></p>
 <p class="hint">Den fysiska skogen kan ha förändrats även utan registrerad avverkning. Löv och övriga trädslag ingår inte i balansens nämnare; det redovisas därför <em>inte</em> som andel av all trädvolym. <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/docs/data/gran_tall_balans_2005_2010.json">Se resultatfilen när den har publicerats</a>.</p>
 </section>
