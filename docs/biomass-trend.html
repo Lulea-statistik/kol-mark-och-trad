@@ -138,6 +138,12 @@
 <p id="granTallControlledStatus" role="status">Inväntar verifierad rasteranalys.</p>
 <div class="chart-wrap" style="height:380px"><canvas id="granTallControlledChart" aria-label="Biomassaskillnad efter gran tall balans, uppdelad på ålder och totalvolym 2010"></canvas></div>
 <p>Urval: NMD2018-skog utan registrerad avverkning 2011–2018, gemensamma 25 m-celler i EPSG:3006. Även inom valda intervall kan återstående skillnader i ålder, volym och metodik påverka resultatet. Resultatet är en beskrivande stratifiering, inte en kausal skattning.</p>
+<h3>7. Standardiserad jämförelse – samma ålders- och volymfördelning</h3>
+<p>De nio gran/tall-klasserna jämförs mot <strong>en gemensam referensfördelning</strong> av beståndsålder och modellerad totalvirkesvolym 2010. Endast kombinationer med minst 30 celler i <em>samtliga nio balansklasser</em> ingår. Referensvikten för varje kombination baseras på samtliga giltiga celler inom samma ålder–volym-kombination. För varje balansklass beräknas viktat medelvärde av modellerad ton TS/ha separat 2010 och 2018. Diagrammet visar procentuell skillnad mellan dessa standardiserade värden och den ursprungliga, ojusterade klasskvoten.</p>
+<p id="granTallStandardStatus" role="status">Inväntar publicerat, verifierat standardiseringsresultat.</p>
+<div class="chart-wrap" style="height:380px"><canvas id="granTallStandardChart" aria-label="Jämförelse mellan rå och ålders-volymstandardiserad biomassaskillnad efter gran tall"></canvas></div>
+<div id="granTallStandardTable" style="overflow-x:auto"></div>
+<p class="hint">Täckningsgraden visar hur stor del av varje balansklass som ligger inom den gemensamma populationen. Klasser med svagt geografiskt eller statistiskt överlapp ska inte tolkas som generellt representativa. En viktad jämförelse av modellerade rastervärden är inte ett oberoende mått på fel i biomassa- eller trädslagsmodellerna.</p>
 <p id="granTallBalansSummary" class="hint"></p>
 <p class="hint">Den fysiska skogen kan ha förändrats även utan registrerad avverkning. Löv och övriga trädslag ingår inte i balansens nämnare; det redovisas därför <em>inte</em> som andel av all trädvolym. <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/docs/data/gran_tall_balans_2005_2010.json">Se resultatfilen när den har publicerats</a>.</p>
 </section>
