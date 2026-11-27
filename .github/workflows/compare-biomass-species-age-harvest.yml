@@ -1,12 +1,21 @@
 name: Analyze biomass by 2010 species and age with 2011-2018 harvest strata
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/compare_biomass_species_age_harvest_2010_2018.py'
+      - 'docs/biomass-trend.html'
+      - 'docs/gran-tall-balans.js'
+      - '.github/workflows/compare-biomass-species-age-harvest.yml'
   pull_request:
     paths:
       - 'scripts/compare_biomass_species_age_harvest_2010_2018.py'
+      - 'docs/biomass-trend.html'
+      - 'docs/gran-tall-balans.js'
       - '.github/workflows/compare-biomass-species-age-harvest.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   species-harvest:
     runs-on: ubuntu-latest
@@ -43,6 +52,25 @@ jobs:
           assert abs(v['ton_TS_by_year']['2010']-10)<1e-12
           assert v['verified_real_biomass_growth_percent'] is None
           print('Synthetic species classifier and cell-area weighting passed')
+          PY
+      - name: Verify balance page integration and JavaScript syntax
+        run: |
+          node --check docs/gran-tall-balans.js
+          python - <<'PY'
+          from pathlib import Path
+          html=Path('docs/biomass-trend.html').read_text(encoding='utf-8')
+          for key in ('granTallBalans','granTallBalansAge','granTallBalansMatrix',
+                      'granTallBalansDistribution','granTallBalansBiomassa'):
+              assert html.count('id="'+key+'"')==1,key
+          assert 'src="gran-tall-balans.js"' in html
+          import numpy as np
+          def classify(gran,tall):
+              ratio=gran/(gran+tall)
+              return int(np.clip(np.floor(ratio*10-.5+1e-9),0,8))
+          assert [classify(x,100-x) for x in range(0,101,10)]==[0,0,1,2,3,4,5,6,7,8,8]
+          for age in (20,60,80,100):
+              assert age>=20
+          print('Synthetic gran/tall balance boundaries and HTML passed')
           PY
       - name: Fetch original historical rasters and archived provenance
         run: |
@@ -190,6 +218,26 @@ jobs:
                       'mean_abs_delta_pp',x['mean_absolute_delta_percentage_points'],
                       'cross60',x['crossed_60pct_threshold_cells'],
                       'bins',x['delta_distribution_cells'])
+          balance=d['gran_tall_balance']
+          web=json.loads(Path('docs/data/gran_tall_balans_2005_2010.json').read_text())
+          assert web['cohorts']==balance
+          assert web['analysis_crs']=='EPSG:3006' and web['cell_m']==25
+          for age,group in balance.items():
+              matrix=group['matrix_cells']
+              rows=group['row_2005_cells'];cols=group['col_2010_cells']
+              assert len(matrix)==9 and all(len(row)==9 for row in matrix)
+              assert group['cells']==sum(rows)==sum(cols)==sum(map(sum,matrix))
+              assert [sum(row) for row in matrix]==rows
+              assert [sum(row[j] for row in matrix) for j in range(9)]==cols
+              expected=older['nmd2018_forest']['no_recorded_harvest']['all'][age]['cells']
+              assert group['cells']+group['excluded_zero_pine_plus_spruce']==expected
+              for year in ('2010','2015','2018'):
+                  den=group['2010_balance_class_density_tTS_ha'][year]
+                  mass=group['2010_balance_class_mass_tTS'][year]
+                  for i in range(9):
+                      if cols[i]:
+                          assert math.isclose(mass[i],den[i]*cols[i]*.0625,abs_tol=.01)
+          print('GRAN_TALL_BALANCE_VALID', [(a,x['cells'],x['excluded_zero_pine_plus_spruce']) for a,x in balance.items()])
           forest=older['nmd2018_forest']['no_recorded_harvest']
           for t in (20,60,80,100):
               k=f'age_ge{t}'
@@ -207,5 +255,16 @@ jobs:
           path: |
             metadata/biomass_species_age_harvest_2010_2018.json
             metadata/species_biomass_archive_qa.json
+            docs/data/gran_tall_balans_2005_2010.json
           if-no-files-found: warn
           retention-days: 90
+      - name: Commit verified gran/tall balance JSON on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/gran_tall_balans_2005_2010.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified spruce/pine balance raster results [skip ci]"
+            git push origin HEAD:main
+          fi
