@@ -148,6 +148,16 @@ Rasterkörning [#45981899353](https://github.com/Lulea-statistik/kol-mark-och-tr
 
 **Datapublicering:** Resultat-JSON innehåller `matrix_biomass_tTS` och `matrix_biomass_difference_2018_vs_2010_pct`. Dessa fält kommer från PR #125:s lyckade rasterkörning och ska publiceras på `docs/data/gran_tall_balans_2005_2010.json` efter separat kontroll av de 81 delmassorna mot tidigare klasssummor. Tills dess visar webbplatsen ett informationsmeddelande för det nya detaljdiagrammet.
 
+## Test av gran/tall-balans kontrollerat för beståndsålder och virkesvolym (PR #127)
+
+**Syfte:** Pröva om den negativa skillnaden mellan biomassamodellernas 2018/2010-kvot och en högre modellerad granandel 2010 kvarstår när cellerna jämförs inom avgränsade ålders- och volymgrupper.
+
+**Metod:** Samma 25 m-grid i EPSG:3006 (fullt reprojicerade raster), NMD2018-skog, gemensamt täckta celler, ingen *registrerad* avverkning 2011–2018. Granandel = SPRUCEVOL/(SPRUCEVOL+PINEVOL) i 2010 års modellerade trädbiomassarelaterade virkesvolymer. **Icke överlappande åldersklasser 2010:** 20–39, 40–59, 60–79, 80–99, 100–139, minst 140 år. **Icke överlappande volymklasser 2010:** [0,50), [50,100), [100,200), [200,300), [300,∞) i TOTALVOL-rastrets råskala. Inom varje stratum redovisas samtliga nio gran/tall-klasser, cellantal, summa ton TS 2010/2015/2018 och procentuell kvot 2018/2010.
+
+**Revisionskontroller:** 6 × 5 × 9 grupper är en disjunkt partition av samma NMD2018-urval minst 20 år som PR #125. Summor av cellantal och modellerad biomassa per gran/tall-klass och år måste återge den tidigare publicerade datan, annars avbryts analysen. Diagrammet visar inte numeriska värden innan ny raster-JSON publicerats.
+
+**Tolkning:** Detta kontrollerar grovt för observerbara *modellerade* beståndsegenskaper och förhindrar att överlappande åldersurval blandas ihop. Det är inte en regression eller kausal identifiering. Eftersom 2010 års virkesvolym, ålder, granandel och biomassa är modellbaserade och statistiskt kopplade finns risk för korrelerade modellfel samt selektions-/kontrollbias. 2018 års modellvärden kan ha skilda metodantaganden. Ingen säker slutsats om verkliga biomassaförändringar följer enbart av analysen.
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.

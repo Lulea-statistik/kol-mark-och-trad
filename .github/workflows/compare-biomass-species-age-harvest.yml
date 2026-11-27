@@ -61,7 +61,9 @@ jobs:
           html=Path('docs/biomass-trend.html').read_text(encoding='utf-8')
           for key in ('granTallBalans','granTallBalansAge','granTallBalansMatrix',
                       'granTallBalansDistribution','granTallBalansBiomassa',
-                      'granTallBalansDifference','granTallBalansDirection','granTallBalansDirectionStatus'):
+                      'granTallBalansDifference','granTallBalansDirection','granTallBalansDirectionStatus',
+                      'granTallControlledChart','granTallControlledAge','granTallControlledVolume',
+                      'granTallControlledStatus'):
               assert html.count('id="'+key+'"')==1,key
           assert 'src="gran-tall-balans.js"' in html
           import numpy as np
@@ -251,6 +253,23 @@ jobs:
                   for i in range(9):
                       if cols[i]:
                           assert math.isclose(mass[i],den[i]*cols[i]*.0625,abs_tol=.01)
+          ctl=d['controlled_age_volume_balance']
+          assert web['age_volume_control']==ctl
+          assert ctl['population_cells']==balance['age_ge20']['cells']
+          counts=ctl['cells_by_age_volume_balance']
+          assert len(counts)==6 and all(len(row)==5 for row in counts)
+          assert all(len(x)==9 for row in counts for x in row)
+          by_class=[sum(counts[a][v][j] for a in range(6) for v in range(5)) for j in range(9)]
+          assert by_class==balance['age_ge20']['col_2010_cells']
+          assert sum(by_class)==ctl['population_cells']
+          for year in ('2010','2015','2018'):
+              masses=ctl['mass_tTS_by_age_volume_balance'][year]
+              assert len(masses)==6 and all(len(row)==5 for row in masses)
+              for j in range(9):
+                  actual=sum(masses[a][v][j] for a in range(6) for v in range(5))
+                  expected_mass=balance['age_ge20']['2010_balance_class_mass_tTS'][year][j]
+                  assert math.isclose(actual,expected_mass,rel_tol=1e-9,abs_tol=.02)
+          print('CONTROLLED_AGE_VOLUME_VALID',ctl['population_cells'],ctl['age_bins'],ctl['volume_2010_bins'])
           print('GRAN_TALL_BALANCE_VALID', [(a,x['cells'],x['excluded_zero_pine_plus_spruce']) for a,x in balance.items()])
           forest=older['nmd2018_forest']['no_recorded_harvest']
           for t in (20,60,80,100):

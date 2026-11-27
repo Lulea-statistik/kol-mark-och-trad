@@ -127,6 +127,17 @@
 <p>Här jämförs tre grupper <em>inom varje balansklass 2010</em>: celler som klassas mot mer tall, ligger kvar i samma klass eller klassas mot mer gran mellan de två volymmodellerna. Samma celler används för biomassan 2010 och 2018. Diagrammet är en metodkontroll och <strong>inte</strong> ett belägg för faktiska trädslagsbyten.</p>
 <p id="granTallBalansDirectionStatus" role="status">Detaljanalysen laddas när den verifierade rasterfilen publicerats.</p>
 <div class="chart-wrap" style="height:370px"><canvas id="granTallBalansDirection" aria-label="Biomassaskillnad efter balansförskjutning och 2010 års gran tall klass"></canvas></div>
+<h3>6. Kontrollera för beståndsålder och virkesvolym 2010</h3>
+<p>Detta diagram testar om sambandet mellan granandel och modellernas biomassaskillnad kvarstår <strong>inom liknande ålders- och volymklasser</strong>. Åldersintervallen är icke överlappande. Volymgränserna utgår från 2010 års modellerade <code>TOTALVOL</code> och motsvarar inte oberoende fältmätningar. Välj en klass eller visa alla. Ålders- och volymvalen är separata från filtret för de fem övriga diagrammen.</p>
+<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+<label for="granTallControlledAge">Ålder 2010
+<select id="granTallControlledAge"><option value="all" selected>Alla från 20 år</option><option value="0">20–39 år</option><option value="1">40–59 år</option><option value="2">60–79 år</option><option value="3">80–99 år</option><option value="4">100–139 år</option><option value="5">140 år och äldre</option></select></label>
+<label for="granTallControlledVolume">Total virkesvolym 2010
+<select id="granTallControlledVolume"><option value="all" selected>Alla volymklasser</option><option value="0">0–49</option><option value="1">50–99</option><option value="2">100–199</option><option value="3">200–299</option><option value="4">300 och högre</option></select></label>
+</div>
+<p id="granTallControlledStatus" role="status">Inväntar verifierad rasteranalys.</p>
+<div class="chart-wrap" style="height:380px"><canvas id="granTallControlledChart" aria-label="Biomassaskillnad efter gran tall balans, uppdelad på ålder och totalvolym 2010"></canvas></div>
+<p>Urval: NMD2018-skog utan registrerad avverkning 2011–2018, gemensamma 25 m-celler i EPSG:3006. Även inom valda intervall kan återstående skillnader i ålder, volym och metodik påverka resultatet. Resultatet är en beskrivande stratifiering, inte en kausal skattning.</p>
 <p id="granTallBalansSummary" class="hint"></p>
 <p class="hint">Den fysiska skogen kan ha förändrats även utan registrerad avverkning. Löv och övriga trädslag ingår inte i balansens nämnare; det redovisas därför <em>inte</em> som andel av all trädvolym. <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/docs/data/gran_tall_balans_2005_2010.json">Se resultatfilen när den har publicerats</a>.</p>
 </section>
