@@ -90,6 +90,21 @@ Analysen från den **godkända** [Actions-körningen #45957345496](https://githu
 
 **Uppföljande metodtest PR #121:** Ursprungliga tall-/granvolymer klassificeras var för sig 2005 och 2010 vid gränserna 40, 50, 60 och 70 % av respektive `TOTALVOL`. En fullständig 4×4-matris över tall, gran, varken tall/gran och ogiltig/låg volym beräknas för varje åldersurval. Denna diagnostik får inte tolkas som faktiskt byte av huvudträdslag eller skogsförlust.
 
+## Uppföljning PR #121 – varför få granceller blir stabila
+
+Den [verifierade rasterkörningen #45965534583](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45965534583) jämförde modellerad trädslagsdominans 2005 och 2010 på exakt samma celler. För NMD2018-skog utan registrerad avverkning och modellerad ålder 2010 **minst 100 år** (172 028 celler) gav försöket följande resultat:
+
+| Dominansgräns | Gran 2005, celler | Gran 2010, celler | Stabil gran, celler | Stabil gran, ha |
+|---|---:|---:|---:|---:|
+| 40 % | 12 955 | 32 138 | 6 677 | 417,31 |
+| 50 % | 12 532 | 27 089 | 7 571 | 473,19 |
+| 60 % | 1 704 | 16 294 | 789 | 49,31 |
+| 70 % | 165 | 10 107 | 51 | 3,19 |
+
+Vid 60 % hade 13 197 av de 16 294 grandominerade 2010-cellerna klassats som **varken tall eller gran** 2005; 2 180 klassades som **tall** och 128 som låg/ogiltig volym. Det är klassificeringsövergångar i skattade raster, inte verifierade biologiska förändringar. Tall prioriteras om både tall och gran passerar gränsen i samma cell; detta är möjligt särskilt vid trösklar 40–50 % och förklarar varför klassade stabila gran-celler inte måste öka monotont när gränsen sänks.
+
+**Fortsättning i PR #122:** Beräkna parvisa andelar `PINEVOL/TOTALVOL` och `SPRUCEVOL/TOTALVOL` för 2005 och 2010 på identiska celler. Redovisa medel- och absolut förändring i procentenheter, storleksfördelning, närhet till 60 %-gränsen, tröskelpassager samt fall där en komponent överstiger totalvolymen. Modellskillnad och verklig förändring är fortfarande inte identifierade separat.
+
 ## Nio balansklasser gran/tall 2005–2010 – PR #123
 
 Ett kompletterande test ersätter hård tall-/grandominans med en parvis **granandel av tall + gran**: `SPRUCEVOL/(SPRUCEVOL+PINEVOL)`, beräknad separat i 2005 och 2010 års raster. Analysen använder **nio gemensamma balansklasser** 10/90, 20/80, 30/70, 40/60, 50/50, 60/40, 70/30, 80/20, 90/10 (gran/tall). Klasserna har gränser 0–15 %, 15–25 %, …, 85–100 % gran. Andelen är inte en andel av all virkesvolym; övriga arter ingår inte i nämnaren. Endast celler med positiv summa tall + gran båda åren används.
