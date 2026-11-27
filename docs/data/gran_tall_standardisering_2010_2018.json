@@ -1,0 +1,614 @@
+{
+  "status": "DERIVED_FROM_VERIFIED_AGGREGATED_RASTER",
+  "analysis_crs": "EPSG:3006",
+  "cell_m": 25,
+  "axis_classes_gran_tall": [
+    "10/90",
+    "20/80",
+    "30/70",
+    "40/60",
+    "50/50",
+    "60/40",
+    "70/30",
+    "80/20",
+    "90/10"
+  ],
+  "threshold_min_cells_per_balance_class_in_each_stratum": 30,
+  "common_support_strata_count": 10,
+  "total_possible_strata": 30,
+  "common_support_strata": [
+    {
+      "age_2010": "20-40",
+      "total_volume_2010": "0-50",
+      "pooled_cells_all_classes": 96234,
+      "standard_weight": 0.06653065654725568
+    },
+    {
+      "age_2010": "20-40",
+      "total_volume_2010": "50-100",
+      "pooled_cells_all_classes": 121033,
+      "standard_weight": 0.08367525982380444
+    },
+    {
+      "age_2010": "40-60",
+      "total_volume_2010": "50-100",
+      "pooled_cells_all_classes": 236292,
+      "standard_weight": 0.16335870790847454
+    },
+    {
+      "age_2010": "40-60",
+      "total_volume_2010": "100-200",
+      "pooled_cells_all_classes": 110862,
+      "standard_weight": 0.07664361500240933
+    },
+    {
+      "age_2010": "60-80",
+      "total_volume_2010": "100-200",
+      "pooled_cells_all_classes": 306005,
+      "standard_weight": 0.21155426935119578
+    },
+    {
+      "age_2010": "60-80",
+      "total_volume_2010": "200-300",
+      "pooled_cells_all_classes": 26844,
+      "standard_weight": 0.018558398740097383
+    },
+    {
+      "age_2010": "80-100",
+      "total_volume_2010": "100-200",
+      "pooled_cells_all_classes": 247443,
+      "standard_weight": 0.17106786840433305
+    },
+    {
+      "age_2010": "80-100",
+      "total_volume_2010": "200-300",
+      "pooled_cells_all_classes": 139866,
+      "standard_weight": 0.09669531359642604
+    },
+    {
+      "age_2010": "100-140",
+      "total_volume_2010": "100-200",
+      "pooled_cells_all_classes": 90733,
+      "standard_weight": 0.06272758131743614
+    },
+    {
+      "age_2010": "100-140",
+      "total_volume_2010": "200-300",
+      "pooled_cells_all_classes": 71149,
+      "standard_weight": 0.0491883293085676
+    }
+  ],
+  "standard_population_total_cells": 1446461,
+  "target_distribution": "Pooled cell-count age × 2010-volume distribution in common-support strata, same target for all 9 balance classes",
+  "estimand": "Ratio of standardized mean dry biomass density 2018 versus 2010, not mean of cell ratios and not growth or causal species effect",
+  "standardized_by_balance_class": {
+    "10/90": {
+      "total_cells": 280335,
+      "shared_cells": 210206,
+      "coverage_percent": 74.98385859774912,
+      "raw_2018_vs_2010_percent": 3.988845796519147,
+      "shared_unstandardized_percent": 2.470006916705736,
+      "standardized_2018_vs_2010_percent": -5.307629907272615,
+      "standardized_density_tTS_per_ha": {
+        "2010": 75.59962489257006,
+        "2015": 71.94633225062248,
+        "2018": 71.5870765919861
+      }
+    },
+    "20/80": {
+      "total_cells": 316123,
+      "shared_cells": 265663,
+      "coverage_percent": 84.03785868158913,
+      "raw_2018_vs_2010_percent": 9.6578521929249,
+      "shared_unstandardized_percent": 7.4232083524991666,
+      "standardized_2018_vs_2010_percent": 0.8019438552765878,
+      "standardized_density_tTS_per_ha": {
+        "2010": 85.47618213650746,
+        "2015": 81.41603386641884,
+        "2018": 86.1616531268762
+      }
+    },
+    "30/70": {
+      "total_cells": 357454,
+      "shared_cells": 332032,
+      "coverage_percent": 92.88803594308638,
+      "raw_2018_vs_2010_percent": 3.4849415857661548,
+      "shared_unstandardized_percent": 2.5847834306225392,
+      "standardized_2018_vs_2010_percent": 0.5317213606595317,
+      "standardized_density_tTS_per_ha": {
+        "2010": 93.87634147580434,
+        "2015": 86.6967581555125,
+        "2018": 94.37550203603686
+      }
+    },
+    "40/60": {
+      "total_cells": 294865,
+      "shared_cells": 282605,
+      "coverage_percent": 95.84216505858613,
+      "raw_2018_vs_2010_percent": -2.1932614349918222,
+      "shared_unstandardized_percent": -2.670362914720825,
+      "standardized_2018_vs_2010_percent": 0.3262525380494763,
+      "standardized_density_tTS_per_ha": {
+        "2010": 99.2456484574502,
+        "2015": 90.09499303196813,
+        "2018": 99.5694399044463
+      }
+    },
+    "50/50": {
+      "total_cells": 184222,
+      "shared_cells": 179792,
+      "coverage_percent": 97.59529263605867,
+      "raw_2018_vs_2010_percent": -5.832158208961014,
+      "shared_unstandardized_percent": -6.041459850629572,
+      "standardized_2018_vs_2010_percent": -0.5491325345371889,
+      "standardized_density_tTS_per_ha": {
+        "2010": 102.39769614440655,
+        "2015": 91.2922248452902,
+        "2018": 101.83539708026109
+      }
+    },
+    "60/40": {
+      "total_cells": 100507,
+      "shared_cells": 98372,
+      "coverage_percent": 97.87576984687634,
+      "raw_2018_vs_2010_percent": -9.280965392535045,
+      "shared_unstandardized_percent": -9.054139178659081,
+      "standardized_2018_vs_2010_percent": -2.7576155637025423,
+      "standardized_density_tTS_per_ha": {
+        "2010": 105.56436597179453,
+        "2015": 91.42714911689248,
+        "2018": 102.65330658603241
+      }
+    },
+    "70/30": {
+      "total_cells": 50393,
+      "shared_cells": 49092,
+      "coverage_percent": 97.41829222312623,
+      "raw_2018_vs_2010_percent": -12.5072481271147,
+      "shared_unstandardized_percent": -11.664651062634624,
+      "standardized_2018_vs_2010_percent": -5.617102204368396,
+      "standardized_density_tTS_per_ha": {
+        "2010": 108.4576406494312,
+        "2015": 90.63642178045977,
+        "2018": 102.36546412570604
+      }
+    },
+    "80/20": {
+      "total_cells": 22824,
+      "shared_cells": 19889,
+      "coverage_percent": 87.14072905713284,
+      "raw_2018_vs_2010_percent": -20.63424080323116,
+      "shared_unstandardized_percent": -12.492653433645618,
+      "standardized_2018_vs_2010_percent": -6.6199170109971455,
+      "standardized_density_tTS_per_ha": {
+        "2010": 108.95181818153321,
+        "2015": 89.49288204265903,
+        "2018": 101.73929823594321
+      }
+    },
+    "90/10": {
+      "total_cells": 10474,
+      "shared_cells": 8810,
+      "coverage_percent": 84.11304181783464,
+      "raw_2018_vs_2010_percent": -16.2171448653709,
+      "shared_unstandardized_percent": 0.5608549674642305,
+      "standardized_2018_vs_2010_percent": -7.987941932155451,
+      "standardized_density_tTS_per_ha": {
+        "2010": 111.5778439869355,
+        "2015": 90.43527474636964,
+        "2018": 102.6650706001081
+      }
+    }
+  },
+  "minimum_coverage_percent": 74.98385859774912,
+  "sensitivity": {
+    "10": {
+      "status": "DERIVED_FROM_VERIFIED_AGGREGATED_RASTER",
+      "analysis_crs": "EPSG:3006",
+      "cell_m": 25,
+      "axis_classes_gran_tall": [
+        "10/90",
+        "20/80",
+        "30/70",
+        "40/60",
+        "50/50",
+        "60/40",
+        "70/30",
+        "80/20",
+        "90/10"
+      ],
+      "threshold_min_cells_per_balance_class_in_each_stratum": 10,
+      "common_support_strata_count": 11,
+      "total_possible_strata": 30,
+      "common_support_strata": [
+        {
+          "age_2010": "20-40",
+          "total_volume_2010": "0-50",
+          "pooled_cells_all_classes": 96234,
+          "standard_weight": 0.0662362601435759
+        },
+        {
+          "age_2010": "20-40",
+          "total_volume_2010": "50-100",
+          "pooled_cells_all_classes": 121033,
+          "standard_weight": 0.08330499900198914
+        },
+        {
+          "age_2010": "20-40",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 6429,
+          "standard_weight": 0.004424973673161767
+        },
+        {
+          "age_2010": "40-60",
+          "total_volume_2010": "50-100",
+          "pooled_cells_all_classes": 236292,
+          "standard_weight": 0.16263584992669783
+        },
+        {
+          "age_2010": "40-60",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 110862,
+          "standard_weight": 0.07630446902380772
+        },
+        {
+          "age_2010": "60-80",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 306005,
+          "standard_weight": 0.21061814727887176
+        },
+        {
+          "age_2010": "60-80",
+          "total_volume_2010": "200-300",
+          "pooled_cells_all_classes": 26844,
+          "standard_weight": 0.018476278314256415
+        },
+        {
+          "age_2010": "80-100",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 247443,
+          "standard_weight": 0.17031089759031998
+        },
+        {
+          "age_2010": "80-100",
+          "total_volume_2010": "200-300",
+          "pooled_cells_all_classes": 139866,
+          "standard_weight": 0.09626743937944372
+        },
+        {
+          "age_2010": "100-140",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 90733,
+          "standard_weight": 0.062450013421525376
+        },
+        {
+          "age_2010": "100-140",
+          "total_volume_2010": "200-300",
+          "pooled_cells_all_classes": 71149,
+          "standard_weight": 0.04897067224635038
+        }
+      ],
+      "standard_population_total_cells": 1452890,
+      "target_distribution": "Pooled cell-count age × 2010-volume distribution in common-support strata, same target for all 9 balance classes",
+      "estimand": "Ratio of standardized mean dry biomass density 2018 versus 2010, not mean of cell ratios and not growth or causal species effect",
+      "standardized_by_balance_class": {
+        "10/90": {
+          "total_cells": 280335,
+          "shared_cells": 210363,
+          "coverage_percent": 75.03986302102841,
+          "raw_2018_vs_2010_percent": 3.988845796519147,
+          "shared_unstandardized_percent": 2.481124711155447,
+          "standardized_2018_vs_2010_percent": -5.217941171358431,
+          "standardized_density_tTS_per_ha": {
+            "2010": 75.5903989826628,
+            "2015": 71.96985720987604,
+            "2018": 71.64613643255234
+          }
+        },
+        "20/80": {
+          "total_cells": 316123,
+          "shared_cells": 266181,
+          "coverage_percent": 84.20171895116775,
+          "raw_2018_vs_2010_percent": 9.6578521929249,
+          "shared_unstandardized_percent": 7.468981218744619,
+          "standardized_2018_vs_2010_percent": 0.9213500204463765,
+          "standardized_density_tTS_per_ha": {
+            "2010": 85.43755078650636,
+            "2015": 81.4374902430536,
+            "2018": 86.22472967814672
+          }
+        },
+        "30/70": {
+          "total_cells": 357454,
+          "shared_cells": 333561,
+          "coverage_percent": 93.3157832895981,
+          "raw_2018_vs_2010_percent": 3.4849415857661548,
+          "shared_unstandardized_percent": 2.745831880741445,
+          "standardized_2018_vs_2010_percent": 0.6906848112818054,
+          "standardized_density_tTS_per_ha": {
+            "2010": 93.80456168712678,
+            "2015": 86.7445108472057,
+            "2018": 94.45245554698923
+          }
+        },
+        "40/60": {
+          "total_cells": 294865,
+          "shared_cells": 285309,
+          "coverage_percent": 96.7591948857952,
+          "raw_2018_vs_2010_percent": -2.1932614349918222,
+          "shared_unstandardized_percent": -2.347420977734571,
+          "standardized_2018_vs_2010_percent": 0.4781198442236123,
+          "standardized_density_tTS_per_ha": {
+            "2010": 99.15518407937037,
+            "2015": 90.13331575676413,
+            "2018": 99.6292646910303
+          }
+        },
+        "50/50": {
+          "total_cells": 184222,
+          "shared_cells": 180539,
+          "coverage_percent": 98.00078166559912,
+          "raw_2018_vs_2010_percent": -5.832158208961014,
+          "shared_unstandardized_percent": -5.927712156163012,
+          "standardized_2018_vs_2010_percent": -0.4339399304210567,
+          "standardized_density_tTS_per_ha": {
+            "2010": 102.30926536205159,
+            "2015": 91.30252732158428,
+            "2018": 101.86530460712521
+          }
+        },
+        "60/40": {
+          "total_cells": 100507,
+          "shared_cells": 98712,
+          "coverage_percent": 98.21405474245574,
+          "raw_2018_vs_2010_percent": -9.280965392535045,
+          "shared_unstandardized_percent": -9.000266159603754,
+          "standardized_2018_vs_2010_percent": -2.7016237437475166,
+          "standardized_density_tTS_per_ha": {
+            "2010": 105.474744259679,
+            "2015": 91.37619709769453,
+            "2018": 102.62521352510254
+          }
+        },
+        "70/30": {
+          "total_cells": 50393,
+          "shared_cells": 49319,
+          "coverage_percent": 97.8687516123271,
+          "raw_2018_vs_2010_percent": -12.5072481271147,
+          "shared_unstandardized_percent": -11.610779970421902,
+          "standardized_2018_vs_2010_percent": -5.579844842666248,
+          "standardized_density_tTS_per_ha": {
+            "2010": 108.37499603589397,
+            "2015": 90.58627108331154,
+            "2018": 102.32783940884539
+          }
+        },
+        "80/20": {
+          "total_cells": 22824,
+          "shared_cells": 19916,
+          "coverage_percent": 87.25902558710129,
+          "raw_2018_vs_2010_percent": -20.63424080323116,
+          "shared_unstandardized_percent": -12.472897282319007,
+          "standardized_2018_vs_2010_percent": -6.569266272794916,
+          "standardized_density_tTS_per_ha": {
+            "2010": 108.88367367994042,
+            "2015": 89.49434755867881,
+            "2018": 101.73081522830401
+          }
+        },
+        "90/10": {
+          "total_cells": 10474,
+          "shared_cells": 8990,
+          "coverage_percent": 85.83158296734771,
+          "raw_2018_vs_2010_percent": -16.2171448653709,
+          "shared_unstandardized_percent": 0.5220003445756349,
+          "standardized_2018_vs_2010_percent": -7.964925441438552,
+          "standardized_density_tTS_per_ha": {
+            "2010": 111.48479944017399,
+            "2015": 90.38586624124464,
+            "2018": 102.60511828622683
+          }
+        }
+      },
+      "minimum_coverage_percent": 75.03986302102841
+    },
+    "100": {
+      "status": "DERIVED_FROM_VERIFIED_AGGREGATED_RASTER",
+      "analysis_crs": "EPSG:3006",
+      "cell_m": 25,
+      "axis_classes_gran_tall": [
+        "10/90",
+        "20/80",
+        "30/70",
+        "40/60",
+        "50/50",
+        "60/40",
+        "70/30",
+        "80/20",
+        "90/10"
+      ],
+      "threshold_min_cells_per_balance_class_in_each_stratum": 100,
+      "common_support_strata_count": 9,
+      "total_possible_strata": 30,
+      "common_support_strata": [
+        {
+          "age_2010": "20-40",
+          "total_volume_2010": "0-50",
+          "pooled_cells_all_classes": 96234,
+          "standard_weight": 0.06778870639052646
+        },
+        {
+          "age_2010": "20-40",
+          "total_volume_2010": "50-100",
+          "pooled_cells_all_classes": 121033,
+          "standard_weight": 0.0852575025517446
+        },
+        {
+          "age_2010": "40-60",
+          "total_volume_2010": "50-100",
+          "pooled_cells_all_classes": 236292,
+          "standard_weight": 0.16644771089667143
+        },
+        {
+          "age_2010": "40-60",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 110862,
+          "standard_weight": 0.07809289406931588
+        },
+        {
+          "age_2010": "60-80",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 306005,
+          "standard_weight": 0.21555461790046188
+        },
+        {
+          "age_2010": "80-100",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 247443,
+          "standard_weight": 0.17430264641801274
+        },
+        {
+          "age_2010": "80-100",
+          "total_volume_2010": "200-300",
+          "pooled_cells_all_classes": 139866,
+          "standard_weight": 0.09852375675974576
+        },
+        {
+          "age_2010": "100-140",
+          "total_volume_2010": "100-200",
+          "pooled_cells_all_classes": 90733,
+          "standard_weight": 0.06391371757312007
+        },
+        {
+          "age_2010": "100-140",
+          "total_volume_2010": "200-300",
+          "pooled_cells_all_classes": 71149,
+          "standard_weight": 0.05011844744040118
+        }
+      ],
+      "standard_population_total_cells": 1419617,
+      "target_distribution": "Pooled cell-count age × 2010-volume distribution in common-support strata, same target for all 9 balance classes",
+      "estimand": "Ratio of standardized mean dry biomass density 2018 versus 2010, not mean of cell ratios and not growth or causal species effect",
+      "standardized_by_balance_class": {
+        "10/90": {
+          "total_cells": 280335,
+          "shared_cells": 210124,
+          "coverage_percent": 74.95460787985803,
+          "raw_2018_vs_2010_percent": 3.988845796519147,
+          "shared_unstandardized_percent": 2.490227219115404,
+          "standardized_2018_vs_2010_percent": -4.727736178234865,
+          "standardized_density_tTS_per_ha": {
+            "2010": 74.46429848527832,
+            "2015": 71.42704048871636,
+            "2018": 70.94382290592102
+          }
+        },
+        "20/80": {
+          "total_cells": 316123,
+          "shared_cells": 264478,
+          "coverage_percent": 83.66300458998555,
+          "raw_2018_vs_2010_percent": 9.6578521929249,
+          "shared_unstandardized_percent": 7.6667925287842165,
+          "standardized_2018_vs_2010_percent": 1.5241490433902438,
+          "standardized_density_tTS_per_ha": {
+            "2010": 84.48654281332483,
+            "2015": 81.105463488862,
+            "2018": 85.77424364740762
+          }
+        },
+        "30/70": {
+          "total_cells": 357454,
+          "shared_cells": 324858,
+          "coverage_percent": 90.88106441668019,
+          "raw_2018_vs_2010_percent": 3.4849415857661548,
+          "shared_unstandardized_percent": 3.510263228599708,
+          "standardized_2018_vs_2010_percent": 1.2427426117324503,
+          "standardized_density_tTS_per_ha": {
+            "2010": 92.98230168410622,
+            "2015": 86.49892553469698,
+            "2018": 94.13783236850423
+          }
+        },
+        "40/60": {
+          "total_cells": 294865,
+          "shared_cells": 275621,
+          "coverage_percent": 93.473623522629,
+          "raw_2018_vs_2010_percent": -2.1932614349918222,
+          "shared_unstandardized_percent": -1.9545022083590102,
+          "standardized_2018_vs_2010_percent": 0.9860482144668392,
+          "standardized_density_tTS_per_ha": {
+            "2010": 98.37662761741788,
+            "2015": 89.89563515348617,
+            "2018": 99.34666859749211
+          }
+        },
+        "50/50": {
+          "total_cells": 184222,
+          "shared_cells": 175089,
+          "coverage_percent": 95.04239450228529,
+          "raw_2018_vs_2010_percent": -5.832158208961014,
+          "shared_unstandardized_percent": -5.447324752535065,
+          "standardized_2018_vs_2010_percent": 0.06764196363771013,
+          "standardized_density_tTS_per_ha": {
+            "2010": 101.5027176272381,
+            "2015": 91.08173680554496,
+            "2018": 101.5713760585868
+          }
+        },
+        "60/40": {
+          "total_cells": 100507,
+          "shared_cells": 94600,
+          "coverage_percent": 94.12279741709533,
+          "raw_2018_vs_2010_percent": -9.280965392535045,
+          "shared_unstandardized_percent": -8.353711404594243,
+          "standardized_2018_vs_2010_percent": -2.2066883040951613,
+          "standardized_density_tTS_per_ha": {
+            "2010": 104.65173599298097,
+            "2015": 91.19422589535979,
+            "2018": 102.34239837479132
+          }
+        },
+        "70/30": {
+          "total_cells": 50393,
+          "shared_cells": 46896,
+          "coverage_percent": 93.06054412319172,
+          "raw_2018_vs_2010_percent": -12.5072481271147,
+          "shared_unstandardized_percent": -10.903543050479303,
+          "standardized_2018_vs_2010_percent": -5.096964902683498,
+          "standardized_density_tTS_per_ha": {
+            "2010": 107.50853237781666,
+            "2015": 90.37600163830984,
+            "2018": 102.02886021512923
+          }
+        },
+        "80/20": {
+          "total_cells": 22824,
+          "shared_cells": 19285,
+          "coverage_percent": 84.49439186820891,
+          "raw_2018_vs_2010_percent": -20.63424080323116,
+          "shared_unstandardized_percent": -11.836565407879895,
+          "standardized_2018_vs_2010_percent": -6.003064341677133,
+          "standardized_density_tTS_per_ha": {
+            "2010": 107.90566919341627,
+            "2015": 89.24109531766537,
+            "2018": 101.42802244341821
+          }
+        },
+        "90/10": {
+          "total_cells": 10474,
+          "shared_cells": 8666,
+          "coverage_percent": 82.73820889822417,
+          "raw_2018_vs_2010_percent": -16.2171448653709,
+          "shared_unstandardized_percent": 1.568925023251233,
+          "standardized_2018_vs_2010_percent": -7.212176655525438,
+          "standardized_density_tTS_per_ha": {
+            "2010": 110.413997808359,
+            "2015": 90.25953351848321,
+            "2018": 102.45074523399217
+          }
+        }
+      },
+      "minimum_coverage_percent": 74.95460787985803
+    }
+  }
+}
