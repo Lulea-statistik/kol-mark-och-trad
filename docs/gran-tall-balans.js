@@ -159,3 +159,41 @@ fetch(sourceURL,{cache:'no-store'}).then(r=>{
     ' Diagrammen visas först när originalrasteranalysen har körts och publicerat verifierad JSON.';
 });
 })();
+
+/* Standardized result is published only after GitHub Actions verifies
+ * consistency with the independently verified 2010–2018 raster summaries.
+ * The chart never substitutes synthetic observations. */
+(function(){
+  'use strict';
+  const status=document.getElementById('granTallStandardStatus');
+  const table=document.getElementById('granTallStandardTable');
+  const canvas=document.getElementById('granTallStandardChart');
+  if(!status||!table||!canvas)return;
+  const fmt=(x,n=1)=>Number(x).toLocaleString('sv-SE',{minimumFractionDigits:n,maximumFractionDigits:n});
+  fetch('data/gran_tall_standardisering_2010_2018.json',{cache:'no-store'})
+    .then(r=>{if(!r.ok)throw Error('den verifierade standardiseringen är ännu inte publicerad');return r.json()})
+    .then(data=>{
+      if(data.status!=='DERIVED_FROM_VERIFIED_AGGREGATED_RASTER'||data.analysis_crs!=='EPSG:3006'
+         ||data.common_support_strata_count<1||data.axis_classes_gran_tall.length!==9)
+        throw Error('ofullständig eller ogiltig standardiseringsfil');
+      const labels=data.axis_classes_gran_tall;
+      const vals=labels.map(label=>data.standardized_by_balance_class[label]);
+      status.textContent='Gemensamt stöd: '+data.common_support_strata_count+' av '+data.total_possible_strata+
+        ' ålders–volymgrupper; gemensam referensfördelning med '+fmt(data.standard_population_total_cells,0)+
+        ' celler. Lägsta klassvisa täckningsgrad: '+fmt(data.minimum_coverage_percent)+' %. Minst 30 celler i var och en av nio klasser per stratum.';
+      table.innerHTML='<table><caption>Observerad modellkvot och direkt standardiserad modellkvot, samma celler 2010 och 2018</caption>'+
+      '<thead><tr><th>Gran/tall</th><th>Alla celler (%)</th><th>Gemensamt stöd, oviktad (%)</th><th>Standardiserad (%)</th><th>Täckning (%)</th></tr></thead><tbody>'+
+      labels.map((label,i)=>'<tr><th>'+label+'</th><td>'+fmt(vals[i].raw_2018_vs_2010_percent,2)+'</td>'+
+      '<td>'+fmt(vals[i].shared_unstandardized_percent,2)+'</td>'+
+      '<td><strong>'+fmt(vals[i].standardized_2018_vs_2010_percent,2)+'</strong></td>'+
+      '<td>'+fmt(vals[i].coverage_percent,1)+'</td></tr>').join('')+'</tbody></table>';
+      if(typeof Chart==='undefined')return;
+      new Chart(canvas,{type:'line',data:{labels,datasets:[
+        {label:'Utan standardisering',data:vals.map(v=>v.raw_2018_vs_2010_percent),borderColor:'#a95b39',backgroundColor:'#a95b39',borderWidth:2,pointRadius:4,tension:0},
+        {label:'Standardiserad ålder och volym',data:vals.map(v=>v.standardized_2018_vs_2010_percent),borderColor:'#216c66',backgroundColor:'#216c66',borderWidth:3,pointRadius:5,tension:0}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{
+        label:c=>c.dataset.label+': '+fmt(c.parsed.y,2)+' %; täckning '+fmt(vals[c.dataIndex].coverage_percent,1)+' %'}}},
+        scales:{x:{title:{display:true,text:'Modellerad gran/tall-balans 2010'}},
+        y:{title:{display:true,text:'Skillnad modellerad biomassa 2018/2010 (%)'}}}}});
+    }).catch(err=>{status.textContent='Standardiseringen visas när resultatfilen godkänts och publicerats: '+err.message;});
+})();
