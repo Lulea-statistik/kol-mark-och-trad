@@ -53,3 +53,21 @@ Den första egna SI-statistiken ska **inte** utlösa någon justering av 2010. N
 - Visa skillnader mot ursprungliga 2010 och fältreferenser, osäkerhetsintervall och rumsligt valideringsurval. Om resultaten är robusta kan ett **separat alternativraster** få bli förvalt analyslager, medan originalrastret förblir tillgängligt och alla antaganden redovisas.
 
 **Viktig begränsning:** I detta steg har ingen källa för faktiska SI-värden i Luleå kunnat öppnas som GeoTIFF. Det vore fel att rapportera ett lokalt medelvärde eller kalibrera en åldersmodell redan nu.
+
+
+## Senaste åtkomstkontroll (27 november 2026; PR #136)
+
+Skogsstyrelsens officiella sidor visar de två Norrbottensarkiven `sks_SISTall25.zip` och `sks_SISGran25.zip` med deklarerat koordinatsystem EPSG:3006. Skogsstyrelsens geodatatjänster anger dock att **användarkonto behövs för nedladdning eller användning av rasterdata i egna system**. Försök att nå Atom-XML direkt från analysmiljön gav inte tillgång till några rasterfiler. Detta är en **åtkomstbegränsning**, inte belägg för att något länsarkiv saknas.
+
+För att undvika att anta enhet eller käll-CRS från filnamn finns nu `scripts/inspect_sis_zip.py`. När båda originalarkiven laddats ned med ett behörigt konto kan filernas **verkliga rastermetadata** kontrolleras lokalt utan uppladdning eller vidareförmedling:
+
+```bash
+python scripts/inspect_sis_zip.py \
+  --pine-zip /lokal/sks_SISTall25.zip \
+  --spruce-zip /lokal/sks_SISGran25.zip \
+  --output metadata/standortsindex_archives_qa.json
+```
+
+Skriptet redovisar rasterformat, faktiskt CRS/EPSG, upplösning, NoData, GDAL-skala/offset och rasterutbredning; felaktigt CRS avvisas. Inga fysiska pixelvärden, lokala medelindex eller bonitet beräknas. En syntetisk CI-kontroll verifierar metadatainspektion och osäkra ZIP-sökvägar. **Lägg inte originalarkiven i ett publikt GitHub-repo** innan rättigheterna för vidareförmedling är klarlagda.
+
+När båda filerna finns tillgängliga kan den befintliga rutinen `scripts/prepare_lulea_site_index.py` köras med tillåten lokal åtkomst, Luleå-klippt referensraster och binär NMD-skogsmask. Ett 2025 års ståndortsindex är ett modellunderlag, inte ett lokalt fältmått på bonitet kring 2010. Den biologiska tillväxtmodellen och eventuell substitutserie för 2010 är därför fortfarande **inte validerade**.
