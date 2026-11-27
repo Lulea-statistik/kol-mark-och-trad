@@ -185,6 +185,39 @@ jobs:
                         'from_pine',result['2010_spruce_previously_pine'],
                         'from_neither',result['2010_spruce_previously_neither'],
                         'from_low',result['2010_spruce_previously_invalid_or_low'])
+          shares=d['continuous_species_shares']
+          names=['lt_minus_30pp','minus_30_to_minus_15pp',
+                 'minus_15_to_minus_5pp','minus_5_to_plus_5pp',
+                 'plus_5_to_plus_15pp','plus_15_to_plus_30pp','gt_plus_30pp']
+          for scope,groups in shares.items():
+              for flag,ages in groups.items():
+                  for age,classes in ages.items():
+                      expected=older[scope][flag]['all'][age]['cells']
+                      for species in ('pine','spruce'):
+                          x=classes[species]
+                          assert x['eligible_parent_cells']==expected
+                          assert x['cells']+x['excluded_low_or_invalid_total_volume_cells']==expected
+                          assert sum(x['delta_distribution_cells'][v] for v in names)==x['cells']
+                          assert all(0<=x[k]<=x['cells'] for k in (
+                              'near_60pct_plus_minus_5pp_2005_cells',
+                              'near_60pct_plus_minus_5pp_2010_cells',
+                              'crossed_60pct_threshold_cells',
+                              'component_over_100pct_2005_cells',
+                              'component_over_100pct_2010_cells'))
+                          assert math.isclose(x['mean_share_2010_pct']-
+                              x['mean_share_2005_pct'],
+                              x['mean_delta_percentage_points'],abs_tol=1e-8)
+                          assert x['mean_absolute_delta_percentage_points']+1e-9>=abs(x['mean_delta_percentage_points'])
+          for age,classes in shares['nmd2018_forest']['no_recorded_harvest'].items():
+              for species in ('pine','spruce'):
+                  x=classes[species]
+                  print('CONTINUOUS_SPECIES_SHARE',age,species,
+                      'n',x['cells'],'mean2005',x['mean_share_2005_pct'],
+                      'mean2010',x['mean_share_2010_pct'],
+                      'delta_pp',x['mean_delta_percentage_points'],
+                      'mean_abs_delta_pp',x['mean_absolute_delta_percentage_points'],
+                      'cross60',x['crossed_60pct_threshold_cells'],
+                      'bins',x['delta_distribution_cells'])
           balance=d['gran_tall_balance']
           web=json.loads(Path('docs/data/gran_tall_balans_2005_2010.json').read_text())
           assert web['cohorts']==balance
@@ -225,7 +258,6 @@ jobs:
             docs/data/gran_tall_balans_2005_2010.json
           if-no-files-found: warn
           retention-days: 90
-
       - name: Commit verified gran/tall balance JSON on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
