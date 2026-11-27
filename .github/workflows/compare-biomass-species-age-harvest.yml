@@ -157,6 +157,38 @@ jobs:
                         'from_pine',result['2010_spruce_previously_pine'],
                         'from_neither',result['2010_spruce_previously_neither'],
                         'from_low',result['2010_spruce_previously_invalid_or_low'])
+          shares=d['continuous_species_shares']
+          names=['lt_minus_30pp','minus_30_to_minus_15pp',
+                 'minus_15_to_minus_5pp','minus_5_to_plus_5pp',
+                 'plus_5_to_plus_15pp','plus_15_to_plus_30pp','gt_plus_30pp']
+          for scope,groups in shares.items():
+              for flag,ages in groups.items():
+                  for age,classes in ages.items():
+                      expected=older[scope][flag]['all'][age]['cells']
+                      for species in ('pine','spruce'):
+                          x=classes[species]
+                          assert x['cells']==expected
+                          assert sum(x['delta_distribution_cells'][v] for v in names)==expected
+                          assert all(0<=x[k]<=expected for k in (
+                              'near_60pct_plus_minus_5pp_2005_cells',
+                              'near_60pct_plus_minus_5pp_2010_cells',
+                              'crossed_60pct_threshold_cells',
+                              'component_over_100pct_2005_cells',
+                              'component_over_100pct_2010_cells'))
+                          assert math.isclose(x['mean_share_2010_pct']-
+                              x['mean_share_2005_pct'],
+                              x['mean_delta_percentage_points'],abs_tol=1e-8)
+                          assert x['mean_absolute_delta_percentage_points']+1e-9>=abs(x['mean_delta_percentage_points'])
+          for age,classes in shares['nmd2018_forest']['no_recorded_harvest'].items():
+              for species in ('pine','spruce'):
+                  x=classes[species]
+                  print('CONTINUOUS_SPECIES_SHARE',age,species,
+                      'n',x['cells'],'mean2005',x['mean_share_2005_pct'],
+                      'mean2010',x['mean_share_2010_pct'],
+                      'delta_pp',x['mean_delta_percentage_points'],
+                      'mean_abs_delta_pp',x['mean_absolute_delta_percentage_points'],
+                      'cross60',x['crossed_60pct_threshold_cells'],
+                      'bins',x['delta_distribution_cells'])
           forest=older['nmd2018_forest']['no_recorded_harvest']
           for t in (20,60,80,100):
               k=f'age_ge{t}'
