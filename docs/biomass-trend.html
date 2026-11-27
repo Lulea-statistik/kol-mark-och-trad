@@ -120,12 +120,30 @@
 <tr><td>≥100 år</td><td>3 414,38</td><td>−15,19 %</td><td>49,31</td><td>−37,75 %</td></tr>
 </tbody></table></div>
 <p>Den negativa åldersgradienten för tall kvarstår vid stabil klassning. För gran finns bara <strong>789 celler (49,31 ha) från minst 100 års ålder</strong>, så den stora procentuella skillnaden har ett begränsat urval. En uppföljande kontroll ska särskilja klassbyte, låg volym och effekten av dominanströskeln. För 2010 års lövvolym gäller fortfarande osäkerheter kring <code>DECIDUOUSVOL</code> och <code>BIRCHVOL</code>; här används enbart tall och gran.</p>
+<h3>Tröskelkänslighet: modellerad stabil gran 2005–2010</h3>
+<p><strong>Verifierad i <a href="https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45965534583">PR #121:s godkända rasterkörning</a>.</strong> För skog med modellerad ålder minst 100 år 2010, NMD2018-skog och ingen registrerad avverkning 2011–2018 visar tabellen hur många celler som klassas som grandominerade båda åren när gränsen ändras. Åldersurvalet i denna diagnostik omfattar 172 028 gemensamma celler (10 751,75 ha).</p>
+<div class="table-scroll"><table><thead><tr><th>Dominansgräns båda åren</th><th>Gran 2005 (celler)</th><th>Gran 2010 (celler)</th><th>Stabil gran (celler)</th><th>Stabil gran (ha)</th></tr></thead><tbody>
+<tr><td>≥40 %</td><td>12 955</td><td>32 138</td><td>6 677</td><td>417,31</td></tr>
+<tr><td>≥50 %</td><td>12 532</td><td>27 089</td><td>7 571</td><td>473,19</td></tr>
+<tr><td>≥60 %</td><td>1 704</td><td>16 294</td><td>789</td><td>49,31</td></tr>
+<tr><td>≥70 %</td><td>165</td><td>10 107</td><td>51</td><td>3,19</td></tr>
+</tbody></table></div>
+<div class="chart-wrap" style="height:310px"><canvas id="olderForestSpruceThresholdChart" aria-label="Stabila granceller vid 40 50 60 och 70 procent dominansgräns"></canvas></div>
+<p><strong>Varning för klassificeringseffekt:</strong> Vid 40 % kan tall och gran uppfylla gränsen samtidigt. Diagnostiken ger då tall företräde, vilket gör att stabil gran <em>inte</em> behöver öka när gränsen sänks. På 60 %-nivån klassas 13 197 av 2010 års 16 294 granceller som varken tall- eller grandominerade 2005, medan 2 180 klassas som tall. Det visar modellernas klassificering, inte observerade trädslagsbyten.</p>
+<p>En ny kompletterande rasterdiagnostik analyserar därför <strong>kontinuerlig andel av TOTALVOL för tall och gran</strong> under 2005–2010: medelförändring i procentenheter, genomsnittlig absolut förändring, klassgränspassager och fördelning av ändringarnas storlek. Resultaten publiceras först när rasterkörningen verifierats.</p>
 <p class="hint"><a href="https://github.com/Lulea-statistik/kol-mark-och-trad/blob/main/docs/biomassa-2010-2018-verifierad-art-alder-avverkning-resultat.md">Fullständig dokumentation av urval, metod och osäkerheter</a>. Raster-CRS: 2010 EPSG:3021, 2015/2018 och NMD2018 EPSG:3006. All rasterdata är fullt omprojicerad till EPSG:3006, 25 m före analys.</p>
 </section>
 <script>
 (function(){const el=document.getElementById('olderForestModelDifferenceChart');
 if(!el||typeof Chart==='undefined')return;
 new Chart(el,{type:'bar',data:{labels:['≥20 år','≥60 år','≥80 år','≥100 år'],datasets:[{label:'Modellskillnad 2018/2010, %',data:[-0.372095,-11.988505,-17.137088,-22.831009],backgroundColor:'#3c8061'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:c=>c.parsed.y.toLocaleString('sv-SE',{maximumFractionDigits:2})+' %'}}},scales:{y:{max:0,title:{display:true,text:'Skillnad 2018/2010 (%)'}}}}});
+})();
+</script>
+<script>
+(function(){
+const el=document.getElementById('olderForestSpruceThresholdChart');
+if(!el||typeof Chart==='undefined')return;
+new Chart(el,{type:'bar',data:{labels:['40 %','50 %','60 %','70 %'],datasets:[{label:'Stabil gran, ha',data:[417.3125,473.1875,49.3125,3.1875],backgroundColor:'#357e63'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:c=>c.parsed.y.toLocaleString('sv-SE',{maximumFractionDigits:2})+' ha'}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Hektar'}}}}});
 })();
 </script>
 <section id="biomass-forest-only-nmd2018">
