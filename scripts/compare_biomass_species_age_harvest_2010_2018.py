@@ -137,6 +137,12 @@ def run(args):
     controlled_counts=np.zeros((len(CONTROL_AGES),len(CONTROL_VOL),9),dtype="int64")
     controlled_mass={y:np.zeros_like(controlled_counts,dtype="float64") for y in YEARS}
     controlled_covered=np.zeros((9,),dtype="int64")
+    # 25-unit fine bins preserve information for alternative 25/50/100 width
+    # classifications without reloading rasters. Do not infer values within bins.
+    FINE_EDGES=tuple(range(0,401,25))+(float("inf"),)
+    fine_counts=np.zeros((len(CONTROL_AGES),len(FINE_EDGES)-1,9),dtype="int64")
+    fine_mass={y:np.zeros_like(fine_counts,dtype="float64") for y in YEARS}
+
     balance_excluded={age:0 for age in (20,60,80,100)}
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
@@ -236,6 +242,15 @@ def run(args):
                                     controlled_counts[ai,vi,:]+=np.bincount(cl,minlength=9)
                                     for year in YEARS:
                                         controlled_mass[year][ai,vi,:]+=np.bincount(
+                                            cl,weights=data["bio_"+year][fixed],minlength=9)*.0625
+                            for ai,(amin,amax) in enumerate(CONTROL_AGES):
+                                for vi,(vmin,vmax) in enumerate(zip(FINE_EDGES[:-1],FINE_EDGES[1:])):
+                                    fixed=ctlbase&(data["age"]>=amin)&(data["age"]<amax)&(data["vol"]>=vmin)&(data["vol"]<vmax)
+                                    if not fixed.any():continue
+                                    cl=tobin[fixed].astype("int64")
+                                    fine_counts[ai,vi,:]+=np.bincount(cl,minlength=9)
+                                    for year in YEARS:
+                                        fine_mass[year][ai,vi,:]+=np.bincount(
                                             cl,weights=data["bio_"+year][fixed],minlength=9)*.0625
                             for min_age in (20,60,80,100):
                                 candidate=subset&(data["age"]>=min_age)
@@ -498,6 +513,20 @@ def run(args):
         if not np.allclose(controlled_mass[year].sum(axis=(0,1)),balance_mass[20][year],
                            atol=.02,rtol=1e-9):
             raise ValueError("Age-volume biomass totals do not reconcile")
+    if not np.array_equal(fine_counts.sum(axis=(0,1)),controlled_total):
+        raise ValueError("25-unit volume bin population differs from original classification")
+    for year in YEARS:
+        if not np.allclose(fine_mass[year].sum(axis=(0,1)),balance_mass[20][year],
+                           atol=.02,rtol=1e-9):
+            raise ValueError("25-unit volume bin mass totals do not reconcile")
+    fine_output={
+        "age_bins":[f"{a}-{int(b)}" if math.isfinite(b) else "140+" for a,b in CONTROL_AGES],
+        "volume_2010_edges":[int(a) if math.isfinite(a) else None for a in FINE_EDGES],
+        "counts":fine_counts.tolist(),
+        "mass_tTS":{y:fine_mass[y].tolist() for y in YEARS},
+        "total_cells":int(fine_counts.sum()),
+        "volume_unit_caveat":"Uses unscaled source TOTALVOL values; physical unit needs independent metadata confirmation."
+    }
     controlled_output={
         "age_bins":[f"{a}-{int(b)}" if math.isfinite(b) else "140+" for a,b in CONTROL_AGES],
         "volume_2010_bins":[f"{a}-{b}" if math.isfinite(b) else "300+" for a,b in CONTROL_VOL],
@@ -549,7 +578,8 @@ def run(args):
             "source_computation":"SPRUCEVOL/(SPRUCEVOL+PINEVOL) per historical year",
             "forest_mask":"NMD2018 forest, no recorded harvest 2011-2018",
             "cohorts":balance_output,
-            "age_volume_control":controlled_output}
+            "age_volume_control":controlled_output,
+            "fine_volume_control":fine_output}
         args.balance_web_output.parent.mkdir(parents=True,exist_ok=True)
         args.balance_web_output.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 

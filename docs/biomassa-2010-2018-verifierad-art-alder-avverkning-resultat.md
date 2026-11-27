@@ -214,6 +214,40 @@ Rasterkörning [#45981899353](https://github.com/Lulea-statistik/kol-mark-och-tr
 
 **Nästa metodsteg:** Om vi ska kvantifiera återstående trädslagsskillnad mer stringent bör vi även redovisa standardiserad modellskillnad i *enskilda ålder×volym-strata* med gruppstorlek och undersöka påverkan av alternativa volymgränser eller spatialt korrelerade fel. Detta förutsätter att resultaten inte övertolkas som observerad beståndsutveckling.
 
+## Samlad bedömning av 2010 års höga biomassa och möjlig harmonisering (PR #130)
+
+### Vad analyserna faktiskt har visat
+
+1. **Skillnaden mellan modellerade biomassanivåer är inte en verifierad verklig biomassaförändring.** De ingående rasteråren skiljer sig i modellgeneration, upplösning, täckning och trädslags-/åldersunderlag. Jämförelse på samma rasterceller och NMD2018-skog har förbättrat jämförbarheten, men löser inte eventuella systematiska modellfel.
+2. **Klassammansättning är en viktig delförklaring.** Inom NMD2018-skog utan *registrerad* avverkning 2011–2018 visar ojusterade 2018/2010-kvoter i nio gran/tall-klasser skillnader från cirka +10 till −21 %. Direkt ålder–volym-standardisering på gemensamt stöd (10 av 30 strata, minst 30 celler per balansklass) ger cirka +0,8 till −8,0 %. Det är en stor minskning av gran/tall-gradienten efter kontroll av modellerad ålder och virkesvolym 2010.
+3. **En kvarvarande trädslagsrelaterad modellskillnad finns**, men ger inte ett kausalt svar. Ålder, TOTALVOL, granandel och biomassan 2010 är inte oberoende observationer, utan kan dela kalibrering och felkällor. Även 2018 års raster har osäkerhet. Att den standardiserade gradienten är stabil för gränserna 10/30/100 celler (högst ca 0,8 procentenheter) eliminerar inte sådana modellberoenden.
+4. **Skogliga förändringar kan inte uteslutas.** Filter för registrerad avverkning fångar inte nödvändigtvis gallring, andra uttag, naturlig dödlighet, skador och oregistrerade förändringar. NMD2018-skog är inte samma sak som verifierad skog i samtliga historiska år.
+5. **2010 års höga biomassa på andra marktäcken och i vatten samt olika cellstorlek och datatäckning** ska hanteras separat från det kvarvarande modellproblemet på jämförbara skogsceller. En total differens ska därför brytas ned i (a) täcknings-/geometri- och marktäckeeffekt, (b) beståndssammansättning, (c) faktisk skoglig förändring och (d) återstående modellskillnad. Vi kan inte ännu ange säkra procenttal för dessa fyra delar.
+
+### Ny känslighetskontroll: alternativa volymklasser
+
+PR #130 återgår till originalrastren och producerar en **disjunkt 25-enhetersindelning** i modellerad 2010-TOTALVOL (0–25, 25–50, … 375–400, ≥400) för varje icke överlappande åldersklass och gran/tall-balansklass. Det tillåter **exakta grupperingar av samma celler** i intervall om 25, 50 eller 100 enheter, samt tidigare indelning 0–50, 50–100, 100–200, 200–300, ≥300. Ingen interpolering inom tidigare aggregerade klasser förekommer.
+
+Skriptet `scripts/analyze_gran_tall_volume_bins.py` standardiserar mot gemensam ålder–volymfördelning **inom varje alternativ**. Minst 30 celler krävs i samtliga nio balansklasser inom ett inkluderat stratum. Om något alternativ saknar gemensamma strata redovisas **otillräckligt stöd**, aldrig ett konstruerat resultat. Summeringen av 25-bins-population och biomassasummor 2010/2015/2018 måste stämma mot PR #127:s verifierade totalsummor.
+
+**Resultat från de alternativa indelningarna är ännu inte fastställda** före godkänd originalrasterkörning och publicerad ny `docs/data/gran_tall_volymkanslighet_2010_2018.json`.
+
+### Beslutsramverk: kan 2010 korrigeras, och i så fall även andra år?
+
+| Metod | Kan göras nu? | Vad metoden ger | Risk |
+|---|---|---|---|
+| Gemensam area, korrekt CRS, gemensam mask, explicita NoData- och marktäckefilter | **Ja, som jämförelseserie** | Tydligare åtskillnad av täcknings- och jämförbarhetseffekter | Ger inte en korrigerad fysisk biomassamängd |
+| Ålder–volym-standardiserade jämförelser | **Ja, som diagnostik/scenario** | Skillnader i modellerad biomassa när vissa beståndsegenskaper balanseras | Inte oberoende modellkalibrering |
+| Multiplicera 2010 med generell faktor så att året liknar 2018 | **Nej, inte som skattning av faktiskt kolförråd** | Snyggare tidsserie | Bygger in antagande om liten verklig förändring och riskerar systematiskt fel |
+| Modellbaserad harmonisering genom överlappande observationer med verifierad biomassa | **Principiellt möjlig, under ytterligare datakrav** | Potentiell kalibrerad tidsserie med osäkerhet | Kräver fältbaserat referensmaterial, tidssamordning och oberoende validering |
+
+**Minimikrav före en faktisk 2010-korrigering:** (1) verifiera definitioner/enheter och vilka biomassakomponenter som ingår för varje år; (2) oberoende referens, till exempel Riksskogstaxeringens relevant tids- och arealavgränsade skattningar och/eller oberoende provytor; (3) värdera avverkning, gallring, tillväxt och naturlig avgång mellan mättillfällen; (4) pröva kalibreringsrelation på oberoende valideringsdata och kvantifiera fel och osäkerhet per trädslag, ålder och volym; (5) bevara originalrastren och publicera en separat versionerad, metodmärkt *harmoniserad serie* med osäkerhetsintervall, aldrig skriva över originalåren.
+
+**För övriga år:** En kalibrering för enbart 2010 får inte automatiskt extrapoleras till 2000, 2005, 2015 eller 2018. Varje modellgeneration kräver verifierat modell- och referenssamband, alternativt en sammanhållen ommodellering mot samma fältreferens och biomassadefinition. En harmonisering får inte avsiktligt ta bort faktisk avverkning, återväxt eller annan verklig tidsutveckling.
+
+**Samlat omdöme:** Vi har starkare belägg för att *en betydande del av den höga 2010-nivån är kopplad till modell- och urvalsskillnader*, särskilt volym/ålder och skogs-/icke-skogsavgränsning. Vi vet ännu **inte** hur stor del av 2010 års överskott som är metodfel respektive faktisk skoglig förändring. Det saknas därför stöd för att redovisa korrigerade årsvisa biomassa- eller kolförråd som observerade eller verifierade.
+
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.

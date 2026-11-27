@@ -243,3 +243,43 @@ fetch('data/gran_tall_standardisering_2010_2018.json',{cache:'no-store'})
   });
 }).catch(e=>{status.textContent='Känslighetsdiagrammet kan inte visas: '+e.message;});
 })();
+
+/* Sensitivity to alternative 2010 TOTALVOL binning, actual raster results only. */
+(function(){
+'use strict';
+const status=document.getElementById('granTallVolumeSensitivityStatus');
+const canvas=document.getElementById('granTallVolumeSensitivityChart');
+const table=document.getElementById('granTallVolumeSensitivityTable');
+if(!status||!canvas||!table)return;
+const fmt=(v,n=1)=>Number(v).toLocaleString('sv-SE',{minimumFractionDigits:n,maximumFractionDigits:n});
+fetch('data/gran_tall_volymkanslighet_2010_2018.json',{cache:'no-store'})
+.then(r=>{if(!r.ok)throw Error('den verifierade rasterresultatfilen är inte publicerad');return r.json();})
+.then(d=>{
+  if(d.status!=='ALTERNATIVE_VOLUME_BINS_SAME_VERIFIED_RASTER'||d.analysis_crs!=='EPSG:3006'||d.cell_m!==25)
+    throw Error('oväntat resultatformat eller CRS');
+  const specs=[['25','25 enheter','#568293'],['50','50 enheter','#216c66'],
+    ['100','100 enheter','#b06c4b'],['original_50_50_100_100_plus','Tidigare klassgränser','#877b9f']];
+  const labels=['10/90','20/80','30/70','40/60','50/50','60/40','70/30','80/20','90/10'];
+  const valid=specs.filter(([key])=>d.cases[key]?.status==='VERIFIED_AGGREGATE_STANDARDIZATION');
+  const missing=specs.filter(([key])=>d.cases[key]?.status!=='VERIFIED_AGGREGATE_STANDARDIZATION');
+  status.textContent=valid.map(([key,name])=>name+': '+d.cases[key].shared_strata+
+    ' gemensamma ålder–volymgrupper, '+fmt(d.cases[key].target_population_cells,0)+' celler').join('; ')+
+    (missing.length?'. Otillräckligt stöd: '+missing.map(v=>v[1]).join(', '):'')+'.';
+  table.innerHTML='<table><caption>Modellerad biomassaskillnad 2018/2010 efter alternativa TOTALVOL-indelningar</caption>'+
+    '<thead><tr><th>Gran/tall</th>'+specs.map(s=>'<th>'+s[1]+' (%)</th>').join('')+'</tr></thead><tbody>'+
+    labels.map(k=>'<tr><th>'+k+'</th>'+specs.map(([id])=>{
+      const entry=d.cases[id];
+      const v=entry?.by_class?.[k]?.standardized_2018_vs_2010_pct;
+      return '<td>'+(typeof v==='number'?fmt(v,2):'–')+'</td>';
+    }).join('')+'</tr>').join('')+'</tbody></table>';
+  if(!valid.length||typeof Chart==='undefined')return;
+  new Chart(canvas,{type:'line',data:{labels,datasets:valid.map(([key,name,color])=>({
+    label:name,data:labels.map(k=>d.cases[key].by_class[k].standardized_2018_vs_2010_pct),
+    borderColor:color,backgroundColor:color,borderWidth:key==='original_50_50_100_100_plus'?3:2,
+    pointRadius:4,tension:0
+  }))},options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{
+      label:c=>c.dataset.label+': '+fmt(c.parsed.y,2)+' %'}}},
+    scales:{x:{title:{display:true,text:'Gran/tall-balans enligt 2010'}},
+    y:{title:{display:true,text:'Standardiserad biomassaskillnad (%)'}}}}});
+}).catch(err=>{status.textContent='Volymkänsligheten kan inte visas ännu: '+err.message;});
+})();
