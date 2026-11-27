@@ -1,0 +1,48 @@
+name: Publish verified PR133 bonitet scenarios
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-bonitet-backcast.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download successful PR133 scenario artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 46012862972 --repo "${{ github.repository }}" --name bonitet-2010-backcast-scenario-not-calibration --dir verified-artifact
+          test -s verified-artifact/docs/data/bonitet_bakatrakning_scenarier.json
+      - name: Verify provenance, years and never modify original rasters
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          src=json.loads(Path('docs/data/gran_tall_balans_2005_2010.json').read_text())
+          artifact=Path('verified-artifact/docs/data/bonitet_bakatrakning_scenarier.json')
+          scenario=json.loads(artifact.read_text())
+          assert scenario['status']=='ILLUSTRATIVE_NOT_FIELD_CALIBRATED'
+          assert scenario['crs']=='EPSG:3006' and scenario['cell_m']==25
+          assert set(scenario['cohorts'])==set(src['cohorts'])
+          for age,c in scenario['cohorts'].items():
+              assert c['cell_count']==src['cohorts'][age]['cells']
+              for year in ('2010','2015','2018'):
+                  expected=sum(src['cohorts'][age]['2010_balance_class_mass_tTS'][year])
+                  assert math.isclose(c['modeled_mass_tTS'][year],expected,rel_tol=1e-9,abs_tol=.01)
+          Path('docs/data/bonitet_bakatrakning_scenarier.json').write_bytes(artifact.read_bytes())
+          PY
+      - name: Publish separate scenario file
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/bonitet_bakatrakning_scenarier.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish PR133 bonitet illustrative scenario JSON [skip ci]'
+            git push origin HEAD:main
+          fi
