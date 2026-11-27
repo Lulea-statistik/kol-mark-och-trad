@@ -1,4 +1,4 @@
-name: Publish verified gran-tall balance results from PR 127
+name: Publish verified gran-tall balance results from PR 130
 on:
   push:
     branches: [main]
@@ -15,12 +15,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Download exact verified raster results (PR 127)
+      - name: Download exact verified raster results (PR 130)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download 45993561182 --repo "${{ github.repository }}" --name biomass-2010-species-age-harvest-2018-comparison --dir verified-artifact
+          gh run download 46002532933 --repo "${{ github.repository }}" --name biomass-2010-species-age-harvest-2018-comparison --dir verified-artifact
           test -s verified-artifact/docs/data/gran_tall_balans_2005_2010.json
+          test -s verified-artifact/docs/data/gran_tall_volymkanslighet_2010_2018.json
       - name: Verify balance matrix consistency and original CRS
         run: |
           python - <<'PY'
@@ -75,17 +76,53 @@ jobs:
                   observed=sum(mass[a][v][j] for a in range(6) for v in range(5))
                   reference=d['cohorts']['age_ge20']['2010_balance_class_mass_tTS'][year][j]
                   assert math.isclose(observed,reference,rel_tol=1e-9,abs_tol=.02)
-          print('PASS: exact verified PR127 artifact',src.stat().st_size,'bytes')
+          fine=d['fine_volume_control']
+          assert fine['total_cells']==expected['age_ge20'][0]
+          assert fine['volume_2010_edges']==list(range(0,401,25))+[None]
+          fn=fine['counts']
+          assert len(fn)==6 and all(len(row)==17 for row in fn)
+          assert all(len(item)==9 for row in fn for item in row)
+          for j in range(9):
+              assert sum(fn[a][v][j] for a in range(6) for v in range(17))==n_per_balance[j]
+          for year in ('2010','2015','2018'):
+              for j in range(9):
+                  got=sum(fine['mass_tTS'][year][a][v][j] for a in range(6) for v in range(17))
+                  ref=d['cohorts']['age_ge20']['2010_balance_class_mass_tTS'][year][j]
+                  assert math.isclose(got,ref,rel_tol=1e-9,abs_tol=.02)
+          sensitivity_src=Path('verified-artifact/docs/data/gran_tall_volymkanslighet_2010_2018.json')
+          sens=json.loads(sensitivity_src.read_text(encoding='utf-8'))
+          assert sens['status']=='ALTERNATIVE_VOLUME_BINS_SAME_VERIFIED_RASTER'
+          assert sens['analysis_crs']=='EPSG:3006' and sens['cell_m']==25
+          assert sens['source_population_cells']==fine['total_cells']
+          assert set(sens['cases'])=={'25','50','100','original_50_50_100_100_plus'}
+          for case in sens['cases'].values():
+              assert case['status'] in ('VERIFIED_AGGREGATE_STANDARDIZATION','INSUFFICIENT_COMMON_SUPPORT')
+              if case['status']=='VERIFIED_AGGREGATE_STANDARDIZATION':
+                  assert len(case['by_class'])==9
+                  assert 0<case['target_population_cells']<=fine['total_cells']
+                  assert all(0<v['coverage_pct']<=100 for v in case['by_class'].values())
+          prior=json.loads(Path('docs/data/gran_tall_standardisering_2010_2018.json').read_text(encoding='utf-8'))
+          classic=sens['cases']['original_50_50_100_100_plus']
+          assert classic['status']=='VERIFIED_AGGREGATE_STANDARDIZATION'
+          assert classic['shared_strata']==prior['common_support_strata_count']
+          assert classic['target_population_cells']==prior['standard_population_total_cells']
+          for label,entry in classic['by_class'].items():
+              assert math.isclose(entry['standardized_2018_vs_2010_pct'],
+                  prior['standardized_by_balance_class'][label]['standardized_2018_vs_2010_percent'],
+                  rel_tol=1e-9,abs_tol=.001)
+          print('PASS: exact verified PR130 artifact',src.stat().st_size,'bytes')
           dest=Path('docs/data/gran_tall_balans_2005_2010.json')
           dest.parent.mkdir(parents=True,exist_ok=True)
           dest.write_bytes(src.read_bytes())
+          sensitivity_dest=Path('docs/data/gran_tall_volymkanslighet_2010_2018.json')
+          sensitivity_dest.write_bytes(sensitivity_src.read_bytes())
           PY
       - name: Commit published verified result JSON
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/data/gran_tall_balans_2005_2010.json
+          git add docs/data/gran_tall_balans_2005_2010.json docs/data/gran_tall_volymkanslighet_2010_2018.json
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish verified 9x9 gran-tall balance data from PR127 [skip ci]'
+            git commit -m 'Publish verified 9x9 gran-tall balance data from PR130 [skip ci]'
             git push origin HEAD:main
           fi
