@@ -197,3 +197,49 @@ fetch(sourceURL,{cache:'no-store'}).then(r=>{
         y:{title:{display:true,text:'Skillnad modellerad biomassa 2018/2010 (%)'}}}}});
     }).catch(err=>{status.textContent='Standardiseringen visas när resultatfilen godkänts och publicerats: '+err.message;});
 })();
+
+/* Reuse the CI-verified sensitivity scenarios; never synthesize values. */
+(function(){
+'use strict';
+const status=document.getElementById('granTallSensitivityStatus');
+const canvas=document.getElementById('granTallSensitivityChart');
+const table=document.getElementById('granTallSensitivityTable');
+if(!status||!canvas||!table)return;
+const fmt=(v,n=2)=>Number(v).toLocaleString('sv-SE',{minimumFractionDigits:n,maximumFractionDigits:n});
+fetch('data/gran_tall_standardisering_2010_2018.json',{cache:'no-store'})
+.then(r=>{if(!r.ok)throw Error('verifierad resultatfil saknas');return r.json();})
+.then(d=>{
+  const scenarios=[['10',d.sensitivity?.['10']],['30',d],['100',d.sensitivity?.['100']]];
+  if(d.status!=='DERIVED_FROM_VERIFIED_AGGREGATED_RASTER'||
+     scenarios.some(([t,s])=>!s||s.threshold_min_cells_per_balance_class_in_each_stratum!==Number(t))||
+     !Array.isArray(d.axis_classes_gran_tall)||d.axis_classes_gran_tall.length!==9)
+     throw Error('saknade eller oväntade verifierade känslighetsresultat');
+  const labels=d.axis_classes_gran_tall;
+  const colors=['#758fa8','#216c66','#a65a45'];
+  const datasets=scenarios.map(([t,x],i)=>({
+    label:'Minst '+t+' celler per klass',
+    data:labels.map(k=>x.standardized_by_balance_class[k].standardized_2018_vs_2010_percent),
+    borderColor:colors[i],backgroundColor:colors[i],
+    borderWidth:t==='30'?3:2,pointRadius:t==='30'?5:3,tension:0
+  }));
+  status.textContent='Referenspopulation: '+scenarios.map(([t,s])=>
+    t+' celler: '+s.common_support_strata_count+' av 30 grupper, '+fmt(s.standard_population_total_cells,0)+' celler').join('; ')+'. Olika gränser ger delvis olika standardiseringspopulationer.';
+  table.innerHTML='<table><caption>Känslighet för minsta antal celler per gran/tall-klass i varje ålder–volym-grupp</caption>'+
+    '<thead><tr><th scope="col">Gran/tall</th>'+
+    scenarios.map(([t])=>'<th scope="col">Minst '+t+' (%)</th>').join('')+
+    '<th scope="col">Spännvidd (procentenheter)</th></tr></thead><tbody>'+
+    labels.map((label,j)=>{
+      const v=datasets.map(x=>x.data[j]);
+      return '<tr><th scope="row">'+label+'</th>'+
+        v.map(n=>'<td>'+fmt(n)+'</td>').join('')+
+        '<td>'+fmt(Math.max(...v)-Math.min(...v))+'</td></tr>';
+    }).join('')+'</tbody></table>';
+  if(typeof Chart==='undefined')return;
+  new Chart(canvas,{type:'line',data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+' %'}}},
+    scales:{x:{title:{display:true,text:'Gran/tall-balans enligt 2010'}},
+      y:{title:{display:true,text:'Standardiserad biomassaskillnad 2018/2010 (%)'}}}}
+  });
+}).catch(e=>{status.textContent='Känslighetsdiagrammet kan inte visas: '+e.message;});
+})();

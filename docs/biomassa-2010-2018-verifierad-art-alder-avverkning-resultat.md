@@ -186,6 +186,34 @@ Rasterkörning [#45981899353](https://github.com/Lulea-statistik/kol-mark-och-tr
 **Verifiering/publicering:** Datafilen `docs/data/gran_tall_standardisering_2010_2018.json` beräknas från den publicerade rasterfilen, stäms av mot totalsummor och publiceras först efter godkänd GitHub Actions-körning av `.github/workflows/standardize-gran-tall-biomass.yml`. Tabellvärden ovan är en direkt beräkning på det publicerade aggregerade underlaget; diagrammet ska inte visa numeriska värden om den genererade filen saknas.
 
 
+## Känslighetsanalys av standardiseringens minsta cellantal (PR #129)
+
+**Datagrund:** Redan publicerad och verifierad `docs/data/gran_tall_standardisering_2010_2018.json` (från PR #128), där granandelen 2010 är `SPRUCEVOL/(SPRUCEVOL+PINEVOL)`. Samma fasta 25-metersceller i EPSG:3006, NMD2018-skog och ingen registrerad avverkning 2011–2018. Alla nio balansklasser får samma ålder×2010-volymfördelning *inom vart och ett* av känslighetsscenarierna. Minimikravet gäller varje klass i varje gemensamt stratum, inte totalt antal celler.
+
+| Minsta antal celler per klass | Gemensamma ålder–volym-grupper | Gemensam referenspopulation (celler) |
+|---|---:|---:|
+| 10 | 11 av 30 | 1 452 890 |
+| 30 (huvudanalys) | 10 av 30 | 1 446 461 |
+| 100 | 9 av 30 | 1 419 617 |
+
+### Standardiserad modellskillnad 2018/2010 vid olika urvalskrav
+
+| Gran/tall 2010 | Minst 10 celler | Minst 30 celler | Minst 100 celler | Spännvidd |
+|---|---:|---:|---:|---:|
+| 10/90 | −5,22 % | −5,31 % | −4,73 % | 0,58 procentenheter |
+| 20/80 | +0,92 % | +0,80 % | +1,52 % | 0,72 procentenheter |
+| 30/70 | +0,69 % | +0,53 % | +1,24 % | 0,71 procentenheter |
+| 40/60 | +0,48 % | +0,33 % | +0,99 % | 0,66 procentenheter |
+| 50/50 | −0,43 % | −0,55 % | +0,07 % | 0,62 procentenheter |
+| 60/40 | −2,70 % | −2,76 % | −2,21 % | 0,55 procentenheter |
+| 70/30 | −5,58 % | −5,62 % | −5,10 % | 0,52 procentenheter |
+| 80/20 | −6,57 % | −6,62 % | −6,00 % | 0,62 procentenheter |
+| 90/10 | −7,96 % | −7,99 % | −7,21 % | 0,78 procentenheter |
+
+**Tolkning:** Den standardiserade skillnaden är tämligen stabil mot just dessa tre krav på minsta antal celler: största spännvidd mellan scenarierna är knappt **0,8 procentenheter**. Det kvarstående mer negativa mönstret i grandominerade klasser försvinner alltså inte bara genom att flytta celltröskeln från 10 till 100. Däremot varierar referenspopulationen något, och standardiserade kvoter är fortfarande beroende av gemensamma modellfel i ålder, virkesvolym och biomassa. Detta är **ingen inferentiell osäkerhetsanalys, inget konfidensintervall och inget belägg för kausal trädslagseffekt**.
+
+**Nästa metodsteg:** Om vi ska kvantifiera återstående trädslagsskillnad mer stringent bör vi även redovisa standardiserad modellskillnad i *enskilda ålder×volym-strata* med gruppstorlek och undersöka påverkan av alternativa volymgränser eller spatialt korrelerade fel. Detta förutsätter att resultaten inte övertolkas som observerad beståndsutveckling.
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.
