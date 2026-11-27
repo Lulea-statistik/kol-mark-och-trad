@@ -105,6 +105,14 @@ Vid 60 % hade 13 197 av de 16 294 grandominerade 2010-cellerna klassats som **va
 
 **Fortsättning i PR #122:** Beräkna parvisa andelar `PINEVOL/TOTALVOL` och `SPRUCEVOL/TOTALVOL` för 2005 och 2010 på identiska celler. Redovisa medel- och absolut förändring i procentenheter, storleksfördelning, närhet till 60 %-gränsen, tröskelpassager samt fall där en komponent överstiger totalvolymen. Modellskillnad och verklig förändring är fortfarande inte identifierade separat.
 
+## Nio balansklasser gran/tall 2005–2010 – PR #123
+
+Ett kompletterande test ersätter hård tall-/grandominans med en parvis **granandel av tall + gran**: `SPRUCEVOL/(SPRUCEVOL+PINEVOL)`, beräknad separat i 2005 och 2010 års raster. Analysen använder **nio gemensamma balansklasser** 10/90, 20/80, 30/70, 40/60, 50/50, 60/40, 70/30, 80/20, 90/10 (gran/tall). Klasserna har gränser 0–15 %, 15–25 %, …, 85–100 % gran. Andelen är inte en andel av all virkesvolym; övriga arter ingår inte i nämnaren. Endast celler med positiv summa tall + gran båda åren används.
+
+**Utdata:** (a) 9×9-matris över 2005-rad/2010-kolumn, viktad i ha, (b) de båda årens arealfördelning över klasserna, (c) modellerad biomassa 2010 och 2018 i ton TS/ha efter **2010 års** balansklass och per avgränsad, geografiskt identisk population. Cellantal och biomassasummor stäms av programmässigt. Urvalet är NMD2018-skog utan registrerad avverkning 2011–2018, separat för modellerad 2010-ålder ≥20/60/80/100 år. Raster-originalens CRS kontrolleras och hela rastergridden reprojiceras till EPSG:3006, 25 m före analys.
+
+**Tolkningsbegränsning:** Balansklassändringar visar olika rastermodellers skattning, inte verifierade faktiska trädslagsbyten eller biomassaförändringar. 2005 och 2010 års volymskattningar kan ha metodskillnader och reella beståndsförändringar. **Inga numeriska balansresultat publiceras förrän resultat-JSON har genererats och verifierats av GitHub Actions.**
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.
