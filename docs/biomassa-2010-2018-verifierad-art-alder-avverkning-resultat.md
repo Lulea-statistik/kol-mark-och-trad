@@ -75,6 +75,21 @@ För ≥100 år är delgruppens relativa modellskillnad **−17,54 % för tall**
 
 **Nästa test:** För att minska risken att trädslagsbyten och 2010 års klassningsfel driver mönstret samkörs modellen för *2005 och 2010 års trädslagsdominans* med 2010/2018-biomassa, NMD2018 och daterade avverkningar. Stabil **modellerad** dominans är fortfarande inte fältverifierad oförändrad skog.
 
+## Uppföljning PR #120 – stabil modellerad tall och gran 2005–2010
+
+Analysen från den **godkända** [Actions-körningen #45957345496](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/45957345496) samkör 2005 och 2010 års modellerade `PINEVOL`/`SPRUCEVOL` mot `TOTALVOL`. En cell klassas som **stabil tall** eller **stabil gran** endast om samma trädslag svarar för minst **60 % av totalvolymen i båda årgångarna**. Endast NMD2018-skog utan registrerad avverkning 2011–2018 ingår i tabellen. Samma 25-metersceller jämförs i biomassaraster 2010, 2015 och 2018.
+
+| Minsta modellerade ålder 2010 | Stabil tall: ha | Tall: 2018/2010 | Stabil gran: ha | Gran: 2018/2010 |
+|---|---:|---:|---:|---:|
+| ≥20 år | 21 790,56 | −4,67 % | 54,63 | −36,18 % |
+| ≥60 år | 17 336,44 | −8,40 % | 54,31 | −36,23 % |
+| ≥80 år | 11 239,50 | −12,16 % | 54,19 | −36,23 % |
+| ≥100 år | 3 414,38 | −15,19 % | 49,31 | −37,75 % |
+
+**Tolkning:** Tallens åldersgradient kvarstår under kravet på stabil modellerad dominans. Äldre gran visar en stark negativ modellkvot men stabilt granurval är mycket litet: vid ≥100 år endast **789 celler**, jämfört med **54 630 tallceller**. Det går inte att avgöra om detta beror på förändrad faktisk skog, modellernas olika fördelning mellan trädslag, dominansgränsen eller bristande additivitet mellan volymkomponenter.
+
+**Uppföljande metodtest PR #121:** Ursprungliga tall-/granvolymer klassificeras var för sig 2005 och 2010 vid gränserna 40, 50, 60 och 70 % av respektive `TOTALVOL`. En fullständig 4×4-matris över tall, gran, varken tall/gran och ogiltig/låg volym beräknas för varje åldersurval. Denna diagnostik får inte tolkas som faktiskt byte av huvudträdslag eller skogsförlust.
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.
