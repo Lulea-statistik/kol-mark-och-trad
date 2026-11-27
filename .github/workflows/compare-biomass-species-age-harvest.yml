@@ -167,9 +167,10 @@ jobs:
                       expected=older[scope][flag]['all'][age]['cells']
                       for species in ('pine','spruce'):
                           x=classes[species]
-                          assert x['cells']==expected
-                          assert sum(x['delta_distribution_cells'][v] for v in names)==expected
-                          assert all(0<=x[k]<=expected for k in (
+                          assert x['eligible_parent_cells']==expected
+                          assert x['cells']+x['excluded_low_or_invalid_total_volume_cells']==expected
+                          assert sum(x['delta_distribution_cells'][v] for v in names)==x['cells']
+                          assert all(0<=x[k]<=x['cells'] for k in (
                               'near_60pct_plus_minus_5pp_2005_cells',
                               'near_60pct_plus_minus_5pp_2010_cells',
                               'crossed_60pct_threshold_cells',
