@@ -248,6 +248,35 @@ Skriptet `scripts/analyze_gran_tall_volume_bins.py` standardiserar mot gemensam 
 **Samlat omdöme:** Vi har starkare belägg för att *en betydande del av den höga 2010-nivån är kopplad till modell- och urvalsskillnader*, särskilt volym/ålder och skogs-/icke-skogsavgränsning. Vi vet ännu **inte** hur stor del av 2010 års överskott som är metodfel respektive faktisk skoglig förändring. Det saknas därför stöd för att redovisa korrigerade årsvisa biomassa- eller kolförråd som observerade eller verifierade.
 
 
+## Verifierade resultat för alternativa volymklassgränser (PR #130, publicerade 27 november 2026)
+
+Originalrasteranalysen i [GitHub Actions #46002532933](https://github.com/Lulea-statistik/kol-mark-och-trad/actions/runs/46002532933) har slutförts och verifierat både 25-enhetscellerna i `docs/data/gran_tall_balans_2005_2010.json` och `docs/data/gran_tall_volymkanslighet_2010_2018.json`. Samtliga 11 PR-kontroller var godkända. Publiceringen av båda filerna på `main` är kontrollerad.
+
+**Standardiserad modellerad biomassaskillnad 2018 relativt 2010 (%):**
+
+| Gran/tall 2010 | 25-enhetsklasser | 50-enhetsklasser | 100-enhetsklasser | Tidigare klasser |
+|---|---:|---:|---:|---:|
+| 10/90 | −5,70 | −5,09 | −4,13 | −5,31 |
+| 20/80 | −0,63 | +0,25 | +1,60 | +0,80 |
+| 30/70 | +1,35 | +1,41 | +0,94 | +0,53 |
+| 40/60 | +2,27 | +2,00 | +0,61 | +0,33 |
+| 50/50 | +1,89 | +1,68 | −0,35 | −0,55 |
+| 60/40 | −0,79 | −0,55 | −2,39 | −2,76 |
+| 70/30 | −3,98 | −3,20 | −5,25 | −5,62 |
+| 80/20 | −5,61 | −3,52 | −6,51 | −6,62 |
+| 90/10 | −6,84 | −4,91 | −7,62 | −7,99 |
+
+| Volymindelning | Gemensamma strata | Referenspopulation |
+|---|---:|---:|
+| 25 enheter | 25 | 1 349 215 celler |
+| 50 enheter | 15 | 1 419 729 celler |
+| 100 enheter | 9 | 1 474 680 celler |
+| Ursprungliga blandade gränser | 10 | 1 446 461 celler |
+
+**Tolkning:** Det mer negativa mönstret bland de grandominerade klasserna kvarstår med samtliga volymindelningar, men dess storlek påverkas av hur totalvolymen 2010 grupperas. Exempelvis varierar klass 90/10 från −4,91 % (50 enheter) till −7,99 % (tidigare gränser). Samma jämförelsepopulation används **inom** respektive metod, men inte **mellan** de fyra metoderna. Skillnaderna mellan metoder är därför en kombination av binindelning och förändrat gemensamt stöd. En direkt kausal slutsats om gran eller modellbias följer inte av detta.
+
+**Konsekvens för korrigering av 2010 eller andra år:** Vi har nu ökad kunskap om hur modellerad biomassa beror på historiska modellvariabler, men inte en verifierad skattning av faktisk biomassa 2010 eller 2018. Ingen generell multiplicativ justering av 2010 kan motiveras, och ingen faktor kan utan oberoende årsspecifik kalibrering föras över till 2000, 2005, 2015 eller 2018. Det är däremot motiverat att hålla en parallell **harmoniserad jämförelseserie** med samma geometri, täckning och avgränsningar, tydligt åtskild från ursprungsdata och från fältkalibrerade skattningar.
+
 ## Förslag till nästa analys
 
 1. **Åtgärda trädslagsklassificeringen.** Granska originalbetydelsen av `DECIDUOUSVOL` kontra `BIRCHVOL`, samt komponenternas summering mot `TOTALVOL` för 2010. Genomför en diagnostik som visar *varför* så många celler blir oklassade (låg volym, överlappande fraktioner, saknade värden, summeringsgap, ingen art når 60%). Korrigera först efter källverifiering; aldrig hitta på björk- eller lövandelar.
