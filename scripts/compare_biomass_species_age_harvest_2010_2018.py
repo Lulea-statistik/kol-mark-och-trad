@@ -130,6 +130,13 @@ def run(args):
                   for age in (20,60,80,100)}
     balance_transition_mass={age:{year:np.zeros((9,9),dtype="float64") for year in ("2010","2015","2018")}
                              for age in (20,60,80,100)}
+    # Mutually exclusive age x volume strata, with balance class as 3rd axis.
+    # Exact same 25m cells across every modeled year; volume is 2010 model.
+    CONTROL_AGES=((20,40),(40,60),(60,80),(80,100),(100,140),(140,500))
+    CONTROL_VOL=((0,50),(50,100),(100,200),(200,300),(300,float("inf")))
+    controlled_counts=np.zeros((len(CONTROL_AGES),len(CONTROL_VOL),9),dtype="int64")
+    controlled_mass={y:np.zeros_like(controlled_counts,dtype="float64") for y in YEARS}
+    controlled_covered=np.zeros((9,),dtype="int64")
     balance_excluded={age:0 for age in (20,60,80,100)}
     total=new()
     strata=("no_recorded_harvest","recorded_harvest")
@@ -220,6 +227,16 @@ def run(args):
                         if not subset.any():continue
                         add(buckets[(scope,group,"all","all")],subset,data)
                         if scope=="nmd2018_forest" and group=="no_recorded_harvest":
+                            ctlbase=subset & balance_valid & (data["age"]>=20)
+                            for ai,(amin,amax) in enumerate(CONTROL_AGES):
+                                for vi,(vmin,vmax) in enumerate(CONTROL_VOL):
+                                    fixed=ctlbase&(data["age"]>=amin)&(data["age"]<amax)&(data["vol"]>=vmin)&(data["vol"]<vmax)
+                                    if not fixed.any():continue
+                                    cl=tobin[fixed].astype("int64")
+                                    controlled_counts[ai,vi,:]+=np.bincount(cl,minlength=9)
+                                    for year in YEARS:
+                                        controlled_mass[year][ai,vi,:]+=np.bincount(
+                                            cl,weights=data["bio_"+year][fixed],minlength=9)*.0625
                             for min_age in (20,60,80,100):
                                 candidate=subset&(data["age"]>=min_age)
                                 valid=candidate&balance_valid
@@ -474,6 +491,23 @@ def run(args):
                 raise ValueError("Gran/tall biomass mass closure invalid")
         if n!=sum(rows) or n!=sum(cols):
             raise ValueError("Gran/tall balance marginals do not reconcile")
+    controlled_total=controlled_counts.sum(axis=(0,1))
+    if not np.array_equal(controlled_total,balance_counts[20].sum(axis=0)):
+        raise ValueError("Age-volume balance partitions do not reconcile with age_ge20")
+    for year in YEARS:
+        if not np.allclose(controlled_mass[year].sum(axis=(0,1)),balance_mass[20][year],
+                           atol=.02,rtol=1e-9):
+            raise ValueError("Age-volume biomass totals do not reconcile")
+    controlled_output={
+        "age_bins":[f"{a}-{b}" if b<500 else "140+" for a,b in CONTROL_AGES],
+        "volume_2010_bins":[f"{a}-{b}" if math.isfinite(b) else "300+" for a,b in CONTROL_VOL],
+        "volume_measure":"original 2010 TOTALVOL model values (typically m3/ha; verify in source metadata)",
+        "cells_by_age_volume_balance":controlled_counts.tolist(),
+        "mass_tTS_by_age_volume_balance":{y:controlled_mass[y].tolist() for y in YEARS},
+        "population_cells":int(controlled_counts.sum()),
+        "population_area_ha":float(controlled_counts.sum()*.0625),
+        "method":"Nonoverlapping age x 2010 volume bins and 2010 spruce/pine balance class, NMD2018 forest/no registered 2011-2018 harvest; identical original raster cells."
+    }
     result={"status":"DESCRIPTIVE_FIXED_CELL_2010_SPECIES_AGE_RECORDED_HARVEST_STRATIFICATION",
       "date_utc":datetime.now(timezone.utc).isoformat(),
       "analysis_crs":"EPSG:3006","cell_size_m":25,
@@ -483,7 +517,7 @@ def run(args):
       "masks":{scope:{
        "no_recorded_harvest":finish(buckets[(scope,"no_recorded_harvest","all","all")]),
        "recorded_harvest":finish(buckets[(scope,"recorded_harvest","all","all")])} for scope in masks},
-      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,"historic_dominance_diagnostics":dominance_audit,"continuous_species_shares":continuous_shares,"gran_tall_balance":balance_output,
+      "strata":summary,"older_age_cohorts":older,"historic_pine_spruce_stability":historic_stability,"historic_dominance_diagnostics":dominance_audit,"continuous_species_shares":continuous_shares,"gran_tall_balance":balance_output,"controlled_age_volume_balance":controlled_output,
       "gran_tall_balance_method":"2005 and 2010 SPRUCEVOL/(SPRUCEVOL+PINEVOL) 9 bins 10/90 through 90/10; zero joint conifer volume excluded, forest NMD2018 and no recorded 2011-2018 harvest. Biomass per 2010 balance class.",
       "historical_stability_definition":"Same estimated pine or spruce >=60% of TOTALVOL in both 2005 and 2010. Other species not classified. Requires valid source pixels both years. No observed stand identity inferred.","species_2010_estimate_source":"SLU forest map 2010 PINEVOL, SPRUCEVOL, DECIDUOUSVOL original",
       "species_classification":"pine/spruce/DECIDUOUS>=60pct of their sum, >=20 total volume, <=20pct component-total closure difference; birch not additionally added to DECIDUOUS",
@@ -514,7 +548,8 @@ def run(args):
             "axis_classes_gran_tall":["10/90","20/80","30/70","40/60","50/50","60/40","70/30","80/20","90/10"],
             "source_computation":"SPRUCEVOL/(SPRUCEVOL+PINEVOL) per historical year",
             "forest_mask":"NMD2018 forest, no recorded harvest 2011-2018",
-            "cohorts":balance_output}
+            "cohorts":balance_output,
+            "age_volume_control":controlled_output}
         args.balance_web_output.parent.mkdir(parents=True,exist_ok=True)
         args.balance_web_output.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
