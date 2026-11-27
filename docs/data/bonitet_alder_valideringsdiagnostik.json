@@ -1,0 +1,131 @@
+{
+  "status": "MODEL_TO_MODEL_AGE_DIAGNOSTIC_NOT_OBSERVED_GROWTH",
+  "analysis_crs": "EPSG:3006",
+  "grid_cell_m": 25,
+  "same_cell_population": 1617197,
+  "source": "docs/data/gran_tall_balans_2005_2010.json",
+  "biomass_definition_caveat": "Only sums of existing modelled dry biomass; unit/biomass component equivalence still needs independent source validation.",
+  "critical_method_warning": "2015-2018 linear extrapolation is NOT bonitet-adjusted growth or independently measured biomass. Do not substitute values in maps.",
+  "age_group_results": [
+    {
+      "age_2010_bin": "20-40",
+      "cells": 223696,
+      "ha": 13981.0,
+      "modeled_mass_tTS": {
+        "2010": 630600.460709855,
+        "2015": 902014.0468747676,
+        "2018": 1044817.6299676355
+      },
+      "required_annual_change_tTS_ha_if_models_were_true": {
+        "2010_to_2015": 3.8826061964796894,
+        "2010_to_2018": 3.7033936168530555,
+        "2015_to_2018": 3.404705984141999
+      },
+      "linear_2015_2018_extrapolated_2010_tTS": 664008.0750533212,
+      "model2010_minus_extrapolated_tTS": -33407.61434346624
+    },
+    {
+      "age_2010_bin": "40-60",
+      "cells": 375439,
+      "ha": 23464.9375,
+      "modeled_mass_tTS": {
+        "2010": 1477201.1711912155,
+        "2015": 1629909.5104179184,
+        "2018": 1835982.940771252
+      },
+      "required_annual_change_tTS_ha_if_models_were_true": {
+        "2010_to_2015": 1.3015874363756812,
+        "2010_to_2018": 1.9112653164963491,
+        "2015_to_2018": 2.927395116697462
+      },
+      "linear_2015_2018_extrapolated_2010_tTS": 1286453.7931623627,
+      "model2010_minus_extrapolated_tTS": 190747.37802885287
+    },
+    {
+      "age_2010_bin": "60-80",
+      "cells": 443906,
+      "ha": 27744.125,
+      "modeled_mass_tTS": {
+        "2010": 2574210.9016500115,
+        "2015": 2268817.3697907557,
+        "2018": 2502378.3400093503
+      },
+      "required_annual_change_tTS_ha_if_models_were_true": {
+        "2010_to_2015": -2.2015005472996956,
+        "2010_to_2018": -0.3236386155657333,
+        "2015_to_2018": 2.8061312706575374
+      },
+      "linear_2015_2018_extrapolated_2010_tTS": 1879549.086093098,
+      "model2010_minus_extrapolated_tTS": 694661.8155569136
+    },
+    {
+      "age_2010_bin": "80-100",
+      "cells": 402149,
+      "ha": 25134.3125,
+      "modeled_mass_tTS": {
+        "2010": 3050471.837808013,
+        "2015": 2485377.958332855,
+        "2018": 2618567.8965988215
+      },
+      "required_annual_change_tTS_ha_if_models_were_true": {
+        "2010_to_2015": -4.496593089428312,
+        "2010_to_2018": -2.1479796851872885,
+        "2015_to_2018": 1.7663759885477501
+      },
+      "linear_2015_2018_extrapolated_2010_tTS": 2263394.727889577,
+      "model2010_minus_extrapolated_tTS": 787077.109918436
+    },
+    {
+      "age_2010_bin": "100-140",
+      "cells": 165537,
+      "ha": 10346.0625,
+      "modeled_mass_tTS": {
+        "2010": 1354289.5574282408,
+        "2015": 1069034.8697915776,
+        "2018": 1084632.6511409897
+      },
+      "required_annual_change_tTS_ha_if_models_were_true": {
+        "2010_to_2015": -5.5142656955080875,
+        "2010_to_2018": -3.2579653646888738,
+        "2015_to_2018": 0.5025351866764824
+      },
+      "linear_2015_2018_extrapolated_2010_tTS": 1043038.5675425573,
+      "model2010_minus_extrapolated_tTS": 311250.9898856835
+    },
+    {
+      "age_2010_bin": "140+",
+      "cells": 6470,
+      "ha": 404.375,
+      "modeled_mass_tTS": {
+        "2010": 75661.03255307674,
+        "2015": 38458.302083492694,
+        "2018": 38113.83874759264
+      },
+      "required_annual_change_tTS_ha_if_models_were_true": {
+        "2010_to_2015": -18.400113988047753,
+        "2010_to_2018": -11.60655140818674,
+        "2015_to_2018": -0.283947108418383
+      },
+      "linear_2015_2018_extrapolated_2010_tTS": 39032.407643326114,
+      "model2010_minus_extrapolated_tTS": 36628.62490975063
+    }
+  ],
+  "total_modelled_tTS": {
+    "2010": 9162434.961340412,
+    "2015": 8393612.057291368,
+    "2018": 9124493.297235642
+  },
+  "eligibility_rules": {
+    "current_status": "NO_SUBSTITUTE_APPROVAL",
+    "requirements": [
+      "Confirm all years compare identical live biomass components and physical units",
+      "Obtain spatial site index with verified source CRS, reference date and tree species; validate index for Lulea",
+      "Use documented age- and tree-species-dependent net growth model, handling mortality, harvest and thinning",
+      "Build cellwise 2010 reconstructed raster based independently on later anchors, with valid 2010 forest mask and NoData handling",
+      "Cross-check 2015 and 2018 reconstructions without tuning to match 2010",
+      "Validate on independent field/plot data and regional estimates, with uncertainty and spatial holdouts",
+      "Record overlap, exclusions and age/species/bonitet error statistics; version method and retain original rasters"
+    ],
+    "publication_policy": "Separate clearly-labelled alternative scenario layers only. Original 2010 remains default pending independent calibration."
+  }
+}
