@@ -11,7 +11,7 @@ const matrix=document.getElementById('granTallBalansMatrix');
 const summary=document.getElementById('granTallBalansSummary');
 const labels=['10/90','20/80','30/70','40/60','50/50','60/40','70/30','80/20','90/10'];
 const sv=(x,dec=1)=>Number(x).toLocaleString('sv-SE',{maximumFractionDigits:dec,minimumFractionDigits:dec});
-let distributionChart=null,biomassChart=null,changeChart=null,directionChart=null,source=null;
+let distributionChart=null,biomassChart=null,changeChart=null,directionChart=null,controlChart=null,source=null;
 const sourceURL='data/gran_tall_balans_2005_2010.json';
 function paintHeatmap(cohort){
   const counts=cohort.matrix_cells;
@@ -98,6 +98,39 @@ function paintCharts(cohort){
   }
 
 }
+function paintControlled(){
+  const el=document.getElementById('granTallControlledChart');
+  const statusEl=document.getElementById('granTallControlledStatus');
+  if(controlChart){controlChart.destroy();controlChart=null;}
+  if(!source||!source.age_volume_control){
+    if(statusEl)statusEl.textContent='Inväntar verifierade rasterresultat för ålder × volym från PR #127.';
+    return;
+  }
+  const d=source.age_volume_control;
+  const a=document.getElementById('granTallControlledAge').value;
+  const v=document.getElementById('granTallControlledVolume').value;
+  const selectedA=a==='all'?d.age_bins.map((_,i)=>i):[Number(a)];
+  const selectedV=v==='all'?d.volume_2010_bins.map((_,i)=>i):[Number(v)];
+  const counts=Array(9).fill(0),m10=Array(9).fill(0),m18=Array(9).fill(0);
+  for(const ai of selectedA)for(const vi of selectedV)for(let j=0;j<9;j++){
+    counts[j]+=d.cells_by_age_volume_balance[ai][vi][j];
+    m10[j]+=d.mass_tTS_by_age_volume_balance['2010'][ai][vi][j];
+    m18[j]+=d.mass_tTS_by_age_volume_balance['2018'][ai][vi][j];
+  }
+  const n=counts.reduce((p,q)=>p+q,0);
+  if(statusEl)statusEl.textContent='Gemensamma giltiga celler: '+sv(n,0)+', '+sv(n*.0625,1)+' ha. Tomma klasser visas utan värde. Jämför endast celler inom valt ålders- och volymintervall.';
+  if(!el||typeof Chart==='undefined')return;
+  const values=counts.map((cnt,j)=>cnt>0&&m10[j]>0?100*(m18[j]/m10[j]-1):null);
+  controlChart=new Chart(el,{type:'line',data:{labels,datasets:[{
+    label:'Modellerad biomassaskillnad 2018/2010 (%)',
+    data:values,borderColor:'#9a473d',backgroundColor:'#9a473d',pointRadius:5,borderWidth:3,spanGaps:false,tension:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{
+      label:c=>c.parsed.y===null?'Inga jämförbara celler':sv(c.parsed.y,2)+' % ('+sv(counts[c.dataIndex],0)+' celler)'}}},
+      scales:{x:{title:{display:true,text:'Gran/tall-balans 2010'}},
+       y:{title:{display:true,text:'2018 relativt 2010 (%)'}}}}});
+}
+document.getElementById('granTallControlledAge')?.addEventListener('change',paintControlled);
+document.getElementById('granTallControlledVolume')?.addEventListener('change',paintControlled);
 function render(){
   if(!source)return;
   const cohort=source.cohorts[ageSelect.value];
@@ -109,7 +142,7 @@ function render(){
     sv(diagonal/included*100||0,1)+' % ligger på balansmatrisens diagonal.';
   summary.textContent='Diagonalens andel visar oförändrad modellerad balansklass, inte bekräftat oförändrad skog. '+
     'Fördelningsdiagrammet har identisk area 2005/2010. Biomassadiagrammet grupperar samma celler efter balansklass 2010.';
-  paintHeatmap(cohort);paintCharts(cohort);
+  paintHeatmap(cohort);paintCharts(cohort);paintControlled();
 }
 ageSelect.addEventListener('change',render);
 fetch(sourceURL,{cache:'no-store'}).then(r=>{
