@@ -32,6 +32,7 @@ jobs:
         run: |
           python -m pip install -r requirements.txt
           python -m py_compile scripts/compare_biomass_species_age_harvest_2010_2018.py
+          python -m py_compile scripts/analyze_gran_tall_volume_bins.py
       - name: Verify 2010 species dominance with synthetic volume cells
         run: |
           PYTHONPATH=scripts python - <<'PY'
@@ -63,7 +64,9 @@ jobs:
                       'granTallBalansDistribution','granTallBalansBiomassa',
                       'granTallBalansDifference','granTallBalansDirection','granTallBalansDirectionStatus',
                       'granTallControlledChart','granTallControlledAge','granTallControlledVolume',
-                      'granTallControlledStatus'):
+                      'granTallControlledStatus',
+                      'granTallVolumeSensitivityChart','granTallVolumeSensitivityStatus',
+                      'granTallVolumeSensitivityTable'):
               assert html.count('id="'+key+'"')==1,key
           assert 'src="gran-tall-balans.js"' in html
           import numpy as np
