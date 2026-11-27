@@ -60,7 +60,8 @@ jobs:
           from pathlib import Path
           html=Path('docs/biomass-trend.html').read_text(encoding='utf-8')
           for key in ('granTallBalans','granTallBalansAge','granTallBalansMatrix',
-                      'granTallBalansDistribution','granTallBalansBiomassa'):
+                      'granTallBalansDistribution','granTallBalansBiomassa',
+                      'granTallBalansDifference','granTallBalansDirection','granTallBalansDirectionStatus'):
               assert html.count('id="'+key+'"')==1,key
           assert 'src="gran-tall-balans.js"' in html
           import numpy as np
@@ -231,7 +232,20 @@ jobs:
               assert [sum(row[j] for row in matrix) for j in range(9)]==cols
               expected=older['nmd2018_forest']['no_recorded_harvest']['all'][age]['cells']
               assert group['cells']+group['excluded_zero_pine_plus_spruce']==expected
+              transition=group['matrix_biomass_tTS']
+              assert len(group['matrix_biomass_difference_2018_vs_2010_pct'])==9
               for year in ('2010','2015','2018'):
+                  weighted=transition[year]
+                  assert len(weighted)==9 and all(len(row)==9 for row in weighted)
+                  for i in range(9):
+                      for j in range(9):
+                          assert weighted[i][j]>=0
+                          if not matrix[i][j]:
+                              assert abs(weighted[i][j])<.01
+                  assert all(math.isclose(
+                      sum(weighted[i][j] for i in range(9)),
+                      group['2010_balance_class_mass_tTS'][year][j],
+                      rel_tol=1e-9,abs_tol=.01) for j in range(9))
                   den=group['2010_balance_class_density_tTS_ha'][year]
                   mass=group['2010_balance_class_mass_tTS'][year]
                   for i in range(9):
