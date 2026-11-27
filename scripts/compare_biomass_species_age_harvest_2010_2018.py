@@ -132,7 +132,7 @@ def run(args):
                              for age in (20,60,80,100)}
     # Mutually exclusive age x volume strata, with balance class as 3rd axis.
     # Exact same 25m cells across every modeled year; volume is 2010 model.
-    CONTROL_AGES=((20,40),(40,60),(60,80),(80,100),(100,140),(140,500))
+    CONTROL_AGES=((20,40),(40,60),(60,80),(80,100),(100,140),(140,float("inf")))
     CONTROL_VOL=((0,50),(50,100),(100,200),(200,300),(300,float("inf")))
     controlled_counts=np.zeros((len(CONTROL_AGES),len(CONTROL_VOL),9),dtype="int64")
     controlled_mass={y:np.zeros_like(controlled_counts,dtype="float64") for y in YEARS}
@@ -499,7 +499,7 @@ def run(args):
                            atol=.02,rtol=1e-9):
             raise ValueError("Age-volume biomass totals do not reconcile")
     controlled_output={
-        "age_bins":[f"{a}-{b}" if b<500 else "140+" for a,b in CONTROL_AGES],
+        "age_bins":[f"{a}-{int(b)}" if math.isfinite(b) else "140+" for a,b in CONTROL_AGES],
         "volume_2010_bins":[f"{a}-{b}" if math.isfinite(b) else "300+" for a,b in CONTROL_VOL],
         "volume_measure":"original 2010 TOTALVOL model values (typically m3/ha; verify in source metadata)",
         "cells_by_age_volume_balance":controlled_counts.tolist(),
